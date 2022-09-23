@@ -1,0 +1,14 @@
+syntax = "proto3";
+package madeinblock.slashrefund.slashrefund;
+
+import "gogoproto/gogo.proto";
+import "slashrefund/params.proto";
+// this line is used by starport scaffolding # genesis/proto/import
+
+option go_package = "github.com/made-in-block/slash-refund/x/slashrefund/types";
+
+// GenesisState defines the slashrefund module's genesis state.
+message GenesisState {
+  Params params = 1 [(gogoproto.nullable) = false];
+  // this line is used by starport scaffolding # genesis/proto/state
+}

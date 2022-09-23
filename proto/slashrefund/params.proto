@@ -1,0 +1,12 @@
+syntax = "proto3";
+package madeinblock.slashrefund.slashrefund;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/made-in-block/slash-refund/x/slashrefund/types";
+
+// Params defines the parameters for the module.
+message Params {
+  option (gogoproto.goproto_stringer) = false;
+  
+}
