@@ -20,6 +20,8 @@ export interface RpcStatus {
   details?: ProtobufAny[];
 }
 
+export type SlashrefundMsgDepositResponse = object;
+
 /**
  * Params defines the parameters for the module.
  */
@@ -31,6 +33,17 @@ export type SlashrefundParams = object;
 export interface SlashrefundQueryParamsResponse {
   /** params holds all the parameters of this module. */
   params?: SlashrefundParams;
+}
+
+/**
+* Coin defines a token with a denomination and an amount.
+
+NOTE: The amount field is an Int which implements the custom method
+signatures required by gogoproto.
+*/
+export interface V1Beta1Coin {
+  denom?: string;
+  amount?: string;
 }
 
 export type QueryParamsType = Record<string | number, any>;

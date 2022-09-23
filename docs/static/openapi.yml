@@ -73236,6 +73236,8 @@ definitions:
     description: |-
       Version defines the versioning scheme used to negotiate the IBC verison in
       the connection handshake.
+  madeinblock.slashrefund.slashrefund.MsgDepositResponse:
+    type: object
   madeinblock.slashrefund.slashrefund.Params:
     type: object
     description: Params defines the parameters for the module.

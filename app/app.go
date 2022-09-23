@@ -491,6 +491,7 @@ func New(
 		keys[slashrefundmoduletypes.StoreKey],
 		keys[slashrefundmoduletypes.MemStoreKey],
 		app.GetSubspace(slashrefundmoduletypes.ModuleName),
+		app.BankKeeper,
 	)
 	slashrefundModule := slashrefundmodule.NewAppModule(appCodec, app.SlashrefundKeeper, app.AccountKeeper, app.BankKeeper)
 
