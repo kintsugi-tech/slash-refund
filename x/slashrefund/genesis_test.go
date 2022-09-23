@@ -14,6 +14,16 @@ func TestGenesis(t *testing.T) {
 	genesisState := types.GenesisState{
 		Params: types.DefaultParams(),
 
+		DepositList: []types.Deposit{
+			{
+				Address:          "0",
+				ValidatorAddress: "0",
+			},
+			{
+				Address:          "1",
+				ValidatorAddress: "1",
+			},
+		},
 		// this line is used by starport scaffolding # genesis/test/state
 	}
 
@@ -25,5 +35,6 @@ func TestGenesis(t *testing.T) {
 	nullify.Fill(&genesisState)
 	nullify.Fill(got)
 
+	require.ElementsMatch(t, genesisState.DepositList, got.DepositList)
 	// this line is used by starport scaffolding # genesis/test/assert
 }
