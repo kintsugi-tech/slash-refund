@@ -44141,7 +44141,21 @@ paths:
                     validatorAddress:
                       type: string
                     balance:
-                      type: string
+                      type: object
+                      properties:
+                        denom:
+                          type: string
+                        amount:
+                          type: string
+                      description: >-
+                        Coin defines a token with a denomination and an amount.
+
+
+                        NOTE: The amount field is an Int which implements the
+                        custom method
+
+                        signatures required by gogoproto.
+                  description: 'TODO: this name could be not so clear.'
               pagination:
                 type: object
                 properties:
@@ -44265,7 +44279,21 @@ paths:
                   validatorAddress:
                     type: string
                   balance:
-                    type: string
+                    type: object
+                    properties:
+                      denom:
+                        type: string
+                      amount:
+                        type: string
+                    description: >-
+                      Coin defines a token with a denomination and an amount.
+
+
+                      NOTE: The amount field is an Int which implements the
+                      custom method
+
+                      signatures required by gogoproto.
+                description: 'TODO: this name could be not so clear.'
         default:
           description: An unexpected error response.
           schema:
@@ -73418,7 +73446,18 @@ definitions:
       validatorAddress:
         type: string
       balance:
-        type: string
+        type: object
+        properties:
+          denom:
+            type: string
+          amount:
+            type: string
+        description: |-
+          Coin defines a token with a denomination and an amount.
+
+          NOTE: The amount field is an Int which implements the custom method
+          signatures required by gogoproto.
+    description: 'TODO: this name could be not so clear.'
   madeinblock.slashrefund.slashrefund.MsgDepositResponse:
     type: object
   madeinblock.slashrefund.slashrefund.Params:
@@ -73437,7 +73476,21 @@ definitions:
             validatorAddress:
               type: string
             balance:
-              type: string
+              type: object
+              properties:
+                denom:
+                  type: string
+                amount:
+                  type: string
+              description: >-
+                Coin defines a token with a denomination and an amount.
+
+
+                NOTE: The amount field is an Int which implements the custom
+                method
+
+                signatures required by gogoproto.
+          description: 'TODO: this name could be not so clear.'
       pagination:
         type: object
         properties:
@@ -73475,7 +73528,21 @@ definitions:
           validatorAddress:
             type: string
           balance:
-            type: string
+            type: object
+            properties:
+              denom:
+                type: string
+              amount:
+                type: string
+            description: >-
+              Coin defines a token with a denomination and an amount.
+
+
+              NOTE: The amount field is an Int which implements the custom
+              method
+
+              signatures required by gogoproto.
+        description: 'TODO: this name could be not so clear.'
   madeinblock.slashrefund.slashrefund.QueryParamsResponse:
     type: object
     properties:

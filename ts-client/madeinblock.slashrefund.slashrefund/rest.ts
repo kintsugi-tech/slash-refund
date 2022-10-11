@@ -20,10 +20,20 @@ export interface RpcStatus {
   details?: ProtobufAny[];
 }
 
+/**
+ * TODO: this name could be not so clear.
+ */
 export interface SlashrefundDeposit {
   address?: string;
   validatorAddress?: string;
-  balance?: string;
+
+  /**
+   * Coin defines a token with a denomination and an amount.
+   *
+   * NOTE: The amount field is an Int which implements the custom method
+   * signatures required by gogoproto.
+   */
+  balance?: V1Beta1Coin;
 }
 
 export type SlashrefundMsgDepositResponse = object;
@@ -49,6 +59,7 @@ export interface SlashrefundQueryAllDepositResponse {
 }
 
 export interface SlashrefundQueryGetDepositResponse {
+  /** TODO: this name could be not so clear. */
   deposit?: SlashrefundDeposit;
 }
 

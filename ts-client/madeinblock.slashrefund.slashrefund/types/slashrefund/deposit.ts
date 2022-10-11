@@ -1,15 +1,17 @@
 /* eslint-disable */
+import { Coin } from "../cosmos/base/v1beta1/coin";
 import { Writer, Reader } from "protobufjs/minimal";
 
 export const protobufPackage = "madeinblock.slashrefund.slashrefund";
 
+/** TODO: this name could be not so clear. */
 export interface Deposit {
   address: string;
   validatorAddress: string;
-  balance: string;
+  balance: Coin | undefined;
 }
 
-const baseDeposit: object = { address: "", validatorAddress: "", balance: "" };
+const baseDeposit: object = { address: "", validatorAddress: "" };
 
 export const Deposit = {
   encode(message: Deposit, writer: Writer = Writer.create()): Writer {
@@ -19,8 +21,8 @@ export const Deposit = {
     if (message.validatorAddress !== "") {
       writer.uint32(18).string(message.validatorAddress);
     }
-    if (message.balance !== "") {
-      writer.uint32(26).string(message.balance);
+    if (message.balance !== undefined) {
+      Coin.encode(message.balance, writer.uint32(26).fork()).ldelim();
     }
     return writer;
   },
@@ -39,7 +41,7 @@ export const Deposit = {
           message.validatorAddress = reader.string();
           break;
         case 3:
-          message.balance = reader.string();
+          message.balance = Coin.decode(reader, reader.uint32());
           break;
         default:
           reader.skipType(tag & 7);
@@ -65,9 +67,9 @@ export const Deposit = {
       message.validatorAddress = "";
     }
     if (object.balance !== undefined && object.balance !== null) {
-      message.balance = String(object.balance);
+      message.balance = Coin.fromJSON(object.balance);
     } else {
-      message.balance = "";
+      message.balance = undefined;
     }
     return message;
   },
@@ -77,7 +79,10 @@ export const Deposit = {
     message.address !== undefined && (obj.address = message.address);
     message.validatorAddress !== undefined &&
       (obj.validatorAddress = message.validatorAddress);
-    message.balance !== undefined && (obj.balance = message.balance);
+    message.balance !== undefined &&
+      (obj.balance = message.balance
+        ? Coin.toJSON(message.balance)
+        : undefined);
     return obj;
   },
 
@@ -97,9 +102,9 @@ export const Deposit = {
       message.validatorAddress = "";
     }
     if (object.balance !== undefined && object.balance !== null) {
-      message.balance = object.balance;
+      message.balance = Coin.fromPartial(object.balance);
     } else {
-      message.balance = "";
+      message.balance = undefined;
     }
     return message;
   },
