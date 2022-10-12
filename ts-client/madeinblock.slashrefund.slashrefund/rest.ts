@@ -151,6 +151,8 @@ export interface SlashrefundDeposit {
 
 export type SlashrefundMsgDepositResponse = object;
 
+export type SlashrefundMsgWithdrawResponse = object;
+
 /**
  * Params defines the parameters for the module.
  */

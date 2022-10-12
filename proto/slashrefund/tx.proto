@@ -12,6 +12,7 @@ option go_package = "github.com/made-in-block/slash-refund/x/slashrefund/types";
 // Msg defines the Msg service.
 service Msg {
       rpc Deposit(MsgDeposit) returns (MsgDepositResponse);
+  rpc Withdraw(MsgWithdraw) returns (MsgWithdrawResponse);
 // this line is used by starport scaffolding # proto/tx/rpc
 }
 
@@ -22,6 +23,15 @@ message MsgDeposit {
 }
 
 message MsgDepositResponse {
+}
+
+message MsgWithdraw {
+  string creator = 1;
+  string validator_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false];;
+}
+
+message MsgWithdrawResponse {
 }
 
 // this line is used by starport scaffolding # proto/tx/message
