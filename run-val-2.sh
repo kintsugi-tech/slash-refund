@@ -29,3 +29,5 @@ screen -S "val2" -dm slash-refundd start --home $FOLDER
 # Create validator tx
 PUBKEY=$(slash-refundd tendermint show-validator --home $FOLDER)
 slash-refundd tx staking create-validator -y --from pippo --amount 10000000stake --commission-max-change-rate 1 --commission-max-rate 1 --commission-rate 1 --moniker "dimi2" --home $FOLDER --pubkey ''"$PUBKEY"'' --min-self-delegation 1
+slash-refundd tx staking delegate cosmosvaloper1f58m57pcn99r0wdktq07q29uld0uherjatc48z 100000000stake --from bob --home $FOLDER -y
+slash-refundd tx slashrefund deposit cosmosvaloper1f58m57pcn99r0wdktq07q29uld0uherjatc48z 69000000stake --from alice --home $FOLDER -y
