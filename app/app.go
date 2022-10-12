@@ -493,8 +493,9 @@ func New(
 		keys[slashrefundmoduletypes.MemStoreKey],
 		app.GetSubspace(slashrefundmoduletypes.ModuleName),
 		app.BankKeeper,
+		app.StakingKeeper,
 	)
-	slashrefundModule := slashrefundmodule.NewAppModule(appCodec, app.SlashrefundKeeper, app.AccountKeeper, app.BankKeeper)
+	slashrefundModule := slashrefundmodule.NewAppModule(appCodec, app.SlashrefundKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper)
 
 	// this line is used by starport scaffolding # stargate/app/keeperDefinition
 
