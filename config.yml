@@ -22,7 +22,10 @@ faucet:
 init:
   home: ".dimi-sr-test"
   config:
-    log_level: "error"
+    fast_sync: false
+    log_level: error
+    p2p:
+      allow_duplicate_ip: true
 genesis:
   app_state:
     slashing: 
