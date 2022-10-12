@@ -2,17 +2,23 @@
 import { Timestamp } from "../google/protobuf/timestamp";
 import * as Long from "long";
 import { util, configure, Writer, Reader } from "protobufjs/minimal";
-import { Deposit } from "../slashrefund/deposit";
+import { Coin } from "../cosmos/base/v1beta1/coin";
 
 export const protobufPackage = "madeinblock.slashrefund.slashrefund";
 
 export interface UnbondingDeposit {
   id: number;
   unbondingStart: Date | undefined;
-  deposit: Deposit | undefined;
+  address: string;
+  validatorAddress: string;
+  balance: Coin | undefined;
 }
 
-const baseUnbondingDeposit: object = { id: 0 };
+const baseUnbondingDeposit: object = {
+  id: 0,
+  address: "",
+  validatorAddress: "",
+};
 
 export const UnbondingDeposit = {
   encode(message: UnbondingDeposit, writer: Writer = Writer.create()): Writer {
@@ -25,8 +31,14 @@ export const UnbondingDeposit = {
         writer.uint32(18).fork()
       ).ldelim();
     }
-    if (message.deposit !== undefined) {
-      Deposit.encode(message.deposit, writer.uint32(26).fork()).ldelim();
+    if (message.address !== "") {
+      writer.uint32(26).string(message.address);
+    }
+    if (message.validatorAddress !== "") {
+      writer.uint32(34).string(message.validatorAddress);
+    }
+    if (message.balance !== undefined) {
+      Coin.encode(message.balance, writer.uint32(42).fork()).ldelim();
     }
     return writer;
   },
@@ -47,7 +59,13 @@ export const UnbondingDeposit = {
           );
           break;
         case 3:
-          message.deposit = Deposit.decode(reader, reader.uint32());
+          message.address = reader.string();
+          break;
+        case 4:
+          message.validatorAddress = reader.string();
+          break;
+        case 5:
+          message.balance = Coin.decode(reader, reader.uint32());
           break;
         default:
           reader.skipType(tag & 7);
@@ -69,10 +87,23 @@ export const UnbondingDeposit = {
     } else {
       message.unbondingStart = undefined;
     }
-    if (object.deposit !== undefined && object.deposit !== null) {
-      message.deposit = Deposit.fromJSON(object.deposit);
+    if (object.address !== undefined && object.address !== null) {
+      message.address = String(object.address);
     } else {
-      message.deposit = undefined;
+      message.address = "";
+    }
+    if (
+      object.validatorAddress !== undefined &&
+      object.validatorAddress !== null
+    ) {
+      message.validatorAddress = String(object.validatorAddress);
+    } else {
+      message.validatorAddress = "";
+    }
+    if (object.balance !== undefined && object.balance !== null) {
+      message.balance = Coin.fromJSON(object.balance);
+    } else {
+      message.balance = undefined;
     }
     return message;
   },
@@ -85,9 +116,12 @@ export const UnbondingDeposit = {
         message.unbondingStart !== undefined
           ? message.unbondingStart.toISOString()
           : null);
-    message.deposit !== undefined &&
-      (obj.deposit = message.deposit
-        ? Deposit.toJSON(message.deposit)
+    message.address !== undefined && (obj.address = message.address);
+    message.validatorAddress !== undefined &&
+      (obj.validatorAddress = message.validatorAddress);
+    message.balance !== undefined &&
+      (obj.balance = message.balance
+        ? Coin.toJSON(message.balance)
         : undefined);
     return obj;
   },
@@ -104,10 +138,23 @@ export const UnbondingDeposit = {
     } else {
       message.unbondingStart = undefined;
     }
-    if (object.deposit !== undefined && object.deposit !== null) {
-      message.deposit = Deposit.fromPartial(object.deposit);
+    if (object.address !== undefined && object.address !== null) {
+      message.address = object.address;
     } else {
-      message.deposit = undefined;
+      message.address = "";
+    }
+    if (
+      object.validatorAddress !== undefined &&
+      object.validatorAddress !== null
+    ) {
+      message.validatorAddress = object.validatorAddress;
+    } else {
+      message.validatorAddress = "";
+    }
+    if (object.balance !== undefined && object.balance !== null) {
+      message.balance = Coin.fromPartial(object.balance);
+    } else {
+      message.balance = undefined;
     }
     return message;
   },

@@ -6,6 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 	"github.com/spf13/cobra"
 )
@@ -26,10 +27,15 @@ func CmdWithdraw() *cobra.Command {
 				return err
 			}
 
+			amount, err := sdk.ParseCoinNormalized(argAmount)
+			if err != nil {
+				return err
+			}
+
 			msg := types.NewMsgWithdraw(
 				clientCtx.GetFromAddress().String(),
 				argValidatorAddress,
-				argAmount,
+				amount,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err

@@ -15,7 +15,7 @@ export interface MsgDepositResponse {}
 export interface MsgWithdraw {
   creator: string;
   validatorAddress: string;
-  amount: string;
+  amount: Coin | undefined;
 }
 
 export interface MsgWithdrawResponse {}
@@ -155,11 +155,7 @@ export const MsgDepositResponse = {
   },
 };
 
-const baseMsgWithdraw: object = {
-  creator: "",
-  validatorAddress: "",
-  amount: "",
-};
+const baseMsgWithdraw: object = { creator: "", validatorAddress: "" };
 
 export const MsgWithdraw = {
   encode(message: MsgWithdraw, writer: Writer = Writer.create()): Writer {
@@ -169,8 +165,8 @@ export const MsgWithdraw = {
     if (message.validatorAddress !== "") {
       writer.uint32(18).string(message.validatorAddress);
     }
-    if (message.amount !== "") {
-      writer.uint32(26).string(message.amount);
+    if (message.amount !== undefined) {
+      Coin.encode(message.amount, writer.uint32(26).fork()).ldelim();
     }
     return writer;
   },
@@ -189,7 +185,7 @@ export const MsgWithdraw = {
           message.validatorAddress = reader.string();
           break;
         case 3:
-          message.amount = reader.string();
+          message.amount = Coin.decode(reader, reader.uint32());
           break;
         default:
           reader.skipType(tag & 7);
@@ -215,9 +211,9 @@ export const MsgWithdraw = {
       message.validatorAddress = "";
     }
     if (object.amount !== undefined && object.amount !== null) {
-      message.amount = String(object.amount);
+      message.amount = Coin.fromJSON(object.amount);
     } else {
-      message.amount = "";
+      message.amount = undefined;
     }
     return message;
   },
@@ -227,7 +223,8 @@ export const MsgWithdraw = {
     message.creator !== undefined && (obj.creator = message.creator);
     message.validatorAddress !== undefined &&
       (obj.validatorAddress = message.validatorAddress);
-    message.amount !== undefined && (obj.amount = message.amount);
+    message.amount !== undefined &&
+      (obj.amount = message.amount ? Coin.toJSON(message.amount) : undefined);
     return obj;
   },
 
@@ -247,9 +244,9 @@ export const MsgWithdraw = {
       message.validatorAddress = "";
     }
     if (object.amount !== undefined && object.amount !== null) {
-      message.amount = object.amount;
+      message.amount = Coin.fromPartial(object.amount);
     } else {
-      message.amount = "";
+      message.amount = undefined;
     }
     return message;
   },
