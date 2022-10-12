@@ -11,7 +11,7 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	sender, _ := sdk.AccAddressFromBech32(msg.Creator)
-	
+
 	// TODO: add param for allowed tokens
 	// TODO: check if allowed token.
 

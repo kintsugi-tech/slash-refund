@@ -32,6 +32,15 @@ func TestGenesisState_Validate(t *testing.T) {
 						ValidatorAddress: "1",
 					},
 				},
+				UnbondingDepositList: []types.UnbondingDeposit{
+					{
+						Id: 0,
+					},
+					{
+						Id: 1,
+					},
+				},
+				UnbondingDepositCount: 2,
 				// this line is used by starport scaffolding # types/genesis/validField
 			},
 			valid: true,
@@ -49,6 +58,32 @@ func TestGenesisState_Validate(t *testing.T) {
 						ValidatorAddress: "0",
 					},
 				},
+			},
+			valid: false,
+		},
+		{
+			desc: "duplicated unbondingDeposit",
+			genState: &types.GenesisState{
+				UnbondingDepositList: []types.UnbondingDeposit{
+					{
+						Id: 0,
+					},
+					{
+						Id: 0,
+					},
+				},
+			},
+			valid: false,
+		},
+		{
+			desc: "invalid unbondingDeposit count",
+			genState: &types.GenesisState{
+				UnbondingDepositList: []types.UnbondingDeposit{
+					{
+						Id: 1,
+					},
+				},
+				UnbondingDepositCount: 0,
 			},
 			valid: false,
 		},

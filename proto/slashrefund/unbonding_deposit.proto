@@ -1,0 +1,17 @@
+syntax = "proto3";
+package madeinblock.slashrefund.slashrefund;
+
+import "gogoproto/gogo.proto";
+import "google/protobuf/any.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/made-in-block/slash-refund/x/slashrefund/types";
+import "slashrefund/deposit.proto"; 
+
+message UnbondingDeposit {
+  uint64 id = 1;
+  google.protobuf.Timestamp unbondingStart = 2 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true]; 
+  Deposit deposit = 3; 
+  
+}

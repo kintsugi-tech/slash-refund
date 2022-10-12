@@ -2,9 +2,10 @@ import { Client, registry, MissingWalletError } from 'made-in-block-slash-refund
 
 import { Deposit } from "made-in-block-slash-refund-client-ts/madeinblock.slashrefund.slashrefund/types"
 import { Params } from "made-in-block-slash-refund-client-ts/madeinblock.slashrefund.slashrefund/types"
+import { UnbondingDeposit } from "made-in-block-slash-refund-client-ts/madeinblock.slashrefund.slashrefund/types"
 
 
-export { Deposit, Params };
+export { Deposit, Params, UnbondingDeposit };
 
 function initClient(vuexGetters) {
 	return new Client(vuexGetters['common/env/getEnv'], vuexGetters['common/wallet/signer'])
@@ -38,10 +39,13 @@ const getDefaultState = () => {
 				Params: {},
 				Deposit: {},
 				DepositAll: {},
+				UnbondingDeposit: {},
+				UnbondingDepositAll: {},
 				
 				_Structure: {
 						Deposit: getStructure(Deposit.fromPartial({})),
 						Params: getStructure(Params.fromPartial({})),
+						UnbondingDeposit: getStructure(UnbondingDeposit.fromPartial({})),
 						
 		},
 		_Registry: registry,
@@ -87,6 +91,18 @@ export default {
 						(<any> params).query=null
 					}
 			return state.DepositAll[JSON.stringify(params)] ?? {}
+		},
+				getUnbondingDeposit: (state) => (params = { params: {}}) => {
+					if (!(<any> params).query) {
+						(<any> params).query=null
+					}
+			return state.UnbondingDeposit[JSON.stringify(params)] ?? {}
+		},
+				getUnbondingDepositAll: (state) => (params = { params: {}}) => {
+					if (!(<any> params).query) {
+						(<any> params).query=null
+					}
+			return state.UnbondingDepositAll[JSON.stringify(params)] ?? {}
 		},
 				
 		getTypeStructure: (state) => (type) => {
@@ -187,6 +203,54 @@ export default {
 				return getters['getDepositAll']( { params: {...key}, query}) ?? {}
 			} catch (e) {
 				throw new Error('QueryClient:QueryDepositAll API Node Unavailable. Could not perform query: ' + e.message)
+				
+			}
+		},
+		
+		
+		
+		
+		 		
+		
+		
+		async QueryUnbondingDeposit({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
+			try {
+				const key = params ?? {};
+				const client = initClient(rootGetters);
+				let value= (await client.MadeinblockSlashrefundSlashrefund.query.queryUnbondingDeposit( key.id)).data
+				
+					
+				commit('QUERY', { query: 'UnbondingDeposit', key: { params: {...key}, query}, value })
+				if (subscribe) commit('SUBSCRIBE', { action: 'QueryUnbondingDeposit', payload: { options: { all }, params: {...key},query }})
+				return getters['getUnbondingDeposit']( { params: {...key}, query}) ?? {}
+			} catch (e) {
+				throw new Error('QueryClient:QueryUnbondingDeposit API Node Unavailable. Could not perform query: ' + e.message)
+				
+			}
+		},
+		
+		
+		
+		
+		 		
+		
+		
+		async QueryUnbondingDepositAll({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
+			try {
+				const key = params ?? {};
+				const client = initClient(rootGetters);
+				let value= (await client.MadeinblockSlashrefundSlashrefund.query.queryUnbondingDepositAll(query ?? undefined)).data
+				
+					
+				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
+					let next_values=(await client.MadeinblockSlashrefundSlashrefund.query.queryUnbondingDepositAll({...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
+					value = mergeResults(value, next_values);
+				}
+				commit('QUERY', { query: 'UnbondingDepositAll', key: { params: {...key}, query}, value })
+				if (subscribe) commit('SUBSCRIBE', { action: 'QueryUnbondingDepositAll', payload: { options: { all }, params: {...key},query }})
+				return getters['getUnbondingDepositAll']( { params: {...key}, query}) ?? {}
+			} catch (e) {
+				throw new Error('QueryClient:QueryUnbondingDepositAll API Node Unavailable. Could not perform query: ' + e.message)
 				
 			}
 		},
