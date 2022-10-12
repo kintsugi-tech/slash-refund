@@ -4,3 +4,7 @@ release/
 .idea/
 .vscode/
 .DS_Store
+ts-client/*
+.dimi-sr-test
+.dimi-sr-test-2
+.dimi-sr-test-3

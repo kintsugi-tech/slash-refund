@@ -3,6 +3,9 @@ accounts:
     coins: ["20000token", "200000000stake"]
   - name: bob
     coins: ["10000token", "100000000stake"]
+  - name: pippo
+    coins: ["20000token", "200000000stake"]
+    mnemonic: "dragon shrimp eyebrow guide vendor cover find vital draw catalog coconut venture lyrics supply almost skull apple oil apology illegal apple sugar charge ring"
 validator:
   name: alice
   staked: "100000000stake"
@@ -16,3 +19,12 @@ client:
 faucet:
   name: bob
   coins: ["5token", "100000stake"]
+init:
+  home: ".dimi-sr-test"
+  config:
+    log_level: "error"
+genesis:
+  app_state:
+    slashing: 
+      params:
+        signed_blocks_window: 35
