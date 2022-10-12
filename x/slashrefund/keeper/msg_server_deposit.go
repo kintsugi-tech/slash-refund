@@ -12,7 +12,8 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 
 	sender, _ := sdk.AccAddressFromBech32(msg.Creator)
 	
-	// Check che msg.Balance.denom === "Un certo denom"
+	// TODO: add param for allowed tokens
+	// TODO: check if allowed token.
 
 	err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleName, sdk.Coins{msg.Amount})
 	if err != nil {
