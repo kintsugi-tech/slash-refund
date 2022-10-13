@@ -3,6 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 )
 
 func (keeper Keeper) GetValidatorByConsAddrBytes(ctx sdk.Context, consAddr []byte) (validator stakingtypes.Validator, found bool) {
@@ -24,4 +25,8 @@ func (keeper Keeper) IterateValidatorDelegations(ctx sdk.Context, consAddr []byt
 	for _, delegation := range delegations {
 		keeper.Logger(ctx).Error("delegation", "addr", delegation.DelegatorAddress, "shares", delegation.Shares)
 	}
+}
+
+func (keeper Keeper) ProcessRefunds(cts sdk.Context, slashEvents []types.SlashEvent) {
+
 }

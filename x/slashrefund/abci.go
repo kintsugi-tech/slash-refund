@@ -4,6 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	"github.com/made-in-block/slash-refund/x/slashrefund/keeper"
+	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
@@ -13,6 +14,8 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k keeper.Keeper) 
 
 	logger.Error("Height", "height", ctx.BlockHeight())
 
+	var slashEvents []types.SlashEvent
+
 	events := ctx.EventManager().Events()
 
 	// Iterate all events in this block
@@ -21,29 +24,38 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k keeper.Keeper) 
 		// Check if we have a slashing event
 		if event.Type == slashingtypes.EventTypeSlash {
 
-			// Iterate attributes to find which validators has been slashed
+			slashEvent := types.SlashEvent{}
+
+			// Iterate attributes to fill event details in list
 			for _, attr := range event.Attributes {
 
-				// Check if validator has a deposit ready to use as refund
+				// Convert validtor address
 				if string(attr.GetKey()) == "address" {
 					validator, _ := k.GetValidatorByConsAddrBytes(ctx, attr.GetValue())
-					deposits, total := k.GetDepositOfValidator(ctx, validator.GetOperator())
+					// TODO: handle not ok
+					slashEvent.Validator = validator
+				}
 
-					logger.Error("deposits", "dep", len(deposits), "tot", total)
+				// Convert slashed amount
+				if string(attr.GetKey()) == "burned_coins" {
+					amount, _ := sdk.NewIntFromString(string(attr.GetValue()))
 
-					// skip if we don't have any deposit
-					if len(deposits) == 0 || total.Amount.LTE(sdk.NewInt(0)) {
-						return
-					}
+					// TODO handle not ok
+					slashEvent.Amount = amount
+				}
 
-					// Check how much we should refund
-
-					// Refund users
-
+				// Copy reason
+				if string(attr.GetKey()) == "reason" {
+					slashEvent.Reason = string(attr.GetValue())
 				}
 				return
 			}
+
+			// append to the list
+			slashEvents = append(slashEvents, slashEvent)
 		}
 	}
 
+	// Process refunds
+	k.ProcessRefunds(ctx, slashEvents)
 }
