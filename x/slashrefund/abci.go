@@ -11,38 +11,39 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k keeper.Keeper) 
 
 	logger := k.Logger(ctx)
 
-	logger.Error("Begin Blocker")
+	logger.Error("Height", "height", ctx.BlockHeight())
 
 	events := ctx.EventManager().Events()
 
-	logger.Error("B Events:", "len", len(events))
-
+	// Iterate all events in this block
 	for _, event := range events {
-		logger.Error("Ricevuto evento", "type", event.Type)
 
+		// Check if we have a slashing event
 		if event.Type == slashingtypes.EventTypeSlash {
-			logger.Error("Attributi", "attr", event.Attributes)
+
+			// Iterate attributes to find which validators has been slashed
 			for _, attr := range event.Attributes {
-				logger.Error("Attribute", "key", attr.GetKey(), "value", attr.GetValue())
+
+				// Check if validator has a deposit ready to use as refund
+				if string(attr.GetKey()) == "address" {
+					validator, _ := k.GetValidatorByConsAddrBytes(ctx, attr.GetValue())
+					deposits, total := k.GetDepositOfValidator(ctx, validator.GetOperator())
+
+					logger.Error("deposits", "dep", len(deposits), "tot", total)
+
+					// skip if we don't have any deposit
+					if len(deposits) == 0 || total.Amount.LTE(sdk.NewInt(0)) {
+						return
+					}
+
+					// Check how much we should refund
+
+					// Refund users
+
+				}
+				return
 			}
 		}
 	}
 
-}
-
-func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
-
-	logger := k.Logger(ctx)
-
-	logger.Error("End Blocker")
-
-	events := ctx.EventManager().Events()
-
-	logger.Error("Events: ", "len", len(events))
-
-	for _, event := range events {
-		logger.Error("Ricevuto evento", "type", event.Type)
-	}
-
-	return
 }
