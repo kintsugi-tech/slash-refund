@@ -85,5 +85,36 @@ func (k Keeper) GetDepositOfValidator(ctx sdk.Context, valAddr sdk.ValAddress) (
 		}
 	}
 
+	// TODO: Use staking module denom from param
 	return valDeposits, sdk.NewCoin("stake", totalDeposit)
+}
+
+// Slash balance in proportional way to all the elements of a list
+func (k Keeper) SlashDepositsProportionally(ctx sdk.Context, deposits []types.Deposit, totalRefund sdk.Int, totalDeposit sdk.Int) {
+
+	// Examples
+	// Validator total insurance deposit: 1000
+	// Validator slash 500
+	// Deposit 1 900: 900 * (slash/deposit) = 450 slash
+	// Deposit 2 100: 100 * (slash/deposit) = 50 slash
+	// --
+	// Validator total insurance deposit: 500
+	// Validator slash 500
+	// Deposit 1 400: 400 * (slash/deposit) = 400 slash
+	// Deposit 2 100: 100 * (slash/deposit) = 100 slash
+
+	// Calculate ratio
+	ratio := sdk.NewDecFromInt(totalRefund)
+	ratio = ratio.QuoInt(totalDeposit)
+
+	for _, deposit := range deposits {
+
+		// if ratio = 1, simply delete all deposits 🔥
+		if ratio.Equal(sdk.NewDec(1)) {
+			k.RemoveDeposit(ctx, deposit.Address, deposit.ValidatorAddress)
+			continue
+		}
+
+		k.Logger(ctx).Error("lol", deposit)
+	}
 }

@@ -48,7 +48,6 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k keeper.Keeper) 
 				if string(attr.GetKey()) == "reason" {
 					slashEvent.Reason = string(attr.GetValue())
 				}
-				return
 			}
 
 			// append to the list
@@ -57,5 +56,7 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k keeper.Keeper) 
 	}
 
 	// Process refunds
-	k.ProcessRefunds(ctx, slashEvents)
+	if len(slashEvents) > 0 {
+		k.ProcessRefunds(ctx, slashEvents)
+	}
 }
