@@ -2,7 +2,7 @@ package keeper
 
 import (
 	"encoding/binary"
-
+	"time"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
@@ -103,4 +103,29 @@ func GetUnbondingDepositIDBytes(id uint64) []byte {
 // GetUnbondingDepositIDFromBytes returns ID in uint64 format from a byte array
 func GetUnbondingDepositIDFromBytes(bz []byte) uint64 {
 	return binary.BigEndian.Uint64(bz)
+}
+
+/// CUSTOM IMPLEMENTATIONS
+// GetUnbondingDeposit returns a unbondingDeposit from its id
+func (k Keeper) SendUnbondedTokens(ctx sdk.Context) {
+
+	logger := k.Logger(ctx)
+	logger.Error("Bella ziiiii")
+
+	candidate_unbonding, isFound := k.GetUnbondingDeposit(ctx, uint64(0))
+
+	if isFound {
+		if candidate_unbonding.UnbondingStart.After(ctx.BlockTime().Add(120 * time.Second)) {
+		}
+		/*
+		for i := 1; uint64(i) <= k.GetUnbondingDepositCount(ctx); i++ {
+
+			// Se unbondati
+			err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, sender, sdk.Coins{msg.Amount})
+			if err != nil {
+				return nil, err
+			}
+		}
+		*/
+	}
 }
