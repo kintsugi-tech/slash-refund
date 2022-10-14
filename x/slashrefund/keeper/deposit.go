@@ -67,9 +67,11 @@ func (k Keeper) GetAllDeposit(ctx sdk.Context) (list []types.Deposit) {
 	return
 }
 
-// GetDeposits of specific validator (TODO: Handle secondary tokens ie. stATOM)
-func (k Keeper) GetDepositOfValidator(ctx sdk.Context, valAddr sdk.ValAddress) (list []types.Deposit, total sdk.Coin) {
 
+// CUSTOM IMPLEMENTATIONS
+// GetDeposits of specific validator 
+func (k Keeper) GetDepositOfValidator(ctx sdk.Context, valAddr sdk.ValAddress) (list []types.Deposit, total sdk.Coin) {
+// TODO: Handle secondary tokens ie. stATOM
 	deposits := k.GetAllDeposit(ctx)
 
 	var valDeposits []types.Deposit
@@ -79,7 +81,6 @@ func (k Keeper) GetDepositOfValidator(ctx sdk.Context, valAddr sdk.ValAddress) (
 	for _, deposit := range deposits {
 
 		if deposit.ValidatorAddress == valAddr.String() {
-
 			valDeposits = append(valDeposits, deposit)
 			totalDeposit = totalDeposit.Add(deposit.Balance.Amount)
 		}

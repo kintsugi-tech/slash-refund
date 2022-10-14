@@ -3,6 +3,7 @@ package keeper
 import (
 	"encoding/binary"
 	"time"
+
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
@@ -105,27 +106,52 @@ func GetUnbondingDepositIDFromBytes(bz []byte) uint64 {
 	return binary.BigEndian.Uint64(bz)
 }
 
-/// CUSTOM IMPLEMENTATIONS
-// GetUnbondingDeposit returns a unbondingDeposit from its id
+// CUSTOM IMPLEMENTATIONS
+// Return unbonded tokens to their owners.
 func (k Keeper) SendUnbondedTokens(ctx sdk.Context) {
 
 	logger := k.Logger(ctx)
-	logger.Error("Bella ziiiii")
 
-	candidate_unbonding, isFound := k.GetUnbondingDeposit(ctx, uint64(0))
+	unbonding_deposits := k.GetAllUnbondingDeposit(ctx)
 
-	if isFound {
-		if candidate_unbonding.UnbondingStart.After(ctx.BlockTime().Add(120 * time.Second)) {
+	var unboded_deposits []types.UnbondingDeposit
+	for _, unbonding_deposit := range unbonding_deposits {
+		// List of unbonded deposit to return to owners
+
+		logger.Error("Check token da restituire")
+		unbonding_time := unbonding_deposit.UnbondingStart.Add(10 * time.Second)
+		// If the oldest UnbondingDeposit is unbonded check for the next one, else break
+		if ctx.BlockTime().After(unbonding_time) {
+			logger.Error("Un unbonding verrà restituito")
+			unboded_deposits = append(unboded_deposits, unbonding_deposit)
+		} else {
+			break
 		}
-		/*
-		for i := 1; uint64(i) <= k.GetUnbondingDepositCount(ctx); i++ {
 
-			// Se unbondati
-			err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, sender, sdk.Coins{msg.Amount})
-			if err != nil {
-				return nil, err
-			}
-		}
-		*/
 	}
+
+	n_unbonded_deposits := len(unboded_deposits)
+
+	for _, unbonded_deposit := range unboded_deposits {
+
+		k.RemoveUnbondingDeposit(ctx, 0)
+
+		sender, _ := sdk.AccAddressFromBech32(unbonded_deposit.Address)
+
+		logger.Error("Restituzione..")
+		err := k.bankKeeper.SendCoinsFromModuleToAccount(
+			ctx,
+			types.ModuleName,
+			sender,
+			sdk.Coins{unbonded_deposit.Balance},
+		)
+		if err != nil {
+			logger.Error(err.Error())
+			return
+		}
+		logger.Error("..completata")
+	}
+
+	k.SetUnbondingDepositCount(ctx, uint64(len(unboded_deposits)-n_unbonded_deposits))
+
 }

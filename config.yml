@@ -20,7 +20,6 @@ faucet:
   name: bob
   coins: ["5token", "100000stake"]
 init:
-  home: ".dimi-sr-test"
   config:
     fast_sync: false
     log_level: error
@@ -28,6 +27,6 @@ init:
       allow_duplicate_ip: true
 genesis:
   app_state:
-    slashing: 
+    slashing:
       params:
         signed_blocks_window: 35

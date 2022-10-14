@@ -46,4 +46,6 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k keeper.Keeper) 
 		}
 	}
 
+	k.SendUnbondedTokens(ctx)
+
 }
