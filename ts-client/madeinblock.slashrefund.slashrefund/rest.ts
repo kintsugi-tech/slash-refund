@@ -146,7 +146,9 @@ export type SlashrefundMsgWithdrawResponse = object;
 /**
  * Params defines the parameters for the module.
  */
-export type SlashrefundParams = object;
+export interface SlashrefundParams {
+  allowedTokens?: string;
+}
 
 export interface SlashrefundQueryAllDepositResponse {
   deposit?: SlashrefundDeposit[];

@@ -4,12 +4,17 @@ import { Writer, Reader } from "protobufjs/minimal";
 export const protobufPackage = "madeinblock.slashrefund.slashrefund";
 
 /** Params defines the parameters for the module. */
-export interface Params {}
+export interface Params {
+  allowedTokens: string;
+}
 
-const baseParams: object = {};
+const baseParams: object = { allowedTokens: "" };
 
 export const Params = {
-  encode(_: Params, writer: Writer = Writer.create()): Writer {
+  encode(message: Params, writer: Writer = Writer.create()): Writer {
+    if (message.allowedTokens !== "") {
+      writer.uint32(10).string(message.allowedTokens);
+    }
     return writer;
   },
 
@@ -20,6 +25,9 @@ export const Params = {
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
+        case 1:
+          message.allowedTokens = reader.string();
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -28,18 +36,30 @@ export const Params = {
     return message;
   },
 
-  fromJSON(_: any): Params {
+  fromJSON(object: any): Params {
     const message = { ...baseParams } as Params;
+    if (object.allowedTokens !== undefined && object.allowedTokens !== null) {
+      message.allowedTokens = String(object.allowedTokens);
+    } else {
+      message.allowedTokens = "";
+    }
     return message;
   },
 
-  toJSON(_: Params): unknown {
+  toJSON(message: Params): unknown {
     const obj: any = {};
+    message.allowedTokens !== undefined &&
+      (obj.allowedTokens = message.allowedTokens);
     return obj;
   },
 
-  fromPartial(_: DeepPartial<Params>): Params {
+  fromPartial(object: DeepPartial<Params>): Params {
     const message = { ...baseParams } as Params;
+    if (object.allowedTokens !== undefined && object.allowedTokens !== null) {
+      message.allowedTokens = object.allowedTokens;
+    } else {
+      message.allowedTokens = "";
+    }
     return message;
   },
 };

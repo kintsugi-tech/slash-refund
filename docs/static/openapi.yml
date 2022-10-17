@@ -44431,8 +44431,22 @@ paths:
                     type: string
                   validator_address:
                     type: string
-                  shares:
-                    type: string
+                  balance:
+                    type: object
+                    properties:
+                      denom:
+                        type: string
+                      amount:
+                        type: string
+                    description: >-
+                      Coin defines a token with a denomination and an amount.
+
+
+                      NOTE: The amount field is an Int which implements the
+                      custom method
+
+                      signatures required by gogoproto.
+                description: 'TODO: this name could be not so clear.'
         default:
           description: An unexpected error response.
           schema:
@@ -44642,6 +44656,9 @@ paths:
               params:
                 description: params holds all the parameters of this module.
                 type: object
+                properties:
+                  allowedTokens:
+                    type: string
             description: >-
               QueryParamsResponse is response type for the Query/Params RPC
               method.
@@ -74461,14 +74478,28 @@ definitions:
         type: string
       validator_address:
         type: string
-      shares:
-        type: string
+      balance:
+        type: object
+        properties:
+          denom:
+            type: string
+          amount:
+            type: string
+        description: |-
+          Coin defines a token with a denomination and an amount.
+
+          NOTE: The amount field is an Int which implements the custom method
+          signatures required by gogoproto.
+    description: 'TODO: this name could be not so clear.'
   madeinblock.slashrefund.slashrefund.MsgDepositResponse:
     type: object
   madeinblock.slashrefund.slashrefund.MsgWithdrawResponse:
     type: object
   madeinblock.slashrefund.slashrefund.Params:
     type: object
+    properties:
+      allowedTokens:
+        type: string
     description: Params defines the parameters for the module.
   madeinblock.slashrefund.slashrefund.QueryAllDepositResponse:
     type: object
@@ -74482,8 +74513,22 @@ definitions:
               type: string
             validator_address:
               type: string
-            shares:
-              type: string
+            balance:
+              type: object
+              properties:
+                denom:
+                  type: string
+                amount:
+                  type: string
+              description: >-
+                Coin defines a token with a denomination and an amount.
+
+
+                NOTE: The amount field is an Int which implements the custom
+                method
+
+                signatures required by gogoproto.
+          description: 'TODO: this name could be not so clear.'
       pagination:
         type: object
         properties:
@@ -74579,8 +74624,22 @@ definitions:
             type: string
           validator_address:
             type: string
-          shares:
-            type: string
+          balance:
+            type: object
+            properties:
+              denom:
+                type: string
+              amount:
+                type: string
+            description: >-
+              Coin defines a token with a denomination and an amount.
+
+
+              NOTE: The amount field is an Int which implements the custom
+              method
+
+              signatures required by gogoproto.
+        description: 'TODO: this name could be not so clear.'
   madeinblock.slashrefund.slashrefund.QueryGetUnbondingDepositResponse:
     type: object
     properties:
@@ -74618,6 +74677,9 @@ definitions:
       params:
         description: params holds all the parameters of this module.
         type: object
+        properties:
+          allowedTokens:
+            type: string
     description: QueryParamsResponse is response type for the Query/Params RPC method.
   madeinblock.slashrefund.slashrefund.UnbondingDeposit:
     type: object
