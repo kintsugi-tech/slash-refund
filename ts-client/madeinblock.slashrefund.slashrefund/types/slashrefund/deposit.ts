@@ -4,7 +4,6 @@ import { Writer, Reader } from "protobufjs/minimal";
 
 export const protobufPackage = "madeinblock.slashrefund.slashrefund";
 
-/** TODO: this name could be not so clear. */
 export interface Deposit {
   address: string;
   validatorAddress: string;

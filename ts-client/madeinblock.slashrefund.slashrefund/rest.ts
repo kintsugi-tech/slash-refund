@@ -133,9 +133,6 @@ export interface RpcStatus {
   details?: ProtobufAny[];
 }
 
-/**
- * TODO: this name could be not so clear.
- */
 export interface SlashrefundDeposit {
   address?: string;
   validatorAddress?: string;
@@ -156,7 +153,9 @@ export type SlashrefundMsgWithdrawResponse = object;
 /**
  * Params defines the parameters for the module.
  */
-export type SlashrefundParams = object;
+export interface SlashrefundParams {
+  allowedTokens?: string;
+}
 
 export interface SlashrefundQueryAllDepositResponse {
   deposit?: SlashrefundDeposit[];
@@ -189,7 +188,6 @@ export interface SlashrefundQueryAllUnbondingDepositResponse {
 }
 
 export interface SlashrefundQueryGetDepositResponse {
-  /** TODO: this name could be not so clear. */
   deposit?: SlashrefundDeposit;
 }
 

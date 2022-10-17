@@ -25,7 +25,6 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// TODO: this name could be not so clear.
 type Deposit struct {
 	Address          string     `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
 	ValidatorAddress string     `protobuf:"bytes,2,opt,name=validatorAddress,proto3" json:"validatorAddress,omitempty"`
