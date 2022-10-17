@@ -19,7 +19,7 @@ service Query {
   }
   // Queries a Deposit by index.
 	rpc Deposit(QueryGetDepositRequest) returns (QueryGetDepositResponse) {
-		option (google.api.http).get = "/made-in-block/slash-refund/slashrefund/deposit/{address}/{validatorAddress}";
+		option (google.api.http).get = "/made-in-block/slash-refund/slashrefund/deposit/{depositorAddress}/{validatorAddress}";
 	}
 
 	// Queries a list of Deposit items.
@@ -50,7 +50,7 @@ message QueryParamsResponse {
 }
 
 message QueryGetDepositRequest {
-	  string address = 1;
+  string depositorAddress = 1;
   string validatorAddress = 2;
 
 }

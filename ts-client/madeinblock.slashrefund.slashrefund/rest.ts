@@ -133,20 +133,10 @@ export interface RpcStatus {
   details?: ProtobufAny[];
 }
 
-/**
- * TODO: this name could be not so clear.
- */
 export interface SlashrefundDeposit {
-  address?: string;
-  validatorAddress?: string;
-
-  /**
-   * Coin defines a token with a denomination and an amount.
-   *
-   * NOTE: The amount field is an Int which implements the custom method
-   * signatures required by gogoproto.
-   */
-  balance?: V1Beta1Coin;
+  depositor_address?: string;
+  validator_address?: string;
+  shares?: string;
 }
 
 export type SlashrefundMsgDepositResponse = object;
@@ -189,7 +179,6 @@ export interface SlashrefundQueryAllUnbondingDepositResponse {
 }
 
 export interface SlashrefundQueryGetDepositResponse {
-  /** TODO: this name could be not so clear. */
   deposit?: SlashrefundDeposit;
 }
 
@@ -211,7 +200,7 @@ export interface SlashrefundUnbondingDeposit {
 
   /** @format date-time */
   unbondingStart?: string;
-  address?: string;
+  depositorAddress?: string;
   validatorAddress?: string;
 
   /**
@@ -530,11 +519,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
    * @tags Query
    * @name QueryDeposit
    * @summary Queries a Deposit by index.
-   * @request GET:/made-in-block/slash-refund/slashrefund/deposit/{address}/{validatorAddress}
+   * @request GET:/made-in-block/slash-refund/slashrefund/deposit/{depositorAddress}/{validatorAddress}
    */
-  queryDeposit = (address: string, validatorAddress: string, params: RequestParams = {}) =>
+  queryDeposit = (depositorAddress: string, validatorAddress: string, params: RequestParams = {}) =>
     this.request<SlashrefundQueryGetDepositResponse, RpcStatus>({
-      path: `/made-in-block/slash-refund/slashrefund/deposit/${address}/${validatorAddress}`,
+      path: `/made-in-block/slash-refund/slashrefund/deposit/${depositorAddress}/${validatorAddress}`,
       method: "GET",
       format: "json",
       ...params,

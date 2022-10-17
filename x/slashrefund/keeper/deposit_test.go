@@ -18,7 +18,7 @@ var _ = strconv.IntSize
 func createNDeposit(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.Deposit {
 	items := make([]types.Deposit, n)
 	for i := range items {
-		items[i].Address = strconv.Itoa(i)
+		items[i].DepositorAddress = strconv.Itoa(i)
 		items[i].ValidatorAddress = strconv.Itoa(i)
 
 		keeper.SetDeposit(ctx, items[i])
@@ -31,8 +31,8 @@ func TestDepositGet(t *testing.T) {
 	items := createNDeposit(keeper, ctx, 10)
 	for _, item := range items {
 		rst, found := keeper.GetDeposit(ctx,
-			item.Address,
-			item.ValidatorAddress,
+			sdk.AccAddress(item.DepositorAddress),
+			sdk.ValAddress(item.ValidatorAddress),
 		)
 		require.True(t, found)
 		require.Equal(t,
@@ -46,12 +46,11 @@ func TestDepositRemove(t *testing.T) {
 	items := createNDeposit(keeper, ctx, 10)
 	for _, item := range items {
 		keeper.RemoveDeposit(ctx,
-			item.Address,
-			item.ValidatorAddress,
+			items[0],
 		)
 		_, found := keeper.GetDeposit(ctx,
-			item.Address,
-			item.ValidatorAddress,
+			sdk.AccAddress(item.DepositorAddress),
+			sdk.ValAddress(item.ValidatorAddress),
 		)
 		require.False(t, found)
 	}

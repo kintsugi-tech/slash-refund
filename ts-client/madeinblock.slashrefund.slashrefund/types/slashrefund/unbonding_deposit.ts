@@ -9,14 +9,14 @@ export const protobufPackage = "madeinblock.slashrefund.slashrefund";
 export interface UnbondingDeposit {
   id: number;
   unbondingStart: Date | undefined;
-  address: string;
+  depositorAddress: string;
   validatorAddress: string;
   balance: Coin | undefined;
 }
 
 const baseUnbondingDeposit: object = {
   id: 0,
-  address: "",
+  depositorAddress: "",
   validatorAddress: "",
 };
 
@@ -31,8 +31,8 @@ export const UnbondingDeposit = {
         writer.uint32(18).fork()
       ).ldelim();
     }
-    if (message.address !== "") {
-      writer.uint32(26).string(message.address);
+    if (message.depositorAddress !== "") {
+      writer.uint32(26).string(message.depositorAddress);
     }
     if (message.validatorAddress !== "") {
       writer.uint32(34).string(message.validatorAddress);
@@ -59,7 +59,7 @@ export const UnbondingDeposit = {
           );
           break;
         case 3:
-          message.address = reader.string();
+          message.depositorAddress = reader.string();
           break;
         case 4:
           message.validatorAddress = reader.string();
@@ -87,10 +87,13 @@ export const UnbondingDeposit = {
     } else {
       message.unbondingStart = undefined;
     }
-    if (object.address !== undefined && object.address !== null) {
-      message.address = String(object.address);
+    if (
+      object.depositorAddress !== undefined &&
+      object.depositorAddress !== null
+    ) {
+      message.depositorAddress = String(object.depositorAddress);
     } else {
-      message.address = "";
+      message.depositorAddress = "";
     }
     if (
       object.validatorAddress !== undefined &&
@@ -116,7 +119,8 @@ export const UnbondingDeposit = {
         message.unbondingStart !== undefined
           ? message.unbondingStart.toISOString()
           : null);
-    message.address !== undefined && (obj.address = message.address);
+    message.depositorAddress !== undefined &&
+      (obj.depositorAddress = message.depositorAddress);
     message.validatorAddress !== undefined &&
       (obj.validatorAddress = message.validatorAddress);
     message.balance !== undefined &&
@@ -138,10 +142,13 @@ export const UnbondingDeposit = {
     } else {
       message.unbondingStart = undefined;
     }
-    if (object.address !== undefined && object.address !== null) {
-      message.address = object.address;
+    if (
+      object.depositorAddress !== undefined &&
+      object.depositorAddress !== null
+    ) {
+      message.depositorAddress = object.depositorAddress;
     } else {
-      message.address = "";
+      message.depositorAddress = "";
     }
     if (
       object.validatorAddress !== undefined &&

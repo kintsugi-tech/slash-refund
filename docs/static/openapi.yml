@@ -44136,26 +44136,12 @@ paths:
                 items:
                   type: object
                   properties:
-                    address:
+                    depositor_address:
                       type: string
-                    validatorAddress:
+                    validator_address:
                       type: string
-                    balance:
-                      type: object
-                      properties:
-                        denom:
-                          type: string
-                        amount:
-                          type: string
-                      description: >-
-                        Coin defines a token with a denomination and an amount.
-
-
-                        NOTE: The amount field is an Int which implements the
-                        custom method
-
-                        signatures required by gogoproto.
-                  description: 'TODO: this name could be not so clear.'
+                    shares:
+                      type: string
               pagination:
                 type: object
                 properties:
@@ -44428,7 +44414,7 @@ paths:
           type: boolean
       tags:
         - Query
-  '/made-in-block/slash-refund/slashrefund/deposit/{address}/{validatorAddress}':
+  '/made-in-block/slash-refund/slashrefund/deposit/{depositorAddress}/{validatorAddress}':
     get:
       summary: Queries a Deposit by index.
       operationId: MadeinblockSlashrefundSlashrefundDeposit
@@ -44441,26 +44427,12 @@ paths:
               deposit:
                 type: object
                 properties:
-                  address:
+                  depositor_address:
                     type: string
-                  validatorAddress:
+                  validator_address:
                     type: string
-                  balance:
-                    type: object
-                    properties:
-                      denom:
-                        type: string
-                      amount:
-                        type: string
-                    description: >-
-                      Coin defines a token with a denomination and an amount.
-
-
-                      NOTE: The amount field is an Int which implements the
-                      custom method
-
-                      signatures required by gogoproto.
-                description: 'TODO: this name could be not so clear.'
+                  shares:
+                    type: string
         default:
           description: An unexpected error response.
           schema:
@@ -44647,7 +44619,7 @@ paths:
                           "value": "1.212s"
                         }
       parameters:
-        - name: address
+        - name: depositorAddress
           in: path
           required: true
           type: string
@@ -44881,7 +44853,7 @@ paths:
                     unbondingStart:
                       type: string
                       format: date-time
-                    address:
+                    depositorAddress:
                       type: string
                     validatorAddress:
                       type: string
@@ -45191,7 +45163,7 @@ paths:
                   unbondingStart:
                     type: string
                     format: date-time
-                  address:
+                  depositorAddress:
                     type: string
                   validatorAddress:
                     type: string
@@ -74485,23 +74457,12 @@ definitions:
   madeinblock.slashrefund.slashrefund.Deposit:
     type: object
     properties:
-      address:
+      depositor_address:
         type: string
-      validatorAddress:
+      validator_address:
         type: string
-      balance:
-        type: object
-        properties:
-          denom:
-            type: string
-          amount:
-            type: string
-        description: |-
-          Coin defines a token with a denomination and an amount.
-
-          NOTE: The amount field is an Int which implements the custom method
-          signatures required by gogoproto.
-    description: 'TODO: this name could be not so clear.'
+      shares:
+        type: string
   madeinblock.slashrefund.slashrefund.MsgDepositResponse:
     type: object
   madeinblock.slashrefund.slashrefund.MsgWithdrawResponse:
@@ -74517,26 +74478,12 @@ definitions:
         items:
           type: object
           properties:
-            address:
+            depositor_address:
               type: string
-            validatorAddress:
+            validator_address:
               type: string
-            balance:
-              type: object
-              properties:
-                denom:
-                  type: string
-                amount:
-                  type: string
-              description: >-
-                Coin defines a token with a denomination and an amount.
-
-
-                NOTE: The amount field is an Int which implements the custom
-                method
-
-                signatures required by gogoproto.
-          description: 'TODO: this name could be not so clear.'
+            shares:
+              type: string
       pagination:
         type: object
         properties:
@@ -74577,7 +74524,7 @@ definitions:
             unbondingStart:
               type: string
               format: date-time
-            address:
+            depositorAddress:
               type: string
             validatorAddress:
               type: string
@@ -74628,26 +74575,12 @@ definitions:
       deposit:
         type: object
         properties:
-          address:
+          depositor_address:
             type: string
-          validatorAddress:
+          validator_address:
             type: string
-          balance:
-            type: object
-            properties:
-              denom:
-                type: string
-              amount:
-                type: string
-            description: >-
-              Coin defines a token with a denomination and an amount.
-
-
-              NOTE: The amount field is an Int which implements the custom
-              method
-
-              signatures required by gogoproto.
-        description: 'TODO: this name could be not so clear.'
+          shares:
+            type: string
   madeinblock.slashrefund.slashrefund.QueryGetUnbondingDepositResponse:
     type: object
     properties:
@@ -74660,7 +74593,7 @@ definitions:
           unbondingStart:
             type: string
             format: date-time
-          address:
+          depositorAddress:
             type: string
           validatorAddress:
             type: string
@@ -74695,7 +74628,7 @@ definitions:
       unbondingStart:
         type: string
         format: date-time
-      address:
+      depositorAddress:
         type: string
       validatorAddress:
         type: string

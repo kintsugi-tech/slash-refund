@@ -16,11 +16,11 @@ func TestGenesis(t *testing.T) {
 
 		DepositList: []types.Deposit{
 			{
-				Address:          "0",
+				DepositorAddress:          "0",
 				ValidatorAddress: "0",
 			},
 			{
-				Address:          "1",
+				DepositorAddress:          "1",
 				ValidatorAddress: "1",
 			},
 		},

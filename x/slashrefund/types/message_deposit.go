@@ -9,9 +9,9 @@ const TypeMsgDeposit = "deposit"
 
 var _ sdk.Msg = &MsgDeposit{}
 
-func NewMsgDeposit(creator string, validatorAddress string, amount sdk.Coin) *MsgDeposit {
+func NewMsgDeposit(depositorAddress string, validatorAddress string, amount sdk.Coin) *MsgDeposit {
 	return &MsgDeposit{
-		Creator:          creator,
+		DepositorAddress: depositorAddress,
 		ValidatorAddress: validatorAddress,
 		Amount:           amount,
 	}
@@ -26,11 +26,11 @@ func (msg *MsgDeposit) Type() string {
 }
 
 func (msg *MsgDeposit) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.Creator)
+	depositor, err := sdk.AccAddressFromBech32(msg.DepositorAddress)
 	if err != nil {
 		panic(err)
 	}
-	return []sdk.AccAddress{creator}
+	return []sdk.AccAddress{depositor}
 }
 
 func (msg *MsgDeposit) GetSignBytes() []byte {
@@ -39,7 +39,7 @@ func (msg *MsgDeposit) GetSignBytes() []byte {
 }
 
 func (msg *MsgDeposit) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Creator)
+	_, err := sdk.AccAddressFromBech32(msg.DepositorAddress)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}

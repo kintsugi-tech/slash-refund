@@ -1,6 +1,10 @@
 package types
 
-import "encoding/binary"
+import (
+	"encoding/binary"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+)
+
 
 var _ binary.ByteOrder
 
@@ -11,17 +15,17 @@ const (
 
 // DepositKey returns the store key to retrieve a Deposit from the index fields
 func DepositKey(
-	address string,
-	validatorAddress string,
+	depAddr sdk.AccAddress,
+	valAddr sdk.ValAddress,
 ) []byte {
 	var key []byte
 
-	addressBytes := []byte(address)
-	key = append(key, addressBytes...)
+	depAddrBytes := []byte(depAddr)
+	key = append(key, depAddrBytes...)
 	key = append(key, []byte("/")...)
 
-	validatorAddressBytes := []byte(validatorAddress)
-	key = append(key, validatorAddressBytes...)
+	valAddrBytes := []byte(valAddr)
+	key = append(key, valAddrBytes...)
 	key = append(key, []byte("/")...)
 
 	return key

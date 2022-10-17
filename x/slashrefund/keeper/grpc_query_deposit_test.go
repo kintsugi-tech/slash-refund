@@ -31,7 +31,7 @@ func TestDepositQuerySingle(t *testing.T) {
 		{
 			desc: "First",
 			request: &types.QueryGetDepositRequest{
-				Address:          msgs[0].Address,
+				DepositorAddress: msgs[0].DepositorAddress,
 				ValidatorAddress: msgs[0].ValidatorAddress,
 			},
 			response: &types.QueryGetDepositResponse{Deposit: msgs[0]},
@@ -39,7 +39,7 @@ func TestDepositQuerySingle(t *testing.T) {
 		{
 			desc: "Second",
 			request: &types.QueryGetDepositRequest{
-				Address:          msgs[1].Address,
+				DepositorAddress: msgs[1].DepositorAddress,
 				ValidatorAddress: msgs[1].ValidatorAddress,
 			},
 			response: &types.QueryGetDepositResponse{Deposit: msgs[1]},
@@ -47,7 +47,7 @@ func TestDepositQuerySingle(t *testing.T) {
 		{
 			desc: "KeyNotFound",
 			request: &types.QueryGetDepositRequest{
-				Address:          strconv.Itoa(100000),
+				DepositorAddress: strconv.Itoa(100000),
 				ValidatorAddress: strconv.Itoa(100000),
 			},
 			err: status.Error(codes.NotFound, "not found"),

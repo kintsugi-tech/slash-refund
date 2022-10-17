@@ -11,7 +11,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (k Keeper) DepositAll(c context.Context, req *types.QueryAllDepositRequest) (*types.QueryAllDepositResponse, error) {
+func (k Querier) DepositAll(c context.Context, req *types.QueryAllDepositRequest) (*types.QueryAllDepositResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -39,7 +39,8 @@ func (k Keeper) DepositAll(c context.Context, req *types.QueryAllDepositRequest)
 	return &types.QueryAllDepositResponse{Deposit: deposits, Pagination: pageRes}, nil
 }
 
-func (k Keeper) Deposit(c context.Context, req *types.QueryGetDepositRequest) (*types.QueryGetDepositResponse, error) {
+// TODO: aggiunta q a caso di query
+func (k Querier) Deposit(c context.Context, req *types.QueryGetDepositRequest) (*types.QueryGetDepositResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -47,8 +48,8 @@ func (k Keeper) Deposit(c context.Context, req *types.QueryGetDepositRequest) (*
 
 	val, found := k.GetDeposit(
 		ctx,
-		req.Address,
-		req.ValidatorAddress,
+		sdk.AccAddress(req.DepositorAddress),
+		sdk.ValAddress(req.ValidatorAddress),
 	)
 	if !found {
 		return nil, status.Error(codes.NotFound, "not found")

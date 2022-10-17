@@ -2,6 +2,8 @@ package types
 
 import (
 	"fmt"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // DefaultIndex is the default global index
@@ -24,7 +26,17 @@ func (gs GenesisState) Validate() error {
 	depositIndexMap := make(map[string]struct{})
 
 	for _, elem := range gs.DepositList {
-		index := string(DepositKey(elem.Address, elem.ValidatorAddress))
+
+		depositor, err := sdk.AccAddressFromBech32(elem.DepositorAddress)
+		if err != nil {
+			return err
+		}
+
+		validator, err := sdk.ValAddressFromBech32(elem.ValidatorAddress)
+		if err != nil {
+			return err
+		}
+		index := string(DepositKey(depositor, validator))
 		if _, ok := depositIndexMap[index]; ok {
 			return fmt.Errorf("duplicated index for deposit")
 		}

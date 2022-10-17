@@ -2,8 +2,7 @@ package keeper
 
 import (
 	"context"
-	"errors"
-
+	
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 )
@@ -11,13 +10,15 @@ import (
 func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*types.MsgWithdrawResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	_ = ctx
 	// sender, _ := sdk.AccAddressFromBech32(msg.Creator)
 
-	deposit, isFound := k.GetDeposit(ctx, msg.Creator, msg.ValidatorAddress)
+	/*
+	deposit, isFound := k.GetDeposit(ctx, sdk.AccAddress(msg.DepositorAddress), sdk.ValAddress(msg.ValidatorAddress))
 
 	if !isFound {
 		return nil, errors.New("Don't fuck with mib")
-	} else if deposit.Balance.Amount.LT(msg.Amount.Amount) {
+	} else if deposit.Shares.Amount.LT(msg.Amount.Amount) {
 		return nil, errors.New("Too much zio")
 	}
 
@@ -40,6 +41,8 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 	}
 
 	k.AppendUnbondingDeposit(ctx, unbonding_deposit)
+
+	*/
 
 	return &types.MsgWithdrawResponse{}, nil
 }

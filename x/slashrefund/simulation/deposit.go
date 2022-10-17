@@ -19,7 +19,7 @@ func SimulateMsgDeposit(
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		simAccount, _ := simtypes.RandomAcc(r, accs)
 		msg := &types.MsgDeposit{
-			Creator: simAccount.Address.String(),
+			DepositorAddress: simAccount.Address.String(),
 		}
 
 		// TODO: Handling the Deposit simulation

@@ -62,15 +62,15 @@ func request_Query_Deposit_0(ctx context.Context, marshaler runtime.Marshaler, c
 		_   = err
 	)
 
-	val, ok = pathParams["address"]
+	val, ok = pathParams["depositorAddress"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "address")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "depositorAddress")
 	}
 
-	protoReq.Address, err = runtime.String(val)
+	protoReq.DepositorAddress, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "address", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "depositorAddress", err)
 	}
 
 	val, ok = pathParams["validatorAddress"]
@@ -100,15 +100,15 @@ func local_request_Query_Deposit_0(ctx context.Context, marshaler runtime.Marsha
 		_   = err
 	)
 
-	val, ok = pathParams["address"]
+	val, ok = pathParams["depositorAddress"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "address")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "depositorAddress")
 	}
 
-	protoReq.Address, err = runtime.String(val)
+	protoReq.DepositorAddress, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "address", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "depositorAddress", err)
 	}
 
 	val, ok = pathParams["validatorAddress"]
@@ -521,7 +521,7 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 var (
 	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"made-in-block", "slash-refund", "slashrefund", "params"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_Deposit_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 1, 0, 4, 1, 5, 5}, []string{"made-in-block", "slash-refund", "slashrefund", "deposit", "address", "validatorAddress"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Deposit_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 1, 0, 4, 1, 5, 5}, []string{"made-in-block", "slash-refund", "slashrefund", "deposit", "depositorAddress", "validatorAddress"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_Query_DepositAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"made-in-block", "slash-refund", "slashrefund", "deposit"}, "", runtime.AssumeColonVerbOpt(true)))
 

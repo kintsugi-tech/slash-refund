@@ -169,7 +169,7 @@ export default {
 			try {
 				const key = params ?? {};
 				const client = initClient(rootGetters);
-				let value= (await client.MadeinblockSlashrefundSlashrefund.query.queryDeposit( key.address,  key.validatorAddress)).data
+				let value= (await client.MadeinblockSlashrefundSlashrefund.query.queryDeposit( key.depositorAddress,  key.validatorAddress)).data
 				
 					
 				commit('QUERY', { query: 'Deposit', key: { params: {...key}, query}, value })

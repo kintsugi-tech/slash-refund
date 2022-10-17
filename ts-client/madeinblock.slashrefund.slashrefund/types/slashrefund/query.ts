@@ -21,7 +21,7 @@ export interface QueryParamsResponse {
 }
 
 export interface QueryGetDepositRequest {
-  address: string;
+  depositorAddress: string;
   validatorAddress: string;
 }
 
@@ -153,7 +153,7 @@ export const QueryParamsResponse = {
 };
 
 const baseQueryGetDepositRequest: object = {
-  address: "",
+  depositorAddress: "",
   validatorAddress: "",
 };
 
@@ -162,8 +162,8 @@ export const QueryGetDepositRequest = {
     message: QueryGetDepositRequest,
     writer: Writer = Writer.create()
   ): Writer {
-    if (message.address !== "") {
-      writer.uint32(10).string(message.address);
+    if (message.depositorAddress !== "") {
+      writer.uint32(10).string(message.depositorAddress);
     }
     if (message.validatorAddress !== "") {
       writer.uint32(18).string(message.validatorAddress);
@@ -179,7 +179,7 @@ export const QueryGetDepositRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.address = reader.string();
+          message.depositorAddress = reader.string();
           break;
         case 2:
           message.validatorAddress = reader.string();
@@ -194,10 +194,13 @@ export const QueryGetDepositRequest = {
 
   fromJSON(object: any): QueryGetDepositRequest {
     const message = { ...baseQueryGetDepositRequest } as QueryGetDepositRequest;
-    if (object.address !== undefined && object.address !== null) {
-      message.address = String(object.address);
+    if (
+      object.depositorAddress !== undefined &&
+      object.depositorAddress !== null
+    ) {
+      message.depositorAddress = String(object.depositorAddress);
     } else {
-      message.address = "";
+      message.depositorAddress = "";
     }
     if (
       object.validatorAddress !== undefined &&
@@ -212,7 +215,8 @@ export const QueryGetDepositRequest = {
 
   toJSON(message: QueryGetDepositRequest): unknown {
     const obj: any = {};
-    message.address !== undefined && (obj.address = message.address);
+    message.depositorAddress !== undefined &&
+      (obj.depositorAddress = message.depositorAddress);
     message.validatorAddress !== undefined &&
       (obj.validatorAddress = message.validatorAddress);
     return obj;
@@ -222,10 +226,13 @@ export const QueryGetDepositRequest = {
     object: DeepPartial<QueryGetDepositRequest>
   ): QueryGetDepositRequest {
     const message = { ...baseQueryGetDepositRequest } as QueryGetDepositRequest;
-    if (object.address !== undefined && object.address !== null) {
-      message.address = object.address;
+    if (
+      object.depositorAddress !== undefined &&
+      object.depositorAddress !== null
+    ) {
+      message.depositorAddress = object.depositorAddress;
     } else {
-      message.address = "";
+      message.depositorAddress = "";
     }
     if (
       object.validatorAddress !== undefined &&

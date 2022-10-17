@@ -17,13 +17,13 @@ func TestMsgDeposit_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid address",
 			msg: MsgDeposit{
-				Creator: "invalid_address",
+				DepositorAddress: "invalid_address",
 			},
 			err: sdkerrors.ErrInvalidAddress,
 		}, {
 			name: "valid address",
 			msg: MsgDeposit{
-				Creator: sample.AccAddress(),
+				DepositorAddress: sample.AccAddress(),
 			},
 		},
 	}

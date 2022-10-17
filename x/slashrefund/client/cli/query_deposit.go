@@ -52,11 +52,11 @@ func CmdShowDeposit() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			argAddress := args[0]
+			argDepositorAddress := args[0]
 			argValidatorAddress := args[1]
 
 			params := &types.QueryGetDepositRequest{
-				Address:          argAddress,
+				DepositorAddress: argDepositorAddress,
 				ValidatorAddress: argValidatorAddress,
 			}
 

@@ -9,9 +9,9 @@ const TypeMsgWithdraw = "withdraw"
 
 var _ sdk.Msg = &MsgWithdraw{}
 
-func NewMsgWithdraw(creator string, validatorAddress string, amount sdk.Coin) *MsgWithdraw {
+func NewMsgWithdraw(depositorAddress string, validatorAddress string, amount sdk.Coin) *MsgWithdraw {
 	return &MsgWithdraw{
-		Creator:          creator,
+		DepositorAddress: depositorAddress,
 		ValidatorAddress: validatorAddress,
 		Amount:           amount,
 	}
@@ -26,7 +26,7 @@ func (msg *MsgWithdraw) Type() string {
 }
 
 func (msg *MsgWithdraw) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.Creator)
+	creator, err := sdk.AccAddressFromBech32(msg.DepositorAddress)
 	if err != nil {
 		panic(err)
 	}
@@ -39,7 +39,7 @@ func (msg *MsgWithdraw) GetSignBytes() []byte {
 }
 
 func (msg *MsgWithdraw) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Creator)
+	_, err := sdk.AccAddressFromBech32(msg.DepositorAddress)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}

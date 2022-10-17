@@ -5,7 +5,11 @@ import { Coin } from "../cosmos/base/v1beta1/coin";
 export const protobufPackage = "madeinblock.slashrefund.slashrefund";
 
 export interface MsgDeposit {
-  creator: string;
+  /**
+   * option (gogoproto.equal)           = false;
+   * option (gogoproto.goproto_getters) = false;
+   */
+  depositorAddress: string;
   validatorAddress: string;
   amount: Coin | undefined;
 }
@@ -13,19 +17,19 @@ export interface MsgDeposit {
 export interface MsgDepositResponse {}
 
 export interface MsgWithdraw {
-  creator: string;
+  depositorAddress: string;
   validatorAddress: string;
   amount: Coin | undefined;
 }
 
 export interface MsgWithdrawResponse {}
 
-const baseMsgDeposit: object = { creator: "", validatorAddress: "" };
+const baseMsgDeposit: object = { depositorAddress: "", validatorAddress: "" };
 
 export const MsgDeposit = {
   encode(message: MsgDeposit, writer: Writer = Writer.create()): Writer {
-    if (message.creator !== "") {
-      writer.uint32(10).string(message.creator);
+    if (message.depositorAddress !== "") {
+      writer.uint32(10).string(message.depositorAddress);
     }
     if (message.validatorAddress !== "") {
       writer.uint32(18).string(message.validatorAddress);
@@ -44,7 +48,7 @@ export const MsgDeposit = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.creator = reader.string();
+          message.depositorAddress = reader.string();
           break;
         case 2:
           message.validatorAddress = reader.string();
@@ -62,10 +66,13 @@ export const MsgDeposit = {
 
   fromJSON(object: any): MsgDeposit {
     const message = { ...baseMsgDeposit } as MsgDeposit;
-    if (object.creator !== undefined && object.creator !== null) {
-      message.creator = String(object.creator);
+    if (
+      object.depositorAddress !== undefined &&
+      object.depositorAddress !== null
+    ) {
+      message.depositorAddress = String(object.depositorAddress);
     } else {
-      message.creator = "";
+      message.depositorAddress = "";
     }
     if (
       object.validatorAddress !== undefined &&
@@ -85,7 +92,8 @@ export const MsgDeposit = {
 
   toJSON(message: MsgDeposit): unknown {
     const obj: any = {};
-    message.creator !== undefined && (obj.creator = message.creator);
+    message.depositorAddress !== undefined &&
+      (obj.depositorAddress = message.depositorAddress);
     message.validatorAddress !== undefined &&
       (obj.validatorAddress = message.validatorAddress);
     message.amount !== undefined &&
@@ -95,10 +103,13 @@ export const MsgDeposit = {
 
   fromPartial(object: DeepPartial<MsgDeposit>): MsgDeposit {
     const message = { ...baseMsgDeposit } as MsgDeposit;
-    if (object.creator !== undefined && object.creator !== null) {
-      message.creator = object.creator;
+    if (
+      object.depositorAddress !== undefined &&
+      object.depositorAddress !== null
+    ) {
+      message.depositorAddress = object.depositorAddress;
     } else {
-      message.creator = "";
+      message.depositorAddress = "";
     }
     if (
       object.validatorAddress !== undefined &&
@@ -155,12 +166,12 @@ export const MsgDepositResponse = {
   },
 };
 
-const baseMsgWithdraw: object = { creator: "", validatorAddress: "" };
+const baseMsgWithdraw: object = { depositorAddress: "", validatorAddress: "" };
 
 export const MsgWithdraw = {
   encode(message: MsgWithdraw, writer: Writer = Writer.create()): Writer {
-    if (message.creator !== "") {
-      writer.uint32(10).string(message.creator);
+    if (message.depositorAddress !== "") {
+      writer.uint32(10).string(message.depositorAddress);
     }
     if (message.validatorAddress !== "") {
       writer.uint32(18).string(message.validatorAddress);
@@ -179,7 +190,7 @@ export const MsgWithdraw = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.creator = reader.string();
+          message.depositorAddress = reader.string();
           break;
         case 2:
           message.validatorAddress = reader.string();
@@ -197,10 +208,13 @@ export const MsgWithdraw = {
 
   fromJSON(object: any): MsgWithdraw {
     const message = { ...baseMsgWithdraw } as MsgWithdraw;
-    if (object.creator !== undefined && object.creator !== null) {
-      message.creator = String(object.creator);
+    if (
+      object.depositorAddress !== undefined &&
+      object.depositorAddress !== null
+    ) {
+      message.depositorAddress = String(object.depositorAddress);
     } else {
-      message.creator = "";
+      message.depositorAddress = "";
     }
     if (
       object.validatorAddress !== undefined &&
@@ -220,7 +234,8 @@ export const MsgWithdraw = {
 
   toJSON(message: MsgWithdraw): unknown {
     const obj: any = {};
-    message.creator !== undefined && (obj.creator = message.creator);
+    message.depositorAddress !== undefined &&
+      (obj.depositorAddress = message.depositorAddress);
     message.validatorAddress !== undefined &&
       (obj.validatorAddress = message.validatorAddress);
     message.amount !== undefined &&
@@ -230,10 +245,13 @@ export const MsgWithdraw = {
 
   fromPartial(object: DeepPartial<MsgWithdraw>): MsgWithdraw {
     const message = { ...baseMsgWithdraw } as MsgWithdraw;
-    if (object.creator !== undefined && object.creator !== null) {
-      message.creator = object.creator;
+    if (
+      object.depositorAddress !== undefined &&
+      object.depositorAddress !== null
+    ) {
+      message.depositorAddress = object.depositorAddress;
     } else {
-      message.creator = "";
+      message.depositorAddress = "";
     }
     if (
       object.validatorAddress !== undefined &&
@@ -290,10 +308,11 @@ export const MsgWithdrawResponse = {
   },
 };
 
-/** Msg defines the Msg service. */
+/** Msg defines the slash-refund Msg service */
 export interface Msg {
+  /** Deposit defines a method to make a deposit into the module */
   Deposit(request: MsgDeposit): Promise<MsgDepositResponse>;
-  /** this line is used by starport scaffolding # proto/tx/rpc */
+  /** Withdraw defines a method to withdraw a previously deposited amount */
   Withdraw(request: MsgWithdraw): Promise<MsgWithdrawResponse>;
 }
 

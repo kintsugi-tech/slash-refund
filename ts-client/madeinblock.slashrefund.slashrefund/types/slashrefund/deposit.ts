@@ -1,28 +1,30 @@
 /* eslint-disable */
-import { Coin } from "../cosmos/base/v1beta1/coin";
 import { Writer, Reader } from "protobufjs/minimal";
 
 export const protobufPackage = "madeinblock.slashrefund.slashrefund";
 
-/** TODO: this name could be not so clear. */
 export interface Deposit {
-  address: string;
+  depositorAddress: string;
   validatorAddress: string;
-  balance: Coin | undefined;
+  shares: string;
 }
 
-const baseDeposit: object = { address: "", validatorAddress: "" };
+const baseDeposit: object = {
+  depositorAddress: "",
+  validatorAddress: "",
+  shares: "",
+};
 
 export const Deposit = {
   encode(message: Deposit, writer: Writer = Writer.create()): Writer {
-    if (message.address !== "") {
-      writer.uint32(10).string(message.address);
+    if (message.depositorAddress !== "") {
+      writer.uint32(10).string(message.depositorAddress);
     }
     if (message.validatorAddress !== "") {
       writer.uint32(18).string(message.validatorAddress);
     }
-    if (message.balance !== undefined) {
-      Coin.encode(message.balance, writer.uint32(26).fork()).ldelim();
+    if (message.shares !== "") {
+      writer.uint32(26).string(message.shares);
     }
     return writer;
   },
@@ -35,13 +37,13 @@ export const Deposit = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.address = reader.string();
+          message.depositorAddress = reader.string();
           break;
         case 2:
           message.validatorAddress = reader.string();
           break;
         case 3:
-          message.balance = Coin.decode(reader, reader.uint32());
+          message.shares = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -53,10 +55,13 @@ export const Deposit = {
 
   fromJSON(object: any): Deposit {
     const message = { ...baseDeposit } as Deposit;
-    if (object.address !== undefined && object.address !== null) {
-      message.address = String(object.address);
+    if (
+      object.depositorAddress !== undefined &&
+      object.depositorAddress !== null
+    ) {
+      message.depositorAddress = String(object.depositorAddress);
     } else {
-      message.address = "";
+      message.depositorAddress = "";
     }
     if (
       object.validatorAddress !== undefined &&
@@ -66,32 +71,33 @@ export const Deposit = {
     } else {
       message.validatorAddress = "";
     }
-    if (object.balance !== undefined && object.balance !== null) {
-      message.balance = Coin.fromJSON(object.balance);
+    if (object.shares !== undefined && object.shares !== null) {
+      message.shares = String(object.shares);
     } else {
-      message.balance = undefined;
+      message.shares = "";
     }
     return message;
   },
 
   toJSON(message: Deposit): unknown {
     const obj: any = {};
-    message.address !== undefined && (obj.address = message.address);
+    message.depositorAddress !== undefined &&
+      (obj.depositorAddress = message.depositorAddress);
     message.validatorAddress !== undefined &&
       (obj.validatorAddress = message.validatorAddress);
-    message.balance !== undefined &&
-      (obj.balance = message.balance
-        ? Coin.toJSON(message.balance)
-        : undefined);
+    message.shares !== undefined && (obj.shares = message.shares);
     return obj;
   },
 
   fromPartial(object: DeepPartial<Deposit>): Deposit {
     const message = { ...baseDeposit } as Deposit;
-    if (object.address !== undefined && object.address !== null) {
-      message.address = object.address;
+    if (
+      object.depositorAddress !== undefined &&
+      object.depositorAddress !== null
+    ) {
+      message.depositorAddress = object.depositorAddress;
     } else {
-      message.address = "";
+      message.depositorAddress = "";
     }
     if (
       object.validatorAddress !== undefined &&
@@ -101,10 +107,10 @@ export const Deposit = {
     } else {
       message.validatorAddress = "";
     }
-    if (object.balance !== undefined && object.balance !== null) {
-      message.balance = Coin.fromPartial(object.balance);
+    if (object.shares !== undefined && object.shares !== null) {
+      message.shares = object.shares;
     } else {
-      message.balance = undefined;
+      message.shares = "";
     }
     return message;
   },

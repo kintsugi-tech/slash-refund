@@ -136,7 +136,7 @@ func (k Keeper) SendUnbondedTokens(ctx sdk.Context) {
 
 		k.RemoveUnbondingDeposit(ctx, 0)
 
-		sender, _ := sdk.AccAddressFromBech32(unbonded_deposit.Address)
+		sender, _ := sdk.AccAddressFromBech32(unbonded_deposit.DepositorAddress)
 
 		logger.Error("Restituzione..")
 		err := k.bankKeeper.SendCoinsFromModuleToAccount(

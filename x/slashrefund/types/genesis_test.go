@@ -24,11 +24,11 @@ func TestGenesisState_Validate(t *testing.T) {
 
 				DepositList: []types.Deposit{
 					{
-						Address:          "0",
+						DepositorAddress: "0",
 						ValidatorAddress: "0",
 					},
 					{
-						Address:          "1",
+						DepositorAddress: "1",
 						ValidatorAddress: "1",
 					},
 				},
@@ -50,11 +50,11 @@ func TestGenesisState_Validate(t *testing.T) {
 			genState: &types.GenesisState{
 				DepositList: []types.Deposit{
 					{
-						Address:          "0",
+						DepositorAddress: "0",
 						ValidatorAddress: "0",
 					},
 					{
-						Address:          "0",
+						DepositorAddress: "0",
 						ValidatorAddress: "0",
 					},
 				},
