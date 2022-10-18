@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	"fmt"
+	//"fmt"
 	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -89,13 +89,15 @@ func (k Keeper) GetDepositOfValidator(ctx sdk.Context, valAddr sdk.ValAddress) (
 }
 
 // Deposit implements the state transition logic for a deposit
+// TODO: controllare hook: logiche da eseguire se deposito viene creato o modificato.
+// TODO: definire i diversi ModuleAccount account a cui mandare i token
 func (k Keeper) Deposit(
 	ctx sdk.Context,
 	depAddr sdk.AccAddress,
-	depAmt sdk.Int,
+	depCoin sdk.Coin,
 	validator stakingtypes.Validator,
 ) (newShares sdk.Dec, err error) {
-	logger := k.Logger(ctx)
+	//logger := k.Logger(ctx)
 
 	// Check if a validator has zero token but shares.
 	if validator.InvalidExRate() {
@@ -109,21 +111,12 @@ func (k Keeper) Deposit(
 		deposit = types.NewDeposit(depAddr, validator.GetOperator(), sdk.ZeroDec())
 	}
 
-	depositorAddress, err := sdk.AccAddressFromBech32(deposit.DepositorAddress)
-	logger.Error(fmt.Sprintf("%s", depAddr))
-	logger.Error(fmt.Sprintf("%s", depositorAddress))
-	
-
-	// TODO: controllare hook: logiche da eseguire se deposito viene creato o modificato.
-
-	// TODO: definire i diversi ModuleAccount account a cui mandare i token
-
-	// TODO: cambiare "stake" con i params
-	coins := sdk.NewCoins(sdk.NewCoin("stake", depAmt))
+	coins := sdk.NewCoins(sdk.NewCoin(depCoin.Denom, depCoin.Amount))
 	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, depAddr, types.ModuleName, coins); err != nil {
 		return sdk.Dec{}, err
 	}
 
+	_, newShares = k.AddValidatorTokensAndShares(ctx, validator, depCoin)
 	/*
 			balance := msg.Amount
 		if isFound {
@@ -133,6 +126,6 @@ func (k Keeper) Deposit(
 
 	k.SetDeposit(ctx, deposit)
 
-	return sdk.NewDec(depAmt.Int64()), nil
+	return sdk.NewDec(depCoin.Amount.Int64()), nil
 
 }
