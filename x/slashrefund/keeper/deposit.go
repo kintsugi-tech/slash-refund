@@ -11,9 +11,10 @@ import (
 
 // GetDeposit returns a deposit from its index: depAddr & valAddr
 func (k Keeper) GetDeposit(ctx sdk.Context, depAddr sdk.AccAddress, valAddr sdk.ValAddress) (deposit types.Deposit, found bool) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.DepositKeyPrefix))
-	keys := types.DepositKey(depAddr,valAddr)
-	b := store.Get(keys)
+	moduleStore := ctx.KVStore(k.storeKey)
+	store := prefix.NewStore(moduleStore, types.KeyPrefix(types.DepositKeyPrefix))
+	key := types.DepositKey(depAddr,valAddr)
+	b := store.Get(key)
 	if b == nil {
 		return deposit, false
 	}
@@ -90,7 +91,6 @@ func (k Keeper) GetDepositOfValidator(ctx sdk.Context, valAddr sdk.ValAddress) (
 
 // Deposit implements the state transition logic for a deposit
 // TODO: controllare hook: logiche da eseguire se deposito viene creato o modificato.
-// TODO: definire i diversi ModuleAccount account a cui mandare i token
 func (k Keeper) Deposit(
 	ctx sdk.Context,
 	depAddr sdk.AccAddress,
@@ -111,12 +111,14 @@ func (k Keeper) Deposit(
 		deposit = types.NewDeposit(depAddr, validator.GetOperator(), sdk.ZeroDec())
 	}
 
+	// Send the deposited tokens to the slashrefund module
 	coins := sdk.NewCoins(sdk.NewCoin(depCoin.Denom, depCoin.Amount))
 	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, depAddr, types.ModuleName, coins); err != nil {
 		return sdk.Dec{}, err
 	}
 
-	_, newShares = k.AddValidatorTokensAndShares(ctx, validator, depCoin)
+	// Deposited tokens are treated as pool shares, similarly to the staking module.
+	//_, newShares = k.AddDepositTokensAndShares(ctx, validator, depCoin)
 	/*
 			balance := msg.Amount
 		if isFound {

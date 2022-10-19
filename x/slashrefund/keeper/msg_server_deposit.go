@@ -19,17 +19,20 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 	logger := k.Logger(ctx)
 	logger.Error("Entrati nel Msg Server Deposit")
 
-	// Validation checks
+	// VALIDATION CHECKS
+	//Check if valid validator address
 	valAddr, valErr := sdk.ValAddressFromBech32(msg.ValidatorAddress)
 	if valErr != nil {
 		return nil, valErr
 	}
 
+	// Check if valAddr correspond to a validator
 	validator, found := k.stakingKeeper.GetValidator(ctx, valAddr)
 	if !found {
 		return nil, stakingtypes.ErrNoValidatorFound
 	}
 
+	// Check if valid depositor address
 	depositorAddress, err := sdk.AccAddressFromBech32(msg.DepositorAddress)
 	if err != nil {
 		return nil, err
@@ -49,7 +52,7 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 		)
 	}
 	
-	// Keeper method for state transition
+	// STATE TRANSITION
 	shares, err := k.Keeper.Deposit(ctx, depositorAddress, msg.Amount, validator)
 	if err != nil {
 		return nil, err
