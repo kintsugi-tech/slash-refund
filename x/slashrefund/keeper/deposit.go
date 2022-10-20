@@ -141,7 +141,7 @@ func (k Keeper) Deposit(
 		}
 	*/
 
-	deposit.Shares = newShares
+	deposit.Shares = deposit.Shares.Add(newShares)
 	k.SetDeposit(ctx, deposit)
 
 	return sdk.NewDec(depCoin.Amount.Int64()), nil
