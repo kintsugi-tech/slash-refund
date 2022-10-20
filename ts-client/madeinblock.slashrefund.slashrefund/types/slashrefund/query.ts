@@ -8,6 +8,7 @@ import {
   PageResponse,
 } from "../cosmos/base/query/v1beta1/pagination";
 import { UnbondingDeposit } from "../slashrefund/unbonding_deposit";
+import { DepositPool } from "../slashrefund/deposit_pool";
 
 export const protobufPackage = "madeinblock.slashrefund.slashrefund";
 
@@ -52,6 +53,23 @@ export interface QueryAllUnbondingDepositRequest {
 
 export interface QueryAllUnbondingDepositResponse {
   UnbondingDeposit: UnbondingDeposit[];
+  pagination: PageResponse | undefined;
+}
+
+export interface QueryGetDepositPoolRequest {
+  operatorAddress: string;
+}
+
+export interface QueryGetDepositPoolResponse {
+  depositPool: DepositPool | undefined;
+}
+
+export interface QueryAllDepositPoolRequest {
+  pagination: PageRequest | undefined;
+}
+
+export interface QueryAllDepositPoolResponse {
+  depositPool: DepositPool[];
   pagination: PageResponse | undefined;
 }
 
@@ -814,6 +832,330 @@ export const QueryAllUnbondingDepositResponse = {
   },
 };
 
+const baseQueryGetDepositPoolRequest: object = { operatorAddress: "" };
+
+export const QueryGetDepositPoolRequest = {
+  encode(
+    message: QueryGetDepositPoolRequest,
+    writer: Writer = Writer.create()
+  ): Writer {
+    if (message.operatorAddress !== "") {
+      writer.uint32(10).string(message.operatorAddress);
+    }
+    return writer;
+  },
+
+  decode(
+    input: Reader | Uint8Array,
+    length?: number
+  ): QueryGetDepositPoolRequest {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = {
+      ...baseQueryGetDepositPoolRequest,
+    } as QueryGetDepositPoolRequest;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.operatorAddress = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryGetDepositPoolRequest {
+    const message = {
+      ...baseQueryGetDepositPoolRequest,
+    } as QueryGetDepositPoolRequest;
+    if (
+      object.operatorAddress !== undefined &&
+      object.operatorAddress !== null
+    ) {
+      message.operatorAddress = String(object.operatorAddress);
+    } else {
+      message.operatorAddress = "";
+    }
+    return message;
+  },
+
+  toJSON(message: QueryGetDepositPoolRequest): unknown {
+    const obj: any = {};
+    message.operatorAddress !== undefined &&
+      (obj.operatorAddress = message.operatorAddress);
+    return obj;
+  },
+
+  fromPartial(
+    object: DeepPartial<QueryGetDepositPoolRequest>
+  ): QueryGetDepositPoolRequest {
+    const message = {
+      ...baseQueryGetDepositPoolRequest,
+    } as QueryGetDepositPoolRequest;
+    if (
+      object.operatorAddress !== undefined &&
+      object.operatorAddress !== null
+    ) {
+      message.operatorAddress = object.operatorAddress;
+    } else {
+      message.operatorAddress = "";
+    }
+    return message;
+  },
+};
+
+const baseQueryGetDepositPoolResponse: object = {};
+
+export const QueryGetDepositPoolResponse = {
+  encode(
+    message: QueryGetDepositPoolResponse,
+    writer: Writer = Writer.create()
+  ): Writer {
+    if (message.depositPool !== undefined) {
+      DepositPool.encode(
+        message.depositPool,
+        writer.uint32(10).fork()
+      ).ldelim();
+    }
+    return writer;
+  },
+
+  decode(
+    input: Reader | Uint8Array,
+    length?: number
+  ): QueryGetDepositPoolResponse {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = {
+      ...baseQueryGetDepositPoolResponse,
+    } as QueryGetDepositPoolResponse;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.depositPool = DepositPool.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryGetDepositPoolResponse {
+    const message = {
+      ...baseQueryGetDepositPoolResponse,
+    } as QueryGetDepositPoolResponse;
+    if (object.depositPool !== undefined && object.depositPool !== null) {
+      message.depositPool = DepositPool.fromJSON(object.depositPool);
+    } else {
+      message.depositPool = undefined;
+    }
+    return message;
+  },
+
+  toJSON(message: QueryGetDepositPoolResponse): unknown {
+    const obj: any = {};
+    message.depositPool !== undefined &&
+      (obj.depositPool = message.depositPool
+        ? DepositPool.toJSON(message.depositPool)
+        : undefined);
+    return obj;
+  },
+
+  fromPartial(
+    object: DeepPartial<QueryGetDepositPoolResponse>
+  ): QueryGetDepositPoolResponse {
+    const message = {
+      ...baseQueryGetDepositPoolResponse,
+    } as QueryGetDepositPoolResponse;
+    if (object.depositPool !== undefined && object.depositPool !== null) {
+      message.depositPool = DepositPool.fromPartial(object.depositPool);
+    } else {
+      message.depositPool = undefined;
+    }
+    return message;
+  },
+};
+
+const baseQueryAllDepositPoolRequest: object = {};
+
+export const QueryAllDepositPoolRequest = {
+  encode(
+    message: QueryAllDepositPoolRequest,
+    writer: Writer = Writer.create()
+  ): Writer {
+    if (message.pagination !== undefined) {
+      PageRequest.encode(message.pagination, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(
+    input: Reader | Uint8Array,
+    length?: number
+  ): QueryAllDepositPoolRequest {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = {
+      ...baseQueryAllDepositPoolRequest,
+    } as QueryAllDepositPoolRequest;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.pagination = PageRequest.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryAllDepositPoolRequest {
+    const message = {
+      ...baseQueryAllDepositPoolRequest,
+    } as QueryAllDepositPoolRequest;
+    if (object.pagination !== undefined && object.pagination !== null) {
+      message.pagination = PageRequest.fromJSON(object.pagination);
+    } else {
+      message.pagination = undefined;
+    }
+    return message;
+  },
+
+  toJSON(message: QueryAllDepositPoolRequest): unknown {
+    const obj: any = {};
+    message.pagination !== undefined &&
+      (obj.pagination = message.pagination
+        ? PageRequest.toJSON(message.pagination)
+        : undefined);
+    return obj;
+  },
+
+  fromPartial(
+    object: DeepPartial<QueryAllDepositPoolRequest>
+  ): QueryAllDepositPoolRequest {
+    const message = {
+      ...baseQueryAllDepositPoolRequest,
+    } as QueryAllDepositPoolRequest;
+    if (object.pagination !== undefined && object.pagination !== null) {
+      message.pagination = PageRequest.fromPartial(object.pagination);
+    } else {
+      message.pagination = undefined;
+    }
+    return message;
+  },
+};
+
+const baseQueryAllDepositPoolResponse: object = {};
+
+export const QueryAllDepositPoolResponse = {
+  encode(
+    message: QueryAllDepositPoolResponse,
+    writer: Writer = Writer.create()
+  ): Writer {
+    for (const v of message.depositPool) {
+      DepositPool.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.pagination !== undefined) {
+      PageResponse.encode(
+        message.pagination,
+        writer.uint32(18).fork()
+      ).ldelim();
+    }
+    return writer;
+  },
+
+  decode(
+    input: Reader | Uint8Array,
+    length?: number
+  ): QueryAllDepositPoolResponse {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = {
+      ...baseQueryAllDepositPoolResponse,
+    } as QueryAllDepositPoolResponse;
+    message.depositPool = [];
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.depositPool.push(DepositPool.decode(reader, reader.uint32()));
+          break;
+        case 2:
+          message.pagination = PageResponse.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryAllDepositPoolResponse {
+    const message = {
+      ...baseQueryAllDepositPoolResponse,
+    } as QueryAllDepositPoolResponse;
+    message.depositPool = [];
+    if (object.depositPool !== undefined && object.depositPool !== null) {
+      for (const e of object.depositPool) {
+        message.depositPool.push(DepositPool.fromJSON(e));
+      }
+    }
+    if (object.pagination !== undefined && object.pagination !== null) {
+      message.pagination = PageResponse.fromJSON(object.pagination);
+    } else {
+      message.pagination = undefined;
+    }
+    return message;
+  },
+
+  toJSON(message: QueryAllDepositPoolResponse): unknown {
+    const obj: any = {};
+    if (message.depositPool) {
+      obj.depositPool = message.depositPool.map((e) =>
+        e ? DepositPool.toJSON(e) : undefined
+      );
+    } else {
+      obj.depositPool = [];
+    }
+    message.pagination !== undefined &&
+      (obj.pagination = message.pagination
+        ? PageResponse.toJSON(message.pagination)
+        : undefined);
+    return obj;
+  },
+
+  fromPartial(
+    object: DeepPartial<QueryAllDepositPoolResponse>
+  ): QueryAllDepositPoolResponse {
+    const message = {
+      ...baseQueryAllDepositPoolResponse,
+    } as QueryAllDepositPoolResponse;
+    message.depositPool = [];
+    if (object.depositPool !== undefined && object.depositPool !== null) {
+      for (const e of object.depositPool) {
+        message.depositPool.push(DepositPool.fromPartial(e));
+      }
+    }
+    if (object.pagination !== undefined && object.pagination !== null) {
+      message.pagination = PageResponse.fromPartial(object.pagination);
+    } else {
+      message.pagination = undefined;
+    }
+    return message;
+  },
+};
+
 /** Query defines the gRPC querier service. */
 export interface Query {
   /** Parameters queries the parameters of the module. */
@@ -830,6 +1172,14 @@ export interface Query {
   UnbondingDepositAll(
     request: QueryAllUnbondingDepositRequest
   ): Promise<QueryAllUnbondingDepositResponse>;
+  /** Queries a DepositPool by index. */
+  DepositPool(
+    request: QueryGetDepositPoolRequest
+  ): Promise<QueryGetDepositPoolResponse>;
+  /** Queries a list of DepositPool items. */
+  DepositPoolAll(
+    request: QueryAllDepositPoolRequest
+  ): Promise<QueryAllDepositPoolResponse>;
 }
 
 export class QueryClientImpl implements Query {
@@ -898,6 +1248,34 @@ export class QueryClientImpl implements Query {
     );
     return promise.then((data) =>
       QueryAllUnbondingDepositResponse.decode(new Reader(data))
+    );
+  }
+
+  DepositPool(
+    request: QueryGetDepositPoolRequest
+  ): Promise<QueryGetDepositPoolResponse> {
+    const data = QueryGetDepositPoolRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "madeinblock.slashrefund.slashrefund.Query",
+      "DepositPool",
+      data
+    );
+    return promise.then((data) =>
+      QueryGetDepositPoolResponse.decode(new Reader(data))
+    );
+  }
+
+  DepositPoolAll(
+    request: QueryAllDepositPoolRequest
+  ): Promise<QueryAllDepositPoolResponse> {
+    const data = QueryAllDepositPoolRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "madeinblock.slashrefund.slashrefund.Query",
+      "DepositPoolAll",
+      data
+    );
+    return promise.then((data) =>
+      QueryAllDepositPoolResponse.decode(new Reader(data))
     );
   }
 }

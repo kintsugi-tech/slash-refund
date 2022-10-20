@@ -1,6 +1,9 @@
 package keeper
 
 import (
+	"strings"
+	
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 )
@@ -21,4 +24,24 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 func (k Keeper) AllowedTokens(ctx sdk.Context) (res string) {
 	k.paramstore.Get(ctx, types.KeyAllowedTokens, &res)
 	return
+}
+
+func (k Keeper) AllowedTokensList(ctx sdk.Context) (re []string) {
+	return strings.Split(k.AllowedTokens(ctx), ",")
+}
+
+func (k Keeper) CheckAllowedTokens(ctx sdk.Context, msg *types.MsgDeposit) (bool, error) {
+	var isAcceptable bool // default is false
+	for _, validToken := range k.AllowedTokensList(ctx) {
+		if msg.Amount.Denom == validToken {
+			isAcceptable = true
+			break
+		}
+	}
+	if !isAcceptable {
+		return false, sdkerrors.Wrapf(
+			sdkerrors.ErrInvalidRequest, "invalid coin denomination: got %s. Allowed tokens are %s", msg.Amount.Denom, k.AllowedTokens(ctx),
+		)
+	}
+	return true, nil
 }

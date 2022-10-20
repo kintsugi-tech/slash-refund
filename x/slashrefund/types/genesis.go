@@ -14,6 +14,7 @@ func DefaultGenesis() *GenesisState {
 	return &GenesisState{
 		DepositList:          []Deposit{},
 		UnbondingDepositList: []UnbondingDeposit{},
+		DepositPoolList:      []DepositPool{},
 		// this line is used by starport scaffolding # genesis/types/default
 		Params: DefaultParams(),
 	}
@@ -53,6 +54,20 @@ func (gs GenesisState) Validate() error {
 			return fmt.Errorf("unbondingDeposit id should be lower or equal than the last id")
 		}
 		unbondingDepositIdMap[elem.Id] = true
+	}
+	// Check for duplicated index in depositPool
+	depositPoolIndexMap := make(map[string]struct{})
+
+	for _, elem := range gs.DepositPoolList {
+		valOperAddr, err := sdk.ValAddressFromBech32(elem.OperatorAddress)
+		if err != nil {
+			panic(err)
+		}
+		index := string(DepositPoolKey(valOperAddr))
+		if _, ok := depositPoolIndexMap[index]; ok {
+			return fmt.Errorf("duplicated index for depositPool")
+		}
+		depositPoolIndexMap[index] = struct{}{}
 	}
 	// this line is used by starport scaffolding # genesis/types/validate
 

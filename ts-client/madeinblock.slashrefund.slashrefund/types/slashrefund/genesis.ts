@@ -4,6 +4,7 @@ import { util, configure, Writer, Reader } from "protobufjs/minimal";
 import { Params } from "../slashrefund/params";
 import { Deposit } from "../slashrefund/deposit";
 import { UnbondingDeposit } from "../slashrefund/unbonding_deposit";
+import { DepositPool } from "../slashrefund/deposit_pool";
 
 export const protobufPackage = "madeinblock.slashrefund.slashrefund";
 
@@ -12,8 +13,9 @@ export interface GenesisState {
   params: Params | undefined;
   depositList: Deposit[];
   unbondingDepositList: UnbondingDeposit[];
-  /** this line is used by starport scaffolding # genesis/proto/state */
   unbondingDepositCount: number;
+  /** this line is used by starport scaffolding # genesis/proto/state */
+  depositPoolList: DepositPool[];
 }
 
 const baseGenesisState: object = { unbondingDepositCount: 0 };
@@ -32,6 +34,9 @@ export const GenesisState = {
     if (message.unbondingDepositCount !== 0) {
       writer.uint32(32).uint64(message.unbondingDepositCount);
     }
+    for (const v of message.depositPoolList) {
+      DepositPool.encode(v!, writer.uint32(42).fork()).ldelim();
+    }
     return writer;
   },
 
@@ -41,6 +46,7 @@ export const GenesisState = {
     const message = { ...baseGenesisState } as GenesisState;
     message.depositList = [];
     message.unbondingDepositList = [];
+    message.depositPoolList = [];
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -58,6 +64,11 @@ export const GenesisState = {
         case 4:
           message.unbondingDepositCount = longToNumber(reader.uint64() as Long);
           break;
+        case 5:
+          message.depositPoolList.push(
+            DepositPool.decode(reader, reader.uint32())
+          );
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -70,6 +81,7 @@ export const GenesisState = {
     const message = { ...baseGenesisState } as GenesisState;
     message.depositList = [];
     message.unbondingDepositList = [];
+    message.depositPoolList = [];
     if (object.params !== undefined && object.params !== null) {
       message.params = Params.fromJSON(object.params);
     } else {
@@ -96,6 +108,14 @@ export const GenesisState = {
     } else {
       message.unbondingDepositCount = 0;
     }
+    if (
+      object.depositPoolList !== undefined &&
+      object.depositPoolList !== null
+    ) {
+      for (const e of object.depositPoolList) {
+        message.depositPoolList.push(DepositPool.fromJSON(e));
+      }
+    }
     return message;
   },
 
@@ -119,6 +139,13 @@ export const GenesisState = {
     }
     message.unbondingDepositCount !== undefined &&
       (obj.unbondingDepositCount = message.unbondingDepositCount);
+    if (message.depositPoolList) {
+      obj.depositPoolList = message.depositPoolList.map((e) =>
+        e ? DepositPool.toJSON(e) : undefined
+      );
+    } else {
+      obj.depositPoolList = [];
+    }
     return obj;
   },
 
@@ -126,6 +153,7 @@ export const GenesisState = {
     const message = { ...baseGenesisState } as GenesisState;
     message.depositList = [];
     message.unbondingDepositList = [];
+    message.depositPoolList = [];
     if (object.params !== undefined && object.params !== null) {
       message.params = Params.fromPartial(object.params);
     } else {
@@ -151,6 +179,14 @@ export const GenesisState = {
       message.unbondingDepositCount = object.unbondingDepositCount;
     } else {
       message.unbondingDepositCount = 0;
+    }
+    if (
+      object.depositPoolList !== undefined &&
+      object.depositPoolList !== null
+    ) {
+      for (const e of object.depositPoolList) {
+        message.depositPoolList.push(DepositPool.fromPartial(e));
+      }
     }
     return message;
   },

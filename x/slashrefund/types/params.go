@@ -12,7 +12,7 @@ var _ paramtypes.ParamSet = (*Params)(nil)
 var (
 	KeyAllowedTokens = []byte("AllowedTokens")
 	// TODO: Determine the default value
-	DefaultAllowedTokens string = "stake,token"
+	DefaultAllowedTokens string = "stake"
 )
 
 // ParamKeyTable the param key table for launch module

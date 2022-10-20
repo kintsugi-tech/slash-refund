@@ -2,24 +2,20 @@ package keeper
 
 import (
 	"context"
-	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 )
 
 // Manages the deposit of funds from a user to a particular validator into a module KVStore.
-// TODO: add param for allowed tokens.
-// TODO: check if allowed token.
 func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types.MsgDepositResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	logger := k.Logger(ctx)
-	logger.Error("Entrati nel Msg Server Deposit")
+	// logger := k.Logger(ctx)
+	// logger.Error("Entrati nel Msg Server Deposit")
 
-	// VALIDATION CHECKS
+	// === VALIDATION CHECKS ===
 	//Check if valid validator address
 	valAddr, valErr := sdk.ValAddressFromBech32(msg.ValidatorAddress)
 	if valErr != nil {
@@ -39,20 +35,12 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 	}
 
 	// Check if allowed token
-	var isAcceptable bool // default is false
-	for _, validToken := range strings.Split(k.AllowedTokens(ctx), ",") {
-		if msg.Amount.Denom == validToken {
-			isAcceptable = true
-			break
-		}
+	isValid, err := k.CheckAllowedTokens(ctx, msg)
+	if !isValid {
+		return nil, err
 	}
-	if !isAcceptable {
-		return nil, sdkerrors.Wrapf(
-			sdkerrors.ErrInvalidRequest, "invalid coin denomination: got %s. Allowed tokens are %s", msg.Amount.Denom, k.AllowedTokens(ctx),
-		)
-	}
-	
-	// STATE TRANSITION
+
+	// === STATE TRANSITION ===
 	shares, err := k.Keeper.Deposit(ctx, depositorAddress, msg.Amount, validator)
 	if err != nil {
 		return nil, err

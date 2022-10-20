@@ -139,6 +139,22 @@ export interface SlashrefundDeposit {
   shares?: string;
 }
 
+/**
+ * TODO: to account for more than one token, Tokens and Shares must be a struct.
+ */
+export interface SlashrefundDepositPool {
+  operator_address?: string;
+
+  /**
+   * Coin defines a token with a denomination and an amount.
+   *
+   * NOTE: The amount field is an Int which implements the custom method
+   * signatures required by gogoproto.
+   */
+  tokens?: V1Beta1Coin;
+  shares?: string;
+}
+
 export type SlashrefundMsgDepositResponse = object;
 
 export type SlashrefundMsgWithdrawResponse = object;
@@ -148,6 +164,21 @@ export type SlashrefundMsgWithdrawResponse = object;
  */
 export interface SlashrefundParams {
   allowedTokens?: string;
+}
+
+export interface SlashrefundQueryAllDepositPoolResponse {
+  depositPool?: SlashrefundDepositPool[];
+
+  /**
+   * PageResponse is to be embedded in gRPC response messages where the
+   * corresponding request message has used PageRequest.
+   *
+   *  message SomeResponse {
+   *          repeated Bar results = 1;
+   *          PageResponse page = 2;
+   *  }
+   */
+  pagination?: V1Beta1PageResponse;
 }
 
 export interface SlashrefundQueryAllDepositResponse {
@@ -180,6 +211,11 @@ export interface SlashrefundQueryAllUnbondingDepositResponse {
   pagination?: V1Beta1PageResponse;
 }
 
+export interface SlashrefundQueryGetDepositPoolResponse {
+  /** TODO: to account for more than one token, Tokens and Shares must be a struct. */
+  depositPool?: SlashrefundDepositPool;
+}
+
 export interface SlashrefundQueryGetDepositResponse {
   deposit?: SlashrefundDeposit;
 }
@@ -192,7 +228,7 @@ export interface SlashrefundQueryGetUnbondingDepositResponse {
  * QueryParamsResponse is response type for the Query/Params RPC method.
  */
 export interface SlashrefundQueryParamsResponse {
-  /** params holds all the parameters of this module. */
+  /** Params defines the parameters for the module. */
   params?: SlashrefundParams;
 }
 
@@ -526,6 +562,48 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
   queryDeposit = (depositorAddress: string, validatorAddress: string, params: RequestParams = {}) =>
     this.request<SlashrefundQueryGetDepositResponse, RpcStatus>({
       path: `/made-in-block/slash-refund/slashrefund/deposit/${depositorAddress}/${validatorAddress}`,
+      method: "GET",
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags Query
+   * @name QueryDepositPoolAll
+   * @summary Queries a list of DepositPool items.
+   * @request GET:/made-in-block/slash-refund/slashrefund/deposit_pool
+   */
+  queryDepositPoolAll = (
+    query?: {
+      "pagination.key"?: string;
+      "pagination.offset"?: string;
+      "pagination.limit"?: string;
+      "pagination.count_total"?: boolean;
+      "pagination.reverse"?: boolean;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<SlashrefundQueryAllDepositPoolResponse, RpcStatus>({
+      path: `/made-in-block/slash-refund/slashrefund/deposit_pool`,
+      method: "GET",
+      query: query,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags Query
+   * @name QueryDepositPool
+   * @summary Queries a DepositPool by index.
+   * @request GET:/made-in-block/slash-refund/slashrefund/deposit_pool/{operatorAddress}
+   */
+  queryDepositPool = (operatorAddress: string, params: RequestParams = {}) =>
+    this.request<SlashrefundQueryGetDepositPoolResponse, RpcStatus>({
+      path: `/made-in-block/slash-refund/slashrefund/deposit_pool/${operatorAddress}`,
       method: "GET",
       format: "json",
       ...params,

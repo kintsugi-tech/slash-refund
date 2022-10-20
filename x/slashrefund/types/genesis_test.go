@@ -41,6 +41,14 @@ func TestGenesisState_Validate(t *testing.T) {
 					},
 				},
 				UnbondingDepositCount: 2,
+				DepositPoolList: []types.DepositPool{
+					{
+						OperatorAddress: "0",
+					},
+					{
+						OperatorAddress: "1",
+					},
+				},
 				// this line is used by starport scaffolding # types/genesis/validField
 			},
 			valid: true,
@@ -84,6 +92,20 @@ func TestGenesisState_Validate(t *testing.T) {
 					},
 				},
 				UnbondingDepositCount: 0,
+			},
+			valid: false,
+		},
+		{
+			desc: "duplicated depositPool",
+			genState: &types.GenesisState{
+				DepositPoolList: []types.DepositPool{
+					{
+						OperatorAddress: "0",
+					},
+					{
+						OperatorAddress: "0",
+					},
+				},
 			},
 			valid: false,
 		},

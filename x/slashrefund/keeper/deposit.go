@@ -13,7 +13,7 @@ import (
 func (k Keeper) GetDeposit(ctx sdk.Context, depAddr sdk.AccAddress, valAddr sdk.ValAddress) (deposit types.Deposit, found bool) {
 	moduleStore := ctx.KVStore(k.storeKey)
 	store := prefix.NewStore(moduleStore, types.KeyPrefix(types.DepositKeyPrefix))
-	key := types.DepositKey(depAddr,valAddr)
+	key := types.DepositKey(depAddr, valAddr)
 	b := store.Get(key)
 	if b == nil {
 		return deposit, false
@@ -101,14 +101,29 @@ func (k Keeper) Deposit(
 
 	// Check if a validator has zero token but shares.
 	if validator.InvalidExRate() {
+		// Return zero shares and an error
 		return sdk.ZeroDec(), types.ErrDepositorShareExRateInvalid
 	}
 
-	// Get, if exists, a previous deposit
-	deposit, found := k.GetDeposit(ctx, depAddr, validator.GetOperator())
+	// Operator address of the validator
+	valOperAddr := validator.GetOperator()
+
+	// Check if the deposit exists or create it
+	deposit, found := k.GetDeposit(ctx, depAddr, valOperAddr)
 	if !found {
 		// If a previous deposit does not exist initialize one with zero shares
-		deposit = types.NewDeposit(depAddr, validator.GetOperator(), sdk.ZeroDec())
+		deposit = types.NewDeposit(depAddr, valOperAddr, sdk.ZeroDec())
+	}
+
+	// Check if the deposit pool exists or create it
+	depPool, found := k.GetDepositPool(ctx, valOperAddr)
+	if !found {
+		// TODO: should be initialized with actual Coins allowed. Now the hp is of just one allowed token.
+		depPool = types.NewDepositPool(
+			valOperAddr, 
+			sdk.NewCoin(k.AllowedTokensList(ctx)[0], sdk.ZeroInt()), 
+			sdk.ZeroDec(),
+		)
 	}
 
 	// Send the deposited tokens to the slashrefund module
@@ -118,7 +133,7 @@ func (k Keeper) Deposit(
 	}
 
 	// Deposited tokens are treated as pool shares, similarly to the staking module.
-	//_, newShares = k.AddDepositTokensAndShares(ctx, validator, depCoin)
+	newShares = k.AddPoolTokensAndShares(ctx, depPool, depCoin)
 	/*
 			balance := msg.Amount
 		if isFound {
@@ -126,8 +141,8 @@ func (k Keeper) Deposit(
 		}
 	*/
 
+	deposit.Shares = newShares
 	k.SetDeposit(ctx, deposit)
 
 	return sdk.NewDec(depCoin.Amount.Int64()), nil
-
 }

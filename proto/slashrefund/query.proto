@@ -7,6 +7,7 @@ import "cosmos/base/query/v1beta1/pagination.proto";
 import "slashrefund/params.proto";
 import "slashrefund/deposit.proto";
 import "slashrefund/unbonding_deposit.proto";
+import "slashrefund/deposit_pool.proto";
 // this line is used by starport scaffolding # 1
 
 option go_package = "github.com/made-in-block/slash-refund/x/slashrefund/types";
@@ -35,6 +36,16 @@ service Query {
 	// Queries a list of UnbondingDeposit items.
 	rpc UnbondingDepositAll(QueryAllUnbondingDepositRequest) returns (QueryAllUnbondingDepositResponse) {
 		option (google.api.http).get = "/made-in-block/slash-refund/slashrefund/unbonding_deposit";
+	}
+
+// Queries a DepositPool by index.
+	rpc DepositPool(QueryGetDepositPoolRequest) returns (QueryGetDepositPoolResponse) {
+		option (google.api.http).get = "/made-in-block/slash-refund/slashrefund/deposit_pool/{operatorAddress}";
+	}
+
+	// Queries a list of DepositPool items.
+	rpc DepositPoolAll(QueryAllDepositPoolRequest) returns (QueryAllDepositPoolResponse) {
+		option (google.api.http).get = "/made-in-block/slash-refund/slashrefund/deposit_pool";
 	}
 
 // this line is used by starport scaffolding # 2
@@ -82,6 +93,24 @@ message QueryAllUnbondingDepositRequest {
 
 message QueryAllUnbondingDepositResponse {
 	repeated UnbondingDeposit UnbondingDeposit = 1 [(gogoproto.nullable) = false];
+	cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message QueryGetDepositPoolRequest {
+	  string operatorAddress = 1;
+
+}
+
+message QueryGetDepositPoolResponse {
+	DepositPool depositPool = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryAllDepositPoolRequest {
+	cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+message QueryAllDepositPoolResponse {
+	repeated DepositPool depositPool = 1 [(gogoproto.nullable) = false];
 	cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
