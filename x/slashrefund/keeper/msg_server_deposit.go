@@ -41,12 +41,25 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 	}
 
 	// === STATE TRANSITION ===
-	shares, err := k.Keeper.Deposit(ctx, depositorAddress, msg.Amount, validator)
+	newShares, err := k.Keeper.Deposit(ctx, depositorAddress, msg.Amount, validator)
 	if err != nil {
 		return nil, err
 	}
 
-	_ = shares
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeDeposit,
+			sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress),
+			sdk.NewAttribute(types.AttributeKeyToken, msg.Amount.Denom),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.String()),
+			sdk.NewAttribute(types.AttributeKeyNewShares, newShares.String()),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.DepositorAddress),
+		),
+	})
 
 	return &types.MsgDepositResponse{}, nil
 }
