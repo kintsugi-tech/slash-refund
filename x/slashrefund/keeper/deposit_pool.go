@@ -81,13 +81,48 @@ func (k Keeper) AddPoolTokensAndShares(
 		issuedShares = sdk.NewDecFromInt(tokensToAdd.Amount)
 	} else {
 		// TODO: we have to manage post slashing send of tokens. We have to put zero shares when  tokens -> 0
-		issuedShares = depositPool.SharesFromTokens(tokensToAdd)
+		shares, err := depositPool.SharesFromTokens(tokensToAdd)
+		if err != nil {
+			panic(err)
+		}
+		issuedShares = shares
+
 	}
 
 	depositPool.Tokens = depositPool.Tokens.Add(tokensToAdd)
 	depositPool.Shares = depositPool.Shares.Add(issuedShares)
 
 	k.SetDepositPool(ctx, depositPool)
+
+	return issuedShares
+}
+
+func (k Keeper) RemovePoolTokensAndShares(
+	ctx sdk.Context, 
+	depositPool types.DepositPool,
+	sharesToRemove sdk.Dec,
+) (addedShares sdk.Dec) {
+
+	remainingShares := depositPool.Shares.Sub(sharesToRemove)
+
+	var issuedTokens sdk.Coin
+	if remainingShares.IsZero() {
+		// last delegation share gets any trimmings
+		issuedTokens = depositPool.Tokens
+		// TODO: generalize it
+		depositPool.Tokens = sdk.NewCoin(k.AllowedTokensList(ctx)[0], sdk.ZeroInt())
+	} else {
+		// leave excess tokens in the validator
+		// however fully use all the delegator shares
+		issuedTokens = depositPool.TokensFromShares(delShares).TruncateInt()
+		v.Tokens = v.Tokens.Sub(issuedTokens)
+
+		if v.Tokens.IsNegative() {
+			panic("attempting to remove more tokens than available in validator")
+		}
+	}
+
+	v.DelegatorShares = remainingShares
 
 	return issuedShares
 }

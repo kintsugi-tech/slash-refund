@@ -12,6 +12,14 @@ func (d Deposit) GetValidatorAddr() sdk.ValAddress {
 	return addr
 }
 
+func (d *Deposit) GetShares() sdk.Dec{
+	if d != nil {
+		return d.Shares
+	}
+	return sdk.Dec{}
+}
+
+
 func NewDeposit(depositorAddr sdk.AccAddress, validatorAddr sdk.ValAddress, shares sdk.Dec) Deposit {
 	return Deposit{
 		DepositorAddress: depositorAddr.String(),

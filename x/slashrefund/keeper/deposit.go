@@ -67,7 +67,6 @@ func (k Keeper) GetAllDeposit(ctx sdk.Context) (list []types.Deposit) {
 	return
 }
 
-// CUSTOM IMPLEMENTATIONS
 // GetDeposits of specific validator
 func (k Keeper) GetDepositOfValidator(ctx sdk.Context, valAddr sdk.ValAddress) (list []types.Deposit, total sdk.Coin) {
 	// TODO: Handle secondary tokens ie. stATOM

@@ -30,17 +30,17 @@ func (k Keeper) AllowedTokensList(ctx sdk.Context) (re []string) {
 	return strings.Split(k.AllowedTokens(ctx), ",")
 }
 
-func (k Keeper) CheckAllowedTokens(ctx sdk.Context, msg *types.MsgDeposit) (bool, error) {
+func (k Keeper) CheckAllowedTokens(ctx sdk.Context, denom string) (bool, error) {
 	var isAcceptable bool // default is false
 	for _, validToken := range k.AllowedTokensList(ctx) {
-		if msg.Amount.Denom == validToken {
+		if denom == validToken {
 			isAcceptable = true
 			break
 		}
 	}
 	if !isAcceptable {
 		return false, sdkerrors.Wrapf(
-			sdkerrors.ErrInvalidRequest, "invalid coin denomination: got %s. Allowed tokens are %s", msg.Amount.Denom, k.AllowedTokens(ctx),
+			sdkerrors.ErrInvalidRequest, "invalid coin denomination: got %s. Allowed tokens are %s", denom, k.AllowedTokens(ctx),
 		)
 	}
 	return true, nil
