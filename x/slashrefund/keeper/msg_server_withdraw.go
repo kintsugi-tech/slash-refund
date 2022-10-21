@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
@@ -27,7 +28,7 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 	}
 
 	// Check if requested amount is valid
-	shares, err := k.ValidateWithdrawdAmount(ctx, depositorAddress, validatorAddress, msg.Amount)
+	shares, err := k.ValidateWithdrawAmount(ctx, depositorAddress, validatorAddress, msg.Amount)
 	if err != nil {
 		return nil, err
 	}
@@ -39,18 +40,18 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 	}
 
 	// === STATE TRANSITION ===
-	newShares, err := k.Keeper.Withdraw(ctx, depositorAddress, validatorAddress, shares)
+	witToken, completionTime, err := k.Keeper.Withdraw(ctx, depositorAddress, validatorAddress, shares)
 	if err != nil {
 		return nil, err
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeDeposit,
+			types.EventTypeWithdraw,
 			sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress),
 			sdk.NewAttribute(types.AttributeKeyToken, msg.Amount.Denom),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.String()),
-			sdk.NewAttribute(types.AttributeKeyNewShares, newShares.String()),
+			sdk.NewAttribute(types.AttributeKeyCompletionTime, completionTime.Format(time.RFC3339)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,

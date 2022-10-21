@@ -7,8 +7,8 @@ import (
 func NewDepositPool(validatorAddr sdk.ValAddress, tokens sdk.Coin, shares sdk.Dec) DepositPool {
 	return DepositPool{
 		OperatorAddress: validatorAddr.String(),
-		Tokens: tokens,
-		Shares: shares,
+		Tokens:          tokens,
+		Shares:          shares,
 	}
 }
 
@@ -26,6 +26,6 @@ func (d DepositPool) SharesFromTokensTruncated(tokens sdk.Coin) (sdk.Dec, error)
 	return d.Shares.MulInt(tokens.Amount).QuoTruncate(sdk.NewDecFromInt(d.GetTokens().Amount)), nil
 }
 
-func (d DepositPool) TokensFromShares(shares sdk.Dec) sdk.Coin {
-	return (shares.MulInt(tokens.Amount)).Quo(d.GetShares())
+func (d DepositPool) TokensFromShares(shares sdk.Dec) sdk.Dec {
+	return (shares.MulInt(d.Tokens.Amount)).Quo(d.Shares)
 }
