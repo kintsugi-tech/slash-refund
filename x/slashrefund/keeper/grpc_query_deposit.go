@@ -42,17 +42,32 @@ func (k Querier) DepositAll(c context.Context, req *types.QueryAllDepositRequest
 // TODO: aggiunta q a caso di query
 func (k Querier) Deposit(c context.Context, req *types.QueryGetDepositRequest) (*types.QueryGetDepositResponse, error) {
 	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
+		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
+
+	if req.DepositorAddress == "" {
+		return nil, status.Error(codes.InvalidArgument, "depositor address cannot be empty")
+	}
+	if req.ValidatorAddress == "" {
+		return nil, status.Error(codes.InvalidArgument, "validator address cannot be empty")
+	}
+
 	ctx := sdk.UnwrapSDKContext(c)
 
-	val, found := k.GetDeposit(
-		ctx,
-		sdk.AccAddress(req.DepositorAddress),
-		sdk.ValAddress(req.ValidatorAddress),
-	)
+	depAddr, err := sdk.AccAddressFromBech32(req.DepositorAddress)
+	if err != nil {
+		return nil, err
+	}
+	valAddr, err := sdk.ValAddressFromBech32(req.ValidatorAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	val, found := k.Keeper.GetDeposit(ctx, depAddr, valAddr)
 	if !found {
-		return nil, status.Error(codes.NotFound, "not found")
+		return nil, status.Errorf(
+			codes.NotFound, "deposit with depositor %s not found for validator %s",
+			req.DepositorAddress, req.ValidatorAddress)
 	}
 
 	return &types.QueryGetDepositResponse{Deposit: val}, nil

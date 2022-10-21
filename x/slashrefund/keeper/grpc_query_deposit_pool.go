@@ -41,7 +41,7 @@ func (k Keeper) DepositPoolAll(c context.Context, req *types.QueryAllDepositPool
 
 func (k Keeper) DepositPool(c context.Context, req *types.QueryGetDepositPoolRequest) (*types.QueryGetDepositPoolResponse, error) {
 	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
+		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 	valOperAddr, err := sdk.ValAddressFromBech32(req.OperatorAddress)
 	if err != nil {
@@ -54,7 +54,7 @@ func (k Keeper) DepositPool(c context.Context, req *types.QueryGetDepositPoolReq
 		valOperAddr,
 	)
 	if !found {
-		return nil, status.Error(codes.NotFound, "not found")
+		return nil, status.Errorf(codes.NotFound, "deposit pool not found for operator %s", req.OperatorAddress)
 	}
 
 	return &types.QueryGetDepositPoolResponse{DepositPool: val}, nil
