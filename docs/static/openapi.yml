@@ -45390,8 +45390,21 @@ paths:
                       type: string
                     validatorAddress:
                       type: string
-                    unbondingDepositEntry:
-                      type: string
+                    entries:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          creation_height:
+                            type: string
+                            format: int64
+                          completion_time:
+                            type: string
+                            format: date-time
+                          initial_balance:
+                            type: string
+                          balance:
+                            type: string
               pagination:
                 type: object
                 properties:
@@ -45681,8 +45694,21 @@ paths:
                     type: string
                   validatorAddress:
                     type: string
-                  unbondingDepositEntry:
-                    type: string
+                  entries:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        creation_height:
+                          type: string
+                          format: int64
+                        completion_time:
+                          type: string
+                          format: date-time
+                        initial_balance:
+                          type: string
+                        balance:
+                          type: string
         default:
           description: An unexpected error response.
           schema:
@@ -75107,8 +75133,21 @@ definitions:
               type: string
             validatorAddress:
               type: string
-            unbondingDepositEntry:
-              type: string
+            entries:
+              type: array
+              items:
+                type: object
+                properties:
+                  creation_height:
+                    type: string
+                    format: int64
+                  completion_time:
+                    type: string
+                    format: date-time
+                  initial_balance:
+                    type: string
+                  balance:
+                    type: string
       pagination:
         type: object
         properties:
@@ -75185,8 +75224,21 @@ definitions:
             type: string
           validatorAddress:
             type: string
-          unbondingDepositEntry:
-            type: string
+          entries:
+            type: array
+            items:
+              type: object
+              properties:
+                creation_height:
+                  type: string
+                  format: int64
+                completion_time:
+                  type: string
+                  format: date-time
+                initial_balance:
+                  type: string
+                balance:
+                  type: string
   madeinblock.slashrefund.slashrefund.QueryParamsResponse:
     type: object
     properties:
@@ -75204,5 +75256,31 @@ definitions:
         type: string
       validatorAddress:
         type: string
-      unbondingDepositEntry:
+      entries:
+        type: array
+        items:
+          type: object
+          properties:
+            creation_height:
+              type: string
+              format: int64
+            completion_time:
+              type: string
+              format: date-time
+            initial_balance:
+              type: string
+            balance:
+              type: string
+  madeinblock.slashrefund.slashrefund.UnbondingDepositEntry:
+    type: object
+    properties:
+      creation_height:
+        type: string
+        format: int64
+      completion_time:
+        type: string
+        format: date-time
+      initial_balance:
+        type: string
+      balance:
         type: string

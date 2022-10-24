@@ -235,7 +235,17 @@ export interface SlashrefundQueryParamsResponse {
 export interface SlashrefundUnbondingDeposit {
   delegatorAddress?: string;
   validatorAddress?: string;
-  unbondingDepositEntry?: string;
+  entries?: SlashrefundUnbondingDepositEntry[];
+}
+
+export interface SlashrefundUnbondingDepositEntry {
+  /** @format int64 */
+  creation_height?: string;
+
+  /** @format date-time */
+  completion_time?: string;
+  initial_balance?: string;
+  balance?: string;
 }
 
 /**
