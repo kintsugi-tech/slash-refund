@@ -197,7 +197,7 @@ export interface SlashrefundQueryAllDepositResponse {
 }
 
 export interface SlashrefundQueryAllUnbondingDepositResponse {
-  UnbondingDeposit?: SlashrefundUnbondingDeposit[];
+  unbondingDeposit?: SlashrefundUnbondingDeposit[];
 
   /**
    * PageResponse is to be embedded in gRPC response messages where the
@@ -221,7 +221,7 @@ export interface SlashrefundQueryGetDepositResponse {
 }
 
 export interface SlashrefundQueryGetUnbondingDepositResponse {
-  UnbondingDeposit?: SlashrefundUnbondingDeposit;
+  unbondingDeposit?: SlashrefundUnbondingDeposit;
 }
 
 /**
@@ -233,21 +233,9 @@ export interface SlashrefundQueryParamsResponse {
 }
 
 export interface SlashrefundUnbondingDeposit {
-  /** @format uint64 */
-  id?: string;
-
-  /** @format date-time */
-  unbondingStart?: string;
-  depositorAddress?: string;
+  delegatorAddress?: string;
   validatorAddress?: string;
-
-  /**
-   * Coin defines a token with a denomination and an amount.
-   *
-   * NOTE: The amount field is an Int which implements the custom method
-   * signatures required by gogoproto.
-   */
-  balance?: V1Beta1Coin;
+  unbondingDepositEntry?: string;
 }
 
 /**
@@ -624,4 +612,46 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       format: "json",
       ...params,
     });
-  }
+
+  /**
+   * No description
+   *
+   * @tags Query
+   * @name QueryUnbondingDepositAll
+   * @summary Queries a list of UnbondingDeposit items.
+   * @request GET:/made-in-block/slash-refund/slashrefund/unbonding_deposit
+   */
+  queryUnbondingDepositAll = (
+    query?: {
+      "pagination.key"?: string;
+      "pagination.offset"?: string;
+      "pagination.limit"?: string;
+      "pagination.count_total"?: boolean;
+      "pagination.reverse"?: boolean;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<SlashrefundQueryAllUnbondingDepositResponse, RpcStatus>({
+      path: `/made-in-block/slash-refund/slashrefund/unbonding_deposit`,
+      method: "GET",
+      query: query,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags Query
+   * @name QueryUnbondingDeposit
+   * @summary Queries a UnbondingDeposit by index.
+   * @request GET:/made-in-block/slash-refund/slashrefund/unbonding_deposit/{delegatorAddress}/{validatorAddress}
+   */
+  queryUnbondingDeposit = (delegatorAddress: string, validatorAddress: string, params: RequestParams = {}) =>
+    this.request<SlashrefundQueryGetUnbondingDepositResponse, RpcStatus>({
+      path: `/made-in-block/slash-refund/slashrefund/unbonding_deposit/${delegatorAddress}/${validatorAddress}`,
+      method: "GET",
+      format: "json",
+      ...params,
+    });
+}

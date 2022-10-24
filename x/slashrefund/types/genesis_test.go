@@ -49,6 +49,16 @@ func TestGenesisState_Validate(t *testing.T) {
 						OperatorAddress: "1",
 					},
 				},
+				UnbondingDepositList: []types.UnbondingDeposit{
+					{
+						DelegatorAddress: "0",
+						ValidatorAddress: "0",
+					},
+					{
+						DelegatorAddress: "1",
+						ValidatorAddress: "1",
+					},
+				},
 				// this line is used by starport scaffolding # types/genesis/validField
 			},
 			valid: true,
@@ -104,6 +114,22 @@ func TestGenesisState_Validate(t *testing.T) {
 					},
 					{
 						OperatorAddress: "0",
+					},
+				},
+			},
+			valid: false,
+		},
+		{
+			desc: "duplicated unbondingDeposit",
+			genState: &types.GenesisState{
+				UnbondingDepositList: []types.UnbondingDeposit{
+					{
+						DelegatorAddress: "0",
+						ValidatorAddress: "0",
+					},
+					{
+						DelegatorAddress: "0",
+						ValidatorAddress: "0",
 					},
 				},
 			},

@@ -42,10 +42,10 @@ const getDefaultState = () => {
 				Params: {},
 				Deposit: {},
 				DepositAll: {},
-				UnbondingDeposit: {},
-				UnbondingDepositAll: {},
 				DepositPool: {},
 				DepositPoolAll: {},
+				UnbondingDeposit: {},
+				UnbondingDepositAll: {},
 				
 				_Structure: {
 						Deposit: getStructure(Deposit.fromPartial({})),
@@ -100,18 +100,6 @@ export default {
 					}
 			return state.DepositAll[JSON.stringify(params)] ?? {}
 		},
-				getUnbondingDeposit: (state) => (params = { params: {}}) => {
-					if (!(<any> params).query) {
-						(<any> params).query=null
-					}
-			return state.UnbondingDeposit[JSON.stringify(params)] ?? {}
-		},
-				getUnbondingDepositAll: (state) => (params = { params: {}}) => {
-					if (!(<any> params).query) {
-						(<any> params).query=null
-					}
-			return state.UnbondingDepositAll[JSON.stringify(params)] ?? {}
-		},
 				getDepositPool: (state) => (params = { params: {}}) => {
 					if (!(<any> params).query) {
 						(<any> params).query=null
@@ -123,6 +111,18 @@ export default {
 						(<any> params).query=null
 					}
 			return state.DepositPoolAll[JSON.stringify(params)] ?? {}
+		},
+				getUnbondingDeposit: (state) => (params = { params: {}}) => {
+					if (!(<any> params).query) {
+						(<any> params).query=null
+					}
+			return state.UnbondingDeposit[JSON.stringify(params)] ?? {}
+		},
+				getUnbondingDepositAll: (state) => (params = { params: {}}) => {
+					if (!(<any> params).query) {
+						(<any> params).query=null
+					}
+			return state.UnbondingDepositAll[JSON.stringify(params)] ?? {}
 		},
 				
 		getTypeStructure: (state) => (type) => {
@@ -233,54 +233,6 @@ export default {
 		 		
 		
 		
-		async QueryUnbondingDeposit({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
-			try {
-				const key = params ?? {};
-				const client = initClient(rootGetters);
-				let value= (await client.MadeinblockSlashrefundSlashrefund.query.queryUnbondingDeposit( key.id)).data
-				
-					
-				commit('QUERY', { query: 'UnbondingDeposit', key: { params: {...key}, query}, value })
-				if (subscribe) commit('SUBSCRIBE', { action: 'QueryUnbondingDeposit', payload: { options: { all }, params: {...key},query }})
-				return getters['getUnbondingDeposit']( { params: {...key}, query}) ?? {}
-			} catch (e) {
-				throw new Error('QueryClient:QueryUnbondingDeposit API Node Unavailable. Could not perform query: ' + e.message)
-				
-			}
-		},
-		
-		
-		
-		
-		 		
-		
-		
-		async QueryUnbondingDepositAll({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
-			try {
-				const key = params ?? {};
-				const client = initClient(rootGetters);
-				let value= (await client.MadeinblockSlashrefundSlashrefund.query.queryUnbondingDepositAll(query ?? undefined)).data
-				
-					
-				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
-					let next_values=(await client.MadeinblockSlashrefundSlashrefund.query.queryUnbondingDepositAll({...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
-					value = mergeResults(value, next_values);
-				}
-				commit('QUERY', { query: 'UnbondingDepositAll', key: { params: {...key}, query}, value })
-				if (subscribe) commit('SUBSCRIBE', { action: 'QueryUnbondingDepositAll', payload: { options: { all }, params: {...key},query }})
-				return getters['getUnbondingDepositAll']( { params: {...key}, query}) ?? {}
-			} catch (e) {
-				throw new Error('QueryClient:QueryUnbondingDepositAll API Node Unavailable. Could not perform query: ' + e.message)
-				
-			}
-		},
-		
-		
-		
-		
-		 		
-		
-		
 		async QueryDepositPool({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
@@ -324,19 +276,54 @@ export default {
 		},
 		
 		
-		async sendMsgWithdraw({ rootGetters }, { value, fee = [], memo = '' }) {
+		
+		
+		 		
+		
+		
+		async QueryUnbondingDeposit({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
-				const client=await initClient(rootGetters)
-				const result = await client.MadeinblockSlashrefundSlashrefund.tx.sendMsgWithdraw({ value, fee: {amount: fee, gas: "200000"}, memo })
-				return result
+				const key = params ?? {};
+				const client = initClient(rootGetters);
+				let value= (await client.MadeinblockSlashrefundSlashrefund.query.queryUnbondingDeposit( key.delegatorAddress,  key.validatorAddress)).data
+				
+					
+				commit('QUERY', { query: 'UnbondingDeposit', key: { params: {...key}, query}, value })
+				if (subscribe) commit('SUBSCRIBE', { action: 'QueryUnbondingDeposit', payload: { options: { all }, params: {...key},query }})
+				return getters['getUnbondingDeposit']( { params: {...key}, query}) ?? {}
 			} catch (e) {
-				if (e == MissingWalletError) {
-					throw new Error('TxClient:MsgWithdraw:Init Could not initialize signing client. Wallet is required.')
-				}else{
-					throw new Error('TxClient:MsgWithdraw:Send Could not broadcast Tx: '+ e.message)
-				}
+				throw new Error('QueryClient:QueryUnbondingDeposit API Node Unavailable. Could not perform query: ' + e.message)
+				
 			}
 		},
+		
+		
+		
+		
+		 		
+		
+		
+		async QueryUnbondingDepositAll({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
+			try {
+				const key = params ?? {};
+				const client = initClient(rootGetters);
+				let value= (await client.MadeinblockSlashrefundSlashrefund.query.queryUnbondingDepositAll(query ?? undefined)).data
+				
+					
+				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
+					let next_values=(await client.MadeinblockSlashrefundSlashrefund.query.queryUnbondingDepositAll({...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
+					value = mergeResults(value, next_values);
+				}
+				commit('QUERY', { query: 'UnbondingDepositAll', key: { params: {...key}, query}, value })
+				if (subscribe) commit('SUBSCRIBE', { action: 'QueryUnbondingDepositAll', payload: { options: { all }, params: {...key},query }})
+				return getters['getUnbondingDepositAll']( { params: {...key}, query}) ?? {}
+			} catch (e) {
+				throw new Error('QueryClient:QueryUnbondingDepositAll API Node Unavailable. Could not perform query: ' + e.message)
+				
+			}
+		},
+		
+		
 		async sendMsgDeposit({ rootGetters }, { value, fee = [], memo = '' }) {
 			try {
 				const client=await initClient(rootGetters)
@@ -350,20 +337,20 @@ export default {
 				}
 			}
 		},
-		
-		async MsgWithdraw({ rootGetters }, { value }) {
+		async sendMsgWithdraw({ rootGetters }, { value, fee = [], memo = '' }) {
 			try {
-				const client=initClient(rootGetters)
-				const msg = await client.MadeinblockSlashrefundSlashrefund.tx.msgWithdraw({value})
-				return msg
+				const client=await initClient(rootGetters)
+				const result = await client.MadeinblockSlashrefundSlashrefund.tx.sendMsgWithdraw({ value, fee: {amount: fee, gas: "200000"}, memo })
+				return result
 			} catch (e) {
 				if (e == MissingWalletError) {
 					throw new Error('TxClient:MsgWithdraw:Init Could not initialize signing client. Wallet is required.')
-				} else{
-					throw new Error('TxClient:MsgWithdraw:Create Could not create message: ' + e.message)
+				}else{
+					throw new Error('TxClient:MsgWithdraw:Send Could not broadcast Tx: '+ e.message)
 				}
 			}
 		},
+		
 		async MsgDeposit({ rootGetters }, { value }) {
 			try {
 				const client=initClient(rootGetters)
@@ -374,6 +361,19 @@ export default {
 					throw new Error('TxClient:MsgDeposit:Init Could not initialize signing client. Wallet is required.')
 				} else{
 					throw new Error('TxClient:MsgDeposit:Create Could not create message: ' + e.message)
+				}
+			}
+		},
+		async MsgWithdraw({ rootGetters }, { value }) {
+			try {
+				const client=initClient(rootGetters)
+				const msg = await client.MadeinblockSlashrefundSlashrefund.tx.msgWithdraw({value})
+				return msg
+			} catch (e) {
+				if (e == MissingWalletError) {
+					throw new Error('TxClient:MsgWithdraw:Init Could not initialize signing client. Wallet is required.')
+				} else{
+					throw new Error('TxClient:MsgWithdraw:Create Could not create message: ' + e.message)
 				}
 			}
 		},

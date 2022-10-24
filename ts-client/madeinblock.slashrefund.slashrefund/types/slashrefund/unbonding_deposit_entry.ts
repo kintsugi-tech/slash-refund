@@ -1,18 +1,19 @@
 /* eslint-disable */
-import { Writer, Reader } from "protobufjs/minimal";
+import { Timestamp } from "../google/protobuf/timestamp";
+import * as Long from "long";
+import { util, configure, Writer, Reader } from "protobufjs/minimal";
 
 export const protobufPackage = "madeinblock.slashrefund.slashrefund";
 
 export interface UnbondingDepositEntry {
   creationHeight: number;
-  completionTime: string;
+  completionTime: Date | undefined;
   initialBalance: string;
   balance: string;
 }
 
 const baseUnbondingDepositEntry: object = {
   creationHeight: 0,
-  completionTime: "",
   initialBalance: "",
   balance: "",
 };
@@ -23,10 +24,13 @@ export const UnbondingDepositEntry = {
     writer: Writer = Writer.create()
   ): Writer {
     if (message.creationHeight !== 0) {
-      writer.uint32(8).int32(message.creationHeight);
+      writer.uint32(8).int64(message.creationHeight);
     }
-    if (message.completionTime !== "") {
-      writer.uint32(18).string(message.completionTime);
+    if (message.completionTime !== undefined) {
+      Timestamp.encode(
+        toTimestamp(message.completionTime),
+        writer.uint32(18).fork()
+      ).ldelim();
     }
     if (message.initialBalance !== "") {
       writer.uint32(26).string(message.initialBalance);
@@ -45,10 +49,12 @@ export const UnbondingDepositEntry = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.creationHeight = reader.int32();
+          message.creationHeight = longToNumber(reader.int64() as Long);
           break;
         case 2:
-          message.completionTime = reader.string();
+          message.completionTime = fromTimestamp(
+            Timestamp.decode(reader, reader.uint32())
+          );
           break;
         case 3:
           message.initialBalance = reader.string();
@@ -72,9 +78,9 @@ export const UnbondingDepositEntry = {
       message.creationHeight = 0;
     }
     if (object.completionTime !== undefined && object.completionTime !== null) {
-      message.completionTime = String(object.completionTime);
+      message.completionTime = fromJsonTimestamp(object.completionTime);
     } else {
-      message.completionTime = "";
+      message.completionTime = undefined;
     }
     if (object.initialBalance !== undefined && object.initialBalance !== null) {
       message.initialBalance = String(object.initialBalance);
@@ -94,7 +100,10 @@ export const UnbondingDepositEntry = {
     message.creationHeight !== undefined &&
       (obj.creationHeight = message.creationHeight);
     message.completionTime !== undefined &&
-      (obj.completionTime = message.completionTime);
+      (obj.completionTime =
+        message.completionTime !== undefined
+          ? message.completionTime.toISOString()
+          : null);
     message.initialBalance !== undefined &&
       (obj.initialBalance = message.initialBalance);
     message.balance !== undefined && (obj.balance = message.balance);
@@ -113,7 +122,7 @@ export const UnbondingDepositEntry = {
     if (object.completionTime !== undefined && object.completionTime !== null) {
       message.completionTime = object.completionTime;
     } else {
-      message.completionTime = "";
+      message.completionTime = undefined;
     }
     if (object.initialBalance !== undefined && object.initialBalance !== null) {
       message.initialBalance = object.initialBalance;
@@ -129,6 +138,16 @@ export const UnbondingDepositEntry = {
   },
 };
 
+declare var self: any | undefined;
+declare var window: any | undefined;
+var globalThis: any = (() => {
+  if (typeof globalThis !== "undefined") return globalThis;
+  if (typeof self !== "undefined") return self;
+  if (typeof window !== "undefined") return window;
+  if (typeof global !== "undefined") return global;
+  throw "Unable to locate global object";
+})();
+
 type Builtin = Date | Function | Uint8Array | string | number | undefined;
 export type DeepPartial<T> = T extends Builtin
   ? T
@@ -139,3 +158,37 @@ export type DeepPartial<T> = T extends Builtin
   : T extends {}
   ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
+
+function toTimestamp(date: Date): Timestamp {
+  const seconds = date.getTime() / 1_000;
+  const nanos = (date.getTime() % 1_000) * 1_000_000;
+  return { seconds, nanos };
+}
+
+function fromTimestamp(t: Timestamp): Date {
+  let millis = t.seconds * 1_000;
+  millis += t.nanos / 1_000_000;
+  return new Date(millis);
+}
+
+function fromJsonTimestamp(o: any): Date {
+  if (o instanceof Date) {
+    return o;
+  } else if (typeof o === "string") {
+    return new Date(o);
+  } else {
+    return fromTimestamp(Timestamp.fromJSON(o));
+  }
+}
+
+function longToNumber(long: Long): number {
+  if (long.gt(Number.MAX_SAFE_INTEGER)) {
+    throw new globalThis.Error("Value is larger than Number.MAX_SAFE_INTEGER");
+  }
+  return long.toNumber();
+}
+
+if (util.Long !== Long) {
+  util.Long = Long as any;
+  configure();
+}

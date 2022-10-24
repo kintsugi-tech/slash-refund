@@ -489,6 +489,198 @@ func (m *QueryAllDepositPoolResponse) GetPagination() *query.PageResponse {
 	return nil
 }
 
+type QueryGetUnbondingDepositRequest struct {
+	DelegatorAddress string `protobuf:"bytes,1,opt,name=delegatorAddress,proto3" json:"delegatorAddress,omitempty"`
+	ValidatorAddress string `protobuf:"bytes,2,opt,name=validatorAddress,proto3" json:"validatorAddress,omitempty"`
+}
+
+func (m *QueryGetUnbondingDepositRequest) Reset()         { *m = QueryGetUnbondingDepositRequest{} }
+func (m *QueryGetUnbondingDepositRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryGetUnbondingDepositRequest) ProtoMessage()    {}
+func (*QueryGetUnbondingDepositRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_8e4feae7a7aa6dd2, []int{10}
+}
+func (m *QueryGetUnbondingDepositRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryGetUnbondingDepositRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryGetUnbondingDepositRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryGetUnbondingDepositRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryGetUnbondingDepositRequest.Merge(m, src)
+}
+func (m *QueryGetUnbondingDepositRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryGetUnbondingDepositRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryGetUnbondingDepositRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryGetUnbondingDepositRequest proto.InternalMessageInfo
+
+func (m *QueryGetUnbondingDepositRequest) GetDelegatorAddress() string {
+	if m != nil {
+		return m.DelegatorAddress
+	}
+	return ""
+}
+
+func (m *QueryGetUnbondingDepositRequest) GetValidatorAddress() string {
+	if m != nil {
+		return m.ValidatorAddress
+	}
+	return ""
+}
+
+type QueryGetUnbondingDepositResponse struct {
+	UnbondingDeposit UnbondingDeposit `protobuf:"bytes,1,opt,name=unbondingDeposit,proto3" json:"unbondingDeposit"`
+}
+
+func (m *QueryGetUnbondingDepositResponse) Reset()         { *m = QueryGetUnbondingDepositResponse{} }
+func (m *QueryGetUnbondingDepositResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryGetUnbondingDepositResponse) ProtoMessage()    {}
+func (*QueryGetUnbondingDepositResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_8e4feae7a7aa6dd2, []int{11}
+}
+func (m *QueryGetUnbondingDepositResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryGetUnbondingDepositResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryGetUnbondingDepositResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryGetUnbondingDepositResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryGetUnbondingDepositResponse.Merge(m, src)
+}
+func (m *QueryGetUnbondingDepositResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryGetUnbondingDepositResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryGetUnbondingDepositResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryGetUnbondingDepositResponse proto.InternalMessageInfo
+
+func (m *QueryGetUnbondingDepositResponse) GetUnbondingDeposit() UnbondingDeposit {
+	if m != nil {
+		return m.UnbondingDeposit
+	}
+	return UnbondingDeposit{}
+}
+
+type QueryAllUnbondingDepositRequest struct {
+	Pagination *query.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
+}
+
+func (m *QueryAllUnbondingDepositRequest) Reset()         { *m = QueryAllUnbondingDepositRequest{} }
+func (m *QueryAllUnbondingDepositRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryAllUnbondingDepositRequest) ProtoMessage()    {}
+func (*QueryAllUnbondingDepositRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_8e4feae7a7aa6dd2, []int{12}
+}
+func (m *QueryAllUnbondingDepositRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryAllUnbondingDepositRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryAllUnbondingDepositRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryAllUnbondingDepositRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryAllUnbondingDepositRequest.Merge(m, src)
+}
+func (m *QueryAllUnbondingDepositRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryAllUnbondingDepositRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryAllUnbondingDepositRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryAllUnbondingDepositRequest proto.InternalMessageInfo
+
+func (m *QueryAllUnbondingDepositRequest) GetPagination() *query.PageRequest {
+	if m != nil {
+		return m.Pagination
+	}
+	return nil
+}
+
+type QueryAllUnbondingDepositResponse struct {
+	UnbondingDeposit []UnbondingDeposit  `protobuf:"bytes,1,rep,name=unbondingDeposit,proto3" json:"unbondingDeposit"`
+	Pagination       *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+}
+
+func (m *QueryAllUnbondingDepositResponse) Reset()         { *m = QueryAllUnbondingDepositResponse{} }
+func (m *QueryAllUnbondingDepositResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryAllUnbondingDepositResponse) ProtoMessage()    {}
+func (*QueryAllUnbondingDepositResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_8e4feae7a7aa6dd2, []int{13}
+}
+func (m *QueryAllUnbondingDepositResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryAllUnbondingDepositResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryAllUnbondingDepositResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryAllUnbondingDepositResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryAllUnbondingDepositResponse.Merge(m, src)
+}
+func (m *QueryAllUnbondingDepositResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryAllUnbondingDepositResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryAllUnbondingDepositResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryAllUnbondingDepositResponse proto.InternalMessageInfo
+
+func (m *QueryAllUnbondingDepositResponse) GetUnbondingDeposit() []UnbondingDeposit {
+	if m != nil {
+		return m.UnbondingDeposit
+	}
+	return nil
+}
+
+func (m *QueryAllUnbondingDepositResponse) GetPagination() *query.PageResponse {
+	if m != nil {
+		return m.Pagination
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterType((*QueryParamsRequest)(nil), "madeinblock.slashrefund.slashrefund.QueryParamsRequest")
 	proto.RegisterType((*QueryParamsResponse)(nil), "madeinblock.slashrefund.slashrefund.QueryParamsResponse")
@@ -500,55 +692,69 @@ func init() {
 	proto.RegisterType((*QueryGetDepositPoolResponse)(nil), "madeinblock.slashrefund.slashrefund.QueryGetDepositPoolResponse")
 	proto.RegisterType((*QueryAllDepositPoolRequest)(nil), "madeinblock.slashrefund.slashrefund.QueryAllDepositPoolRequest")
 	proto.RegisterType((*QueryAllDepositPoolResponse)(nil), "madeinblock.slashrefund.slashrefund.QueryAllDepositPoolResponse")
+	proto.RegisterType((*QueryGetUnbondingDepositRequest)(nil), "madeinblock.slashrefund.slashrefund.QueryGetUnbondingDepositRequest")
+	proto.RegisterType((*QueryGetUnbondingDepositResponse)(nil), "madeinblock.slashrefund.slashrefund.QueryGetUnbondingDepositResponse")
+	proto.RegisterType((*QueryAllUnbondingDepositRequest)(nil), "madeinblock.slashrefund.slashrefund.QueryAllUnbondingDepositRequest")
+	proto.RegisterType((*QueryAllUnbondingDepositResponse)(nil), "madeinblock.slashrefund.slashrefund.QueryAllUnbondingDepositResponse")
 }
 
 func init() { proto.RegisterFile("slashrefund/query.proto", fileDescriptor_8e4feae7a7aa6dd2) }
 
 var fileDescriptor_8e4feae7a7aa6dd2 = []byte{
-	// 683 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x96, 0x61, 0x4b, 0x14, 0x41,
-	0x18, 0xc7, 0x6f, 0xb4, 0xb4, 0x46, 0xa8, 0x98, 0x24, 0xed, 0x8a, 0x2d, 0x36, 0x28, 0xb1, 0xdc,
-	0x51, 0x0b, 0x2d, 0x12, 0x4c, 0x09, 0x2d, 0x88, 0xb0, 0x8b, 0x28, 0x82, 0xc8, 0x39, 0x77, 0x5a,
-	0x97, 0xf6, 0x76, 0xd6, 0x9d, 0x3d, 0x4b, 0xc4, 0x37, 0x7d, 0x82, 0xa0, 0xd7, 0x7d, 0x87, 0xa0,
-	0x2f, 0xe0, 0x4b, 0x5f, 0x1a, 0xbd, 0xe9, 0x55, 0x88, 0xd7, 0x07, 0x89, 0x9d, 0x79, 0xc4, 0xb9,
-	0xdd, 0xab, 0x6e, 0x37, 0xdf, 0x1d, 0x33, 0xf3, 0xfc, 0xff, 0xff, 0xdf, 0x33, 0xb3, 0x8f, 0xe2,
-	0x21, 0x19, 0x30, 0xb9, 0x1a, 0xf3, 0x37, 0xcd, 0xd0, 0xa5, 0x6b, 0x4d, 0x1e, 0x6f, 0x38, 0x51,
-	0x2c, 0x12, 0x41, 0xae, 0x34, 0x98, 0xcb, 0xfd, 0xb0, 0x1e, 0x88, 0x95, 0xb7, 0x8e, 0x71, 0xc8,
-	0xfc, 0x5d, 0x1d, 0xf4, 0x84, 0x27, 0xd4, 0x79, 0x9a, 0xfe, 0xd2, 0xa5, 0xd5, 0x8b, 0x9e, 0x10,
-	0x5e, 0xc0, 0x29, 0x8b, 0x7c, 0xca, 0xc2, 0x50, 0x24, 0x2c, 0xf1, 0x45, 0x28, 0x61, 0x77, 0x74,
-	0x45, 0xc8, 0x86, 0x90, 0xb4, 0xce, 0x24, 0xd7, 0x8e, 0x74, 0x7d, 0xa2, 0xce, 0x13, 0x36, 0x41,
-	0x23, 0xe6, 0xf9, 0xa1, 0x3a, 0x0c, 0x67, 0x87, 0xcd, 0x74, 0x11, 0x8b, 0x59, 0xe3, 0x40, 0xe5,
-	0xbc, 0xb9, 0xe3, 0xf2, 0x48, 0x48, 0x3f, 0x81, 0x2d, 0xab, 0xc3, 0xd6, 0xeb, 0x48, 0x88, 0x40,
-	0xef, 0xdb, 0x83, 0x98, 0x3c, 0x49, 0x6d, 0x97, 0x94, 0x5e, 0x8d, 0xaf, 0x35, 0xb9, 0x4c, 0xec,
-	0x65, 0x7c, 0xb6, 0x6d, 0x55, 0x46, 0x22, 0x94, 0x9c, 0x3c, 0xc4, 0x7d, 0xda, 0x77, 0x18, 0x5d,
-	0x46, 0x23, 0x03, 0x93, 0xd7, 0x9d, 0x2e, 0xfa, 0xe2, 0x68, 0x91, 0xf9, 0x63, 0x3b, 0x3f, 0x2f,
-	0x55, 0x6a, 0x20, 0x60, 0x47, 0xf8, 0x9c, 0x72, 0x58, 0xe4, 0xc9, 0x7d, 0x9d, 0x0a, 0xbc, 0xc9,
-	0x28, 0x3e, 0x03, 0x39, 0x45, 0x3c, 0xe7, 0xba, 0x31, 0x97, 0xda, 0xee, 0x64, 0x2d, 0xb7, 0x9e,
-	0x9e, 0x5d, 0x67, 0x81, 0xef, 0x32, 0xe3, 0x6c, 0x8f, 0x3e, 0x9b, 0x5d, 0xb7, 0x3d, 0x3c, 0x94,
-	0x73, 0x04, 0xae, 0x47, 0xb8, 0x1f, 0xa4, 0x01, 0xec, 0x46, 0x57, 0x60, 0x20, 0x03, 0x64, 0x07,
-	0x12, 0xf6, 0x32, 0xa0, 0xcd, 0x05, 0x41, 0x06, 0x6d, 0x01, 0xe3, 0xc3, 0x5b, 0x05, 0xab, 0xab,
-	0x8e, 0x7e, 0x02, 0x4e, 0xfa, 0x04, 0x1c, 0xfd, 0xe8, 0xe0, 0x09, 0x38, 0x4b, 0xcc, 0xe3, 0x50,
-	0x5b, 0x33, 0x2a, 0xed, 0x2f, 0x08, 0x58, 0x4c, 0x8b, 0x4e, 0x2c, 0xbd, 0xff, 0xc9, 0x42, 0x16,
-	0xdb, 0x12, 0xf7, 0xa8, 0xc4, 0xd7, 0xfe, 0x99, 0x58, 0x47, 0x69, 0x8b, 0xbc, 0x80, 0xab, 0x99,
-	0xee, 0x2f, 0x09, 0x11, 0x1c, 0x34, 0x66, 0x04, 0x9f, 0x16, 0x11, 0x8f, 0x59, 0xee, 0xca, 0xb3,
-	0xcb, 0xf6, 0x3b, 0x7c, 0xa1, 0xa3, 0x0e, 0xd0, 0xbf, 0xc0, 0x03, 0xee, 0xe1, 0x32, 0xb4, 0x78,
-	0xbc, 0x48, 0x07, 0xd2, 0x3a, 0xe8, 0x82, 0x29, 0x65, 0xbb, 0x00, 0x70, 0xd8, 0x72, 0x13, 0xe0,
-	0xa8, 0x6e, 0x76, 0x1b, 0x01, 0x5f, 0xd6, 0xe6, 0x4f, 0x7c, 0xbd, 0x47, 0xc4, 0x77, 0x64, 0x37,
-	0x3d, 0xf9, 0xf9, 0x04, 0x3e, 0xae, 0x10, 0xc8, 0x57, 0x84, 0xfb, 0xf4, 0xc7, 0x4f, 0xa6, 0xbb,
-	0x8a, 0x98, 0x9f, 0x44, 0xd5, 0xdb, 0xc5, 0x0b, 0x75, 0x26, 0x7b, 0xea, 0xc3, 0xf7, 0x5f, 0x9f,
-	0x7a, 0xc6, 0x89, 0x43, 0x53, 0x85, 0x31, 0x3f, 0x1c, 0x53, 0x1a, 0x54, 0xd5, 0x8d, 0xc1, 0x44,
-	0xcc, 0x8f, 0x54, 0xd2, 0x42, 0xb8, 0x1f, 0x7a, 0x45, 0xee, 0x76, 0xef, 0x9e, 0x1b, 0x64, 0xd5,
-	0x99, 0x72, 0xc5, 0x10, 0xff, 0x95, 0x8a, 0xff, 0x9c, 0x3c, 0xeb, 0x36, 0x3e, 0x5c, 0x26, 0xdd,
-	0xcc, 0x4e, 0xc9, 0x2d, 0xba, 0x99, 0x1d, 0x86, 0x5b, 0x64, 0x1b, 0x61, 0x0c, 0x96, 0x73, 0x41,
-	0x50, 0x04, 0x34, 0x37, 0xd6, 0x8a, 0x80, 0xe6, 0x07, 0x96, 0x3d, 0xad, 0x40, 0x27, 0x08, 0x2d,
-	0x08, 0x4a, 0xf6, 0x10, 0x1e, 0x30, 0x1e, 0x35, 0x99, 0x2d, 0xd3, 0x6f, 0xe3, 0x23, 0xae, 0xde,
-	0x2b, 0x2f, 0x00, 0x2c, 0x8f, 0x15, 0xcb, 0x03, 0xb2, 0x50, 0x90, 0x45, 0xfd, 0x45, 0xa6, 0x9b,
-	0x99, 0x61, 0xb7, 0x45, 0xbe, 0x21, 0x7c, 0xca, 0xf0, 0x49, 0x6f, 0x6a, 0xb6, 0x4c, 0xb3, 0x4b,
-	0x52, 0x76, 0x1e, 0x42, 0xf6, 0x8c, 0xa2, 0x9c, 0x22, 0xb7, 0xca, 0x50, 0xce, 0x3f, 0xdd, 0xd9,
-	0xb7, 0xd0, 0xee, 0xbe, 0x85, 0xf6, 0xf6, 0x2d, 0xf4, 0xb1, 0x65, 0x55, 0x76, 0x5b, 0x56, 0xe5,
-	0x47, 0xcb, 0xaa, 0xbc, 0xbc, 0xe3, 0xf9, 0xc9, 0x6a, 0xb3, 0xee, 0xac, 0x88, 0xc6, 0xdf, 0x94,
-	0xdf, 0xb7, 0x69, 0x27, 0x1b, 0x11, 0x97, 0xf5, 0x3e, 0xf5, 0xdf, 0xcc, 0xcd, 0xdf, 0x01, 0x00,
-	0x00, 0xff, 0xff, 0x24, 0x4f, 0x6d, 0x56, 0xc2, 0x09, 0x00, 0x00,
+	// 835 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x97, 0x5f, 0x4f, 0xd4, 0x4c,
+	0x14, 0xc6, 0x77, 0x96, 0xf7, 0x85, 0x38, 0x18, 0x25, 0x03, 0x11, 0x5c, 0xcd, 0x42, 0x4a, 0xa2,
+	0x04, 0xa5, 0x05, 0x54, 0x90, 0x40, 0x82, 0x4b, 0x10, 0x34, 0x31, 0x06, 0xd7, 0x10, 0x8d, 0x89,
+	0x81, 0x59, 0x3a, 0x96, 0xc6, 0x6e, 0xa7, 0x6c, 0xbb, 0x28, 0x21, 0xdc, 0x78, 0x65, 0xe2, 0x0d,
+	0x89, 0x5f, 0xc4, 0xc4, 0x2f, 0xc0, 0x25, 0x97, 0x18, 0xbd, 0xf0, 0xca, 0x10, 0x56, 0xbf, 0x87,
+	0xe9, 0xf4, 0x6c, 0xe8, 0xb6, 0x5d, 0x6c, 0x4b, 0xef, 0x36, 0xf3, 0xe7, 0x9c, 0xe7, 0xf7, 0x9c,
+	0x99, 0x39, 0x5d, 0xdc, 0x6f, 0x1b, 0xd4, 0xde, 0xac, 0xb1, 0x37, 0x75, 0x53, 0x55, 0xb6, 0xea,
+	0xac, 0xb6, 0x23, 0x5b, 0x35, 0xee, 0x70, 0x32, 0x5c, 0xa5, 0x2a, 0xd3, 0xcd, 0x8a, 0xc1, 0x37,
+	0xde, 0xca, 0xbe, 0x45, 0xfe, 0xdf, 0x85, 0x3e, 0x8d, 0x6b, 0x5c, 0xac, 0x57, 0xdc, 0x5f, 0xde,
+	0xd6, 0xc2, 0x75, 0x8d, 0x73, 0xcd, 0x60, 0x0a, 0xb5, 0x74, 0x85, 0x9a, 0x26, 0x77, 0xa8, 0xa3,
+	0x73, 0xd3, 0x86, 0xd9, 0xd1, 0x0d, 0x6e, 0x57, 0xb9, 0xad, 0x54, 0xa8, 0xcd, 0xbc, 0x8c, 0xca,
+	0xf6, 0x44, 0x85, 0x39, 0x74, 0x42, 0xb1, 0xa8, 0xa6, 0x9b, 0x62, 0x31, 0xac, 0x1d, 0xf0, 0xab,
+	0xb3, 0x68, 0x8d, 0x56, 0x9b, 0x51, 0xae, 0xfa, 0x67, 0x54, 0x66, 0x71, 0x5b, 0x77, 0x60, 0xaa,
+	0x18, 0x31, 0xb5, 0x66, 0x71, 0x6e, 0xc0, 0xfc, 0xb0, 0x7f, 0xbe, 0x6e, 0x56, 0xb8, 0xa9, 0xea,
+	0xa6, 0xb6, 0xd6, 0x12, 0x44, 0xea, 0xc3, 0xe4, 0x99, 0xab, 0x6d, 0x45, 0x24, 0x2d, 0xb3, 0xad,
+	0x3a, 0xb3, 0x1d, 0x69, 0x1d, 0xf7, 0xb6, 0x8c, 0xda, 0x16, 0x37, 0x6d, 0x46, 0x1e, 0xe3, 0x4e,
+	0x4f, 0xdc, 0x00, 0x1a, 0x42, 0x23, 0xdd, 0x93, 0xb7, 0xe4, 0x18, 0xe6, 0xc9, 0x5e, 0x90, 0x85,
+	0xff, 0x0e, 0x7f, 0x0d, 0xe6, 0xca, 0x10, 0x40, 0xb2, 0xf0, 0x15, 0x91, 0x61, 0x99, 0x39, 0x8b,
+	0x9e, 0x20, 0xc8, 0x4d, 0x46, 0x71, 0x0f, 0x48, 0xe4, 0xb5, 0x92, 0xaa, 0xd6, 0x98, 0xed, 0xa5,
+	0xbb, 0x50, 0x0e, 0x8d, 0xbb, 0x6b, 0xb7, 0xa9, 0xa1, 0xab, 0xd4, 0xb7, 0x36, 0xef, 0xad, 0x0d,
+	0x8e, 0x4b, 0x1a, 0xee, 0x0f, 0x65, 0x04, 0xae, 0x27, 0xb8, 0x0b, 0x42, 0x03, 0xd8, 0xed, 0x58,
+	0x60, 0x10, 0x06, 0xc8, 0x9a, 0x21, 0xa4, 0x75, 0x40, 0x2b, 0x19, 0x46, 0x00, 0x6d, 0x09, 0xe3,
+	0xd3, 0xd2, 0x43, 0xaa, 0x1b, 0xb2, 0x77, 0x4e, 0x64, 0xf7, 0x9c, 0xc8, 0xde, 0xc9, 0x84, 0x73,
+	0x22, 0xaf, 0x50, 0x8d, 0xc1, 0xde, 0xb2, 0x6f, 0xa7, 0xf4, 0x05, 0x01, 0x8b, 0x3f, 0x45, 0x14,
+	0x4b, 0xc7, 0x39, 0x59, 0xc8, 0x72, 0x8b, 0xe2, 0xbc, 0x50, 0x7c, 0xf3, 0x9f, 0x8a, 0x3d, 0x29,
+	0x2d, 0x92, 0x97, 0x70, 0x21, 0xe0, 0xfe, 0x0a, 0xe7, 0x46, 0xd3, 0x98, 0x11, 0x7c, 0x99, 0x5b,
+	0xac, 0x46, 0x43, 0x25, 0x0f, 0x0e, 0x4b, 0xef, 0xf0, 0xb5, 0xc8, 0x38, 0x40, 0xff, 0x12, 0x77,
+	0xab, 0xa7, 0xc3, 0x60, 0xf1, 0x78, 0x12, 0x07, 0xdc, 0x7d, 0xe0, 0x82, 0x3f, 0x94, 0xa4, 0x02,
+	0xc0, 0xa9, 0xe5, 0x7e, 0x80, 0xac, 0x2a, 0x7b, 0x80, 0x80, 0x2f, 0x98, 0xa6, 0x1d, 0x5f, 0x47,
+	0x46, 0x7c, 0xd9, 0x55, 0x7a, 0x07, 0x0f, 0x36, 0x2b, 0xb4, 0xda, 0x7c, 0x74, 0xa2, 0xae, 0xb8,
+	0xc1, 0x34, 0x1a, 0x75, 0xc5, 0x5b, 0xc7, 0x13, 0x5d, 0xf1, 0x4f, 0x08, 0x0f, 0xb5, 0xcf, 0x0d,
+	0x16, 0x6a, 0xb8, 0xa7, 0x1e, 0x98, 0x83, 0x82, 0xdd, 0x8b, 0xe5, 0x63, 0x30, 0x30, 0x98, 0x19,
+	0x0a, 0x2a, 0xe9, 0x60, 0x44, 0xc9, 0x30, 0xda, 0x19, 0x91, 0xd5, 0xb1, 0xf9, 0xd1, 0x04, 0x8f,
+	0xcc, 0x75, 0x26, 0x78, 0x47, 0xe6, 0xe0, 0x99, 0x1d, 0xa5, 0xc9, 0xfd, 0x8b, 0xf8, 0x7f, 0x81,
+	0x45, 0xbe, 0x22, 0xdc, 0xe9, 0xf5, 0x11, 0x32, 0x1d, 0x4b, 0x6c, 0xb8, 0xa9, 0x15, 0xee, 0x27,
+	0xdf, 0xe8, 0x69, 0x92, 0xa6, 0x3e, 0x7c, 0xff, 0xfd, 0x39, 0x3f, 0x4e, 0x64, 0xc5, 0x8d, 0x30,
+	0xa6, 0x9b, 0x63, 0x22, 0x86, 0x22, 0xf6, 0x8d, 0x41, 0x87, 0x0d, 0xb7, 0x70, 0xd2, 0x40, 0xb8,
+	0xab, 0x69, 0xca, 0x6c, 0xfc, 0xec, 0xa1, 0x9e, 0x58, 0x98, 0x4b, 0xb7, 0x19, 0xe4, 0xbf, 0x16,
+	0xf2, 0x5f, 0x90, 0xd5, 0xb8, 0xf2, 0xe1, 0x5d, 0x50, 0x76, 0x83, 0x0d, 0x77, 0x4f, 0xd9, 0x0d,
+	0x5e, 0xba, 0x3d, 0x72, 0x80, 0x30, 0x86, 0x94, 0x25, 0xc3, 0x48, 0x02, 0x1a, 0xea, 0x90, 0x49,
+	0x40, 0xc3, 0xbd, 0x4f, 0x9a, 0x16, 0xa0, 0x13, 0x44, 0x49, 0x08, 0x4a, 0x8e, 0x11, 0xee, 0xf6,
+	0xbd, 0x8f, 0x64, 0x3e, 0x8d, 0xdf, 0xbe, 0x7e, 0x50, 0x78, 0x90, 0x3e, 0x00, 0xb0, 0x3c, 0x15,
+	0x2c, 0x8f, 0xc8, 0x52, 0x42, 0x16, 0xf1, 0x05, 0xa8, 0xec, 0x06, 0xfa, 0xe6, 0x1e, 0xf9, 0x86,
+	0xf0, 0x25, 0x5f, 0x1e, 0xb7, 0x52, 0xf3, 0x69, 0xcc, 0x4e, 0x49, 0x19, 0xdd, 0xcf, 0xa4, 0x39,
+	0x41, 0x39, 0x45, 0xee, 0xa6, 0xa1, 0x24, 0x1f, 0xf3, 0xb8, 0x27, 0xf8, 0x2a, 0x91, 0xc5, 0x44,
+	0xd6, 0xb7, 0x79, 0x99, 0x0b, 0x0f, 0xcf, 0x19, 0x05, 0xf8, 0x34, 0xc1, 0x47, 0xc9, 0x5a, 0x5c,
+	0xbe, 0xd0, 0x77, 0xba, 0x7b, 0x09, 0x5b, 0x5b, 0x62, 0xe4, 0x25, 0xfc, 0x83, 0x70, 0x6f, 0x50,
+	0x85, 0x5b, 0xe3, 0xc5, 0x44, 0x25, 0xca, 0xc0, 0x8d, 0x33, 0x3a, 0x90, 0x54, 0x12, 0x6e, 0xcc,
+	0x92, 0x99, 0xd4, 0x6e, 0x2c, 0x3c, 0x3f, 0x3c, 0x29, 0xa2, 0xa3, 0x93, 0x22, 0x3a, 0x3e, 0x29,
+	0xa2, 0xfd, 0x46, 0x31, 0x77, 0xd4, 0x28, 0xe6, 0x7e, 0x36, 0x8a, 0xb9, 0x57, 0x33, 0x9a, 0xee,
+	0x6c, 0xd6, 0x2b, 0xf2, 0x06, 0xaf, 0x9e, 0x15, 0xfe, 0x7d, 0x4b, 0x02, 0x67, 0xc7, 0x62, 0x76,
+	0xa5, 0x53, 0xfc, 0x17, 0xba, 0xf3, 0x37, 0x00, 0x00, 0xff, 0xff, 0xb0, 0xd8, 0x86, 0xe0, 0x25,
+	0x0e, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -573,6 +779,10 @@ type QueryClient interface {
 	DepositPool(ctx context.Context, in *QueryGetDepositPoolRequest, opts ...grpc.CallOption) (*QueryGetDepositPoolResponse, error)
 	// Queries a list of DepositPool items.
 	DepositPoolAll(ctx context.Context, in *QueryAllDepositPoolRequest, opts ...grpc.CallOption) (*QueryAllDepositPoolResponse, error)
+	// Queries a UnbondingDeposit by index.
+	UnbondingDeposit(ctx context.Context, in *QueryGetUnbondingDepositRequest, opts ...grpc.CallOption) (*QueryGetUnbondingDepositResponse, error)
+	// Queries a list of UnbondingDeposit items.
+	UnbondingDepositAll(ctx context.Context, in *QueryAllUnbondingDepositRequest, opts ...grpc.CallOption) (*QueryAllUnbondingDepositResponse, error)
 }
 
 type queryClient struct {
@@ -628,6 +838,24 @@ func (c *queryClient) DepositPoolAll(ctx context.Context, in *QueryAllDepositPoo
 	return out, nil
 }
 
+func (c *queryClient) UnbondingDeposit(ctx context.Context, in *QueryGetUnbondingDepositRequest, opts ...grpc.CallOption) (*QueryGetUnbondingDepositResponse, error) {
+	out := new(QueryGetUnbondingDepositResponse)
+	err := c.cc.Invoke(ctx, "/madeinblock.slashrefund.slashrefund.Query/UnbondingDeposit", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) UnbondingDepositAll(ctx context.Context, in *QueryAllUnbondingDepositRequest, opts ...grpc.CallOption) (*QueryAllUnbondingDepositResponse, error) {
+	out := new(QueryAllUnbondingDepositResponse)
+	err := c.cc.Invoke(ctx, "/madeinblock.slashrefund.slashrefund.Query/UnbondingDepositAll", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 type QueryServer interface {
 	// Parameters queries the parameters of the module.
@@ -640,6 +868,10 @@ type QueryServer interface {
 	DepositPool(context.Context, *QueryGetDepositPoolRequest) (*QueryGetDepositPoolResponse, error)
 	// Queries a list of DepositPool items.
 	DepositPoolAll(context.Context, *QueryAllDepositPoolRequest) (*QueryAllDepositPoolResponse, error)
+	// Queries a UnbondingDeposit by index.
+	UnbondingDeposit(context.Context, *QueryGetUnbondingDepositRequest) (*QueryGetUnbondingDepositResponse, error)
+	// Queries a list of UnbondingDeposit items.
+	UnbondingDepositAll(context.Context, *QueryAllUnbondingDepositRequest) (*QueryAllUnbondingDepositResponse, error)
 }
 
 // UnimplementedQueryServer can be embedded to have forward compatible implementations.
@@ -660,6 +892,12 @@ func (*UnimplementedQueryServer) DepositPool(ctx context.Context, req *QueryGetD
 }
 func (*UnimplementedQueryServer) DepositPoolAll(ctx context.Context, req *QueryAllDepositPoolRequest) (*QueryAllDepositPoolResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DepositPoolAll not implemented")
+}
+func (*UnimplementedQueryServer) UnbondingDeposit(ctx context.Context, req *QueryGetUnbondingDepositRequest) (*QueryGetUnbondingDepositResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnbondingDeposit not implemented")
+}
+func (*UnimplementedQueryServer) UnbondingDepositAll(ctx context.Context, req *QueryAllUnbondingDepositRequest) (*QueryAllUnbondingDepositResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnbondingDepositAll not implemented")
 }
 
 func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
@@ -756,6 +994,42 @@ func _Query_DepositPoolAll_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_UnbondingDeposit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryGetUnbondingDepositRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).UnbondingDeposit(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/madeinblock.slashrefund.slashrefund.Query/UnbondingDeposit",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).UnbondingDeposit(ctx, req.(*QueryGetUnbondingDepositRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_UnbondingDepositAll_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryAllUnbondingDepositRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).UnbondingDepositAll(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/madeinblock.slashrefund.slashrefund.Query/UnbondingDepositAll",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).UnbondingDepositAll(ctx, req.(*QueryAllUnbondingDepositRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Query_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "madeinblock.slashrefund.slashrefund.Query",
 	HandlerType: (*QueryServer)(nil),
@@ -779,6 +1053,14 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DepositPoolAll",
 			Handler:    _Query_DepositPoolAll_Handler,
+		},
+		{
+			MethodName: "UnbondingDeposit",
+			Handler:    _Query_UnbondingDeposit_Handler,
+		},
+		{
+			MethodName: "UnbondingDepositAll",
+			Handler:    _Query_UnbondingDepositAll_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -1142,6 +1424,160 @@ func (m *QueryAllDepositPoolResponse) MarshalToSizedBuffer(dAtA []byte) (int, er
 	return len(dAtA) - i, nil
 }
 
+func (m *QueryGetUnbondingDepositRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryGetUnbondingDepositRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryGetUnbondingDepositRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.ValidatorAddress) > 0 {
+		i -= len(m.ValidatorAddress)
+		copy(dAtA[i:], m.ValidatorAddress)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.ValidatorAddress)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.DelegatorAddress) > 0 {
+		i -= len(m.DelegatorAddress)
+		copy(dAtA[i:], m.DelegatorAddress)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.DelegatorAddress)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryGetUnbondingDepositResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryGetUnbondingDepositResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryGetUnbondingDepositResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.UnbondingDeposit.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0xa
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryAllUnbondingDepositRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryAllUnbondingDepositRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryAllUnbondingDepositRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Pagination != nil {
+		{
+			size, err := m.Pagination.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryAllUnbondingDepositResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryAllUnbondingDepositResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryAllUnbondingDepositResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Pagination != nil {
+		{
+			size, err := m.Pagination.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.UnbondingDeposit) > 0 {
+		for iNdEx := len(m.UnbondingDeposit) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.UnbondingDeposit[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintQuery(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintQuery(dAtA []byte, offset int, v uint64) int {
 	offset -= sovQuery(v)
 	base := offset
@@ -1278,6 +1714,66 @@ func (m *QueryAllDepositPoolResponse) Size() (n int) {
 	_ = l
 	if len(m.DepositPool) > 0 {
 		for _, e := range m.DepositPool {
+			l = e.Size()
+			n += 1 + l + sovQuery(uint64(l))
+		}
+	}
+	if m.Pagination != nil {
+		l = m.Pagination.Size()
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *QueryGetUnbondingDepositRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.DelegatorAddress)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	l = len(m.ValidatorAddress)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *QueryGetUnbondingDepositResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = m.UnbondingDeposit.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	return n
+}
+
+func (m *QueryAllUnbondingDepositRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Pagination != nil {
+		l = m.Pagination.Size()
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *QueryAllUnbondingDepositResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.UnbondingDeposit) > 0 {
+		for _, e := range m.UnbondingDeposit {
 			l = e.Size()
 			n += 1 + l + sovQuery(uint64(l))
 		}
@@ -2142,6 +2638,409 @@ func (m *QueryAllDepositPoolResponse) Unmarshal(dAtA []byte) error {
 			}
 			m.DepositPool = append(m.DepositPool, DepositPool{})
 			if err := m.DepositPool[len(m.DepositPool)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Pagination == nil {
+				m.Pagination = &query.PageResponse{}
+			}
+			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryGetUnbondingDepositRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryGetUnbondingDepositRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryGetUnbondingDepositRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DelegatorAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.DelegatorAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ValidatorAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ValidatorAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryGetUnbondingDepositResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryGetUnbondingDepositResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryGetUnbondingDepositResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UnbondingDeposit", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.UnbondingDeposit.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryAllUnbondingDepositRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryAllUnbondingDepositRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryAllUnbondingDepositRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Pagination == nil {
+				m.Pagination = &query.PageRequest{}
+			}
+			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryAllUnbondingDepositResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryAllUnbondingDepositResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryAllUnbondingDepositResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UnbondingDeposit", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.UnbondingDeposit = append(m.UnbondingDeposit, UnbondingDeposit{})
+			if err := m.UnbondingDeposit[len(m.UnbondingDeposit)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

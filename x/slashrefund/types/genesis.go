@@ -12,8 +12,9 @@ const DefaultIndex uint64 = 1
 // DefaultGenesis returns the default genesis state
 func DefaultGenesis() *GenesisState {
 	return &GenesisState{
-		DepositList:     []Deposit{},
-		DepositPoolList: []DepositPool{},
+		DepositList:          []Deposit{},
+		DepositPoolList:      []DepositPool{},
+		UnbondingDepositList: []UnbondingDeposit{},
 		// this line is used by starport scaffolding # genesis/types/default
 		Params: DefaultParams(),
 	}
@@ -56,6 +57,16 @@ func (gs GenesisState) Validate() error {
 			return fmt.Errorf("duplicated index for depositPool")
 		}
 		depositPoolIndexMap[index] = struct{}{}
+	}
+	// Check for duplicated index in unbondingDeposit
+	unbondingDepositIndexMap := make(map[string]struct{})
+
+	for _, elem := range gs.UnbondingDepositList {
+		index := string(UnbondingDepositKey(elem.DelegatorAddress, elem.ValidatorAddress))
+		if _, ok := unbondingDepositIndexMap[index]; ok {
+			return fmt.Errorf("duplicated index for unbondingDeposit")
+		}
+		unbondingDepositIndexMap[index] = struct{}{}
 	}
 	// this line is used by starport scaffolding # genesis/types/validate
 

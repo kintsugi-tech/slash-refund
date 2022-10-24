@@ -45381,36 +45381,17 @@ paths:
           schema:
             type: object
             properties:
-              UnbondingDeposit:
+              unbondingDeposit:
                 type: array
                 items:
                   type: object
                   properties:
-                    id:
-                      type: string
-                      format: uint64
-                    unbondingStart:
-                      type: string
-                      format: date-time
-                    depositorAddress:
+                    delegatorAddress:
                       type: string
                     validatorAddress:
                       type: string
-                    balance:
-                      type: object
-                      properties:
-                        denom:
-                          type: string
-                        amount:
-                          type: string
-                      description: >-
-                        Coin defines a token with a denomination and an amount.
-
-
-                        NOTE: The amount field is an Int which implements the
-                        custom method
-
-                        signatures required by gogoproto.
+                    unbondingDepositEntry:
+                      type: string
               pagination:
                 type: object
                 properties:
@@ -45683,9 +45664,9 @@ paths:
           type: boolean
       tags:
         - Query
-  '/made-in-block/slash-refund/slashrefund/unbonding_deposit/{id}':
+  '/made-in-block/slash-refund/slashrefund/unbonding_deposit/{delegatorAddress}/{validatorAddress}':
     get:
-      summary: Queries a UnbondingDeposit by id.
+      summary: Queries a UnbondingDeposit by index.
       operationId: MadeinblockSlashrefundSlashrefundUnbondingDeposit
       responses:
         '200':
@@ -45693,34 +45674,15 @@ paths:
           schema:
             type: object
             properties:
-              UnbondingDeposit:
+              unbondingDeposit:
                 type: object
                 properties:
-                  id:
-                    type: string
-                    format: uint64
-                  unbondingStart:
-                    type: string
-                    format: date-time
-                  depositorAddress:
+                  delegatorAddress:
                     type: string
                   validatorAddress:
                     type: string
-                  balance:
-                    type: object
-                    properties:
-                      denom:
-                        type: string
-                      amount:
-                        type: string
-                    description: >-
-                      Coin defines a token with a denomination and an amount.
-
-
-                      NOTE: The amount field is an Int which implements the
-                      custom method
-
-                      signatures required by gogoproto.
+                  unbondingDepositEntry:
+                    type: string
         default:
           description: An unexpected error response.
           schema:
@@ -45907,11 +45869,14 @@ paths:
                           "value": "1.212s"
                         }
       parameters:
-        - name: id
+        - name: delegatorAddress
           in: path
           required: true
           type: string
-          format: uint64
+        - name: validatorAddress
+          in: path
+          required: true
+          type: string
       tags:
         - Query
 definitions:
@@ -75133,36 +75098,17 @@ definitions:
   madeinblock.slashrefund.slashrefund.QueryAllUnbondingDepositResponse:
     type: object
     properties:
-      UnbondingDeposit:
+      unbondingDeposit:
         type: array
         items:
           type: object
           properties:
-            id:
-              type: string
-              format: uint64
-            unbondingStart:
-              type: string
-              format: date-time
-            depositorAddress:
+            delegatorAddress:
               type: string
             validatorAddress:
               type: string
-            balance:
-              type: object
-              properties:
-                denom:
-                  type: string
-                amount:
-                  type: string
-              description: >-
-                Coin defines a token with a denomination and an amount.
-
-
-                NOTE: The amount field is an Int which implements the custom
-                method
-
-                signatures required by gogoproto.
+            unbondingDepositEntry:
+              type: string
       pagination:
         type: object
         properties:
@@ -75232,34 +75178,15 @@ definitions:
   madeinblock.slashrefund.slashrefund.QueryGetUnbondingDepositResponse:
     type: object
     properties:
-      UnbondingDeposit:
+      unbondingDeposit:
         type: object
         properties:
-          id:
-            type: string
-            format: uint64
-          unbondingStart:
-            type: string
-            format: date-time
-          depositorAddress:
+          delegatorAddress:
             type: string
           validatorAddress:
             type: string
-          balance:
-            type: object
-            properties:
-              denom:
-                type: string
-              amount:
-                type: string
-            description: >-
-              Coin defines a token with a denomination and an amount.
-
-
-              NOTE: The amount field is an Int which implements the custom
-              method
-
-              signatures required by gogoproto.
+          unbondingDepositEntry:
+            type: string
   madeinblock.slashrefund.slashrefund.QueryParamsResponse:
     type: object
     properties:
@@ -75273,25 +75200,9 @@ definitions:
   madeinblock.slashrefund.slashrefund.UnbondingDeposit:
     type: object
     properties:
-      id:
-        type: string
-        format: uint64
-      unbondingStart:
-        type: string
-        format: date-time
-      depositorAddress:
+      delegatorAddress:
         type: string
       validatorAddress:
         type: string
-      balance:
-        type: object
-        properties:
-          denom:
-            type: string
-          amount:
-            type: string
-        description: |-
-          Coin defines a token with a denomination and an amount.
-
-          NOTE: The amount field is an Int which implements the custom method
-          signatures required by gogoproto.
+      unbondingDepositEntry:
+        type: string

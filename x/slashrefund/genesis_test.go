@@ -41,6 +41,16 @@ func TestGenesis(t *testing.T) {
 				OperatorAddress: "1",
 			},
 		},
+		UnbondingDepositList: []types.UnbondingDeposit{
+			{
+				DelegatorAddress: "0",
+				ValidatorAddress: "0",
+			},
+			{
+				DelegatorAddress: "1",
+				ValidatorAddress: "1",
+			},
+		},
 		// this line is used by starport scaffolding # genesis/test/state
 	}
 
@@ -56,5 +66,6 @@ func TestGenesis(t *testing.T) {
 	require.ElementsMatch(t, genesisState.UnbondingDepositList, got.UnbondingDepositList)
 	require.Equal(t, genesisState.UnbondingDepositCount, got.UnbondingDepositCount)
 	require.ElementsMatch(t, genesisState.DepositPoolList, got.DepositPoolList)
+	require.ElementsMatch(t, genesisState.UnbondingDepositList, got.UnbondingDepositList)
 	// this line is used by starport scaffolding # genesis/test/assert
 }
