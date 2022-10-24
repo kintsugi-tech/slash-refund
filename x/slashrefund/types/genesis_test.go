@@ -51,11 +51,11 @@ func TestGenesisState_Validate(t *testing.T) {
 				},
 				UnbondingDepositList: []types.UnbondingDeposit{
 					{
-						DelegatorAddress: "0",
+						DepositorAddress: "0",
 						ValidatorAddress: "0",
 					},
 					{
-						DelegatorAddress: "1",
+						DepositorAddress: "1",
 						ValidatorAddress: "1",
 					},
 				},
@@ -124,11 +124,11 @@ func TestGenesisState_Validate(t *testing.T) {
 			genState: &types.GenesisState{
 				UnbondingDepositList: []types.UnbondingDeposit{
 					{
-						DelegatorAddress: "0",
+						DepositorAddress: "0",
 						ValidatorAddress: "0",
 					},
 					{
-						DelegatorAddress: "0",
+						DepositorAddress: "0",
 						ValidatorAddress: "0",
 					},
 				},

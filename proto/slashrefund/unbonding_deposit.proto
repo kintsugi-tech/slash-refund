@@ -12,7 +12,7 @@ message UnbondingDeposit {
   //option (gogoproto.equal)            = false;
   //option (gogoproto.goproto_stringer) = false;
 
-  string delegatorAddress = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string depositorAddress = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   string validatorAddress = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   repeated UnbondingDepositEntry entries = 3 [(gogoproto.nullable) = false];
 

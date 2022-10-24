@@ -11,13 +11,13 @@ const (
 
 // UnbondingDepositKey returns the store key to retrieve a UnbondingDeposit from the index fields
 func UnbondingDepositKey(
-	delegatorAddress string,
+	depositorAddress string,
 	validatorAddress string,
 ) []byte {
 	var key []byte
 
-	delegatorAddressBytes := []byte(delegatorAddress)
-	key = append(key, delegatorAddressBytes...)
+	depositorAddressBytes := []byte(depositorAddress)
+	key = append(key, depositorAddressBytes...)
 	key = append(key, []byte("/")...)
 
 	validatorAddressBytes := []byte(validatorAddress)

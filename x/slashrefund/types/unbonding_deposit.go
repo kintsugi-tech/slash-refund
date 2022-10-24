@@ -42,11 +42,11 @@ func NewUnbondingDepositEntry(creationHeight int64, completionTime time.Time, ba
 }
 
 func NewUnbondingDeposit(
-	delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddress,
+	depositorAddr sdk.AccAddress, validatorAddr sdk.ValAddress,
 	creationHeight int64, minTime time.Time, balance math.Int,
 ) UnbondingDeposit {
 	return UnbondingDeposit{
-		DelegatorAddress: delegatorAddr.String(),
+		DepositorAddress: depositorAddr.String(),
 		ValidatorAddress: validatorAddr.String(),
 		Entries: []UnbondingDepositEntry{
 			NewUnbondingDepositEntry(creationHeight, minTime, balance),

@@ -15,7 +15,7 @@ func (k Keeper) SetUnbondingDeposit(ctx sdk.Context, unbondingDeposit types.Unbo
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.UnbondingDepositKeyPrefix))
 	b := k.cdc.MustMarshal(&unbondingDeposit)
 	store.Set(types.UnbondingDepositKey(
-		unbondingDeposit.DelegatorAddress,
+		unbondingDeposit.DepositorAddress,
 		unbondingDeposit.ValidatorAddress,
 	), b)
 }
@@ -23,14 +23,14 @@ func (k Keeper) SetUnbondingDeposit(ctx sdk.Context, unbondingDeposit types.Unbo
 // GetUnbondingDeposit returns a unbondingDeposit from its index
 func (k Keeper) GetUnbondingDeposit(
 	ctx sdk.Context,
-	delegatorAddress sdk.AccAddress,
+	depositorAddress sdk.AccAddress,
 	validatorAddress sdk.ValAddress,
 
 ) (val types.UnbondingDeposit, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.UnbondingDepositKeyPrefix))
 
 	b := store.Get(types.UnbondingDepositKey(
-		delegatorAddress.String(),
+		depositorAddress.String(),
 		validatorAddress.String(),
 	))
 	if b == nil {
@@ -44,13 +44,13 @@ func (k Keeper) GetUnbondingDeposit(
 // RemoveUnbondingDeposit removes a unbondingDeposit from the store
 func (k Keeper) RemoveUnbondingDeposit(
 	ctx sdk.Context,
-	delegatorAddress string,
+	depositorAddress string,
 	validatorAddress string,
 
 ) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.UnbondingDepositKeyPrefix))
 	store.Delete(types.UnbondingDepositKey(
-		delegatorAddress,
+		depositorAddress,
 		validatorAddress,
 	))
 }
@@ -74,14 +74,14 @@ func (k Keeper) GetAllUnbondingDeposit(ctx sdk.Context) (list []types.UnbondingD
 // SetUnbondingDepositEntry adds an entry to the unbonding deposit at
 // the given addresses. It creates the unbonding deposit if it does not exist.
 func (k Keeper) SetUnbondingDepositEntry(
-	ctx sdk.Context, delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddress,
+	ctx sdk.Context, depositorAddr sdk.AccAddress, validatorAddr sdk.ValAddress,
 	creationHeight int64, minTime time.Time, balance math.Int,
 ) types.UnbondingDeposit {
-	ubd, found := k.GetUnbondingDeposit(ctx, delegatorAddr, validatorAddr)
+	ubd, found := k.GetUnbondingDeposit(ctx, depositorAddr, validatorAddr)
 	if found {
 		ubd.AddEntry(creationHeight, minTime, balance)
 	} else {
-		ubd = types.NewUnbondingDeposit(delegatorAddr, validatorAddr, creationHeight, minTime, balance)
+		ubd = types.NewUnbondingDeposit(depositorAddr, validatorAddr, creationHeight, minTime, balance)
 	}
 
 	k.SetUnbondingDeposit(ctx, ubd)
@@ -95,7 +95,7 @@ func (k Keeper) InsertUBDQueue(ctx sdk.Context, ubd types.UnbondingDeposit, comp
 
 	// TODO scaffold DVPair
 
-	dvPair := types.DVPair{DelegatorAddress: ubd.DelegatorAddress, ValidatorAddress: ubd.ValidatorAddress}
+	dvPair := types.DVPair{DepositorAddress: ubd.DepositorAddress, ValidatorAddress: ubd.ValidatorAddress}
 
 	timeSlice := k.GetUBDQueueTimeSlice(ctx, completionTime)
 	if len(timeSlice) == 0 {

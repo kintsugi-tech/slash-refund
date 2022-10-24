@@ -44,7 +44,7 @@ func CmdListUnbondingDeposit() *cobra.Command {
 
 func CmdShowUnbondingDeposit() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "show-unbonding-deposit [delegator-address] [validator-address]",
+		Use:   "show-unbonding-deposit [depositor-address] [validator-address]",
 		Short: "shows a unbonding_deposit",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -52,11 +52,11 @@ func CmdShowUnbondingDeposit() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			argDelegatorAddress := args[0]
+			argDepositorAddress := args[0]
 			argValidatorAddress := args[1]
 
 			params := &types.QueryGetUnbondingDepositRequest{
-				DelegatorAddress: argDelegatorAddress,
+				DepositorAddress: argDepositorAddress,
 				ValidatorAddress: argValidatorAddress,
 			}
 

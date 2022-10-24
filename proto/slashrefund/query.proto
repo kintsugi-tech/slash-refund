@@ -40,7 +40,7 @@ service Query {
 
 // Queries a UnbondingDeposit by index.
 	rpc UnbondingDeposit(QueryGetUnbondingDepositRequest) returns (QueryGetUnbondingDepositResponse) {
-		option (google.api.http).get = "/made-in-block/slash-refund/slashrefund/unbonding_deposit/{delegatorAddress}/{validatorAddress}";
+		option (google.api.http).get = "/made-in-block/slash-refund/slashrefund/unbonding_deposit/{depositorAddress}/{validatorAddress}";
 	}
 
 	// Queries a list of UnbondingDeposit items.
@@ -98,7 +98,7 @@ message QueryAllDepositPoolResponse {
 }
 
 message QueryGetUnbondingDepositRequest {
-	  string delegatorAddress = 1;
+	  string depositorAddress = 1;
   string validatorAddress = 2;
 
 }

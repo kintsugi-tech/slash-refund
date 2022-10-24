@@ -29,15 +29,8 @@ func (k Keeper) Withdraw(
 	completionTime := ctx.BlockHeader().Time.Add(k.stakingKeeper.UnbondingTime(ctx))
 
 	// SET UNBOND DELEGATION ENTRY
-	// unbonding deposit
-	ubd := types.UnbondingDeposit{
-		Id:               k.GetUnbondingDepositCount(ctx),
-		UnbondingStart:   ctx.BlockTime(),
-		DepositorAddress: msg.Creator,
-		ValidatorAddress: msg.ValidatorAddress,
-		Balance:          msg.Amount,
-	}
-	k.AppendUnbondingDeposit(ctx, ubd)
+	ubd := k.SetUnbondingDepositEntry(ctx, depAddr, valAddr, ctx.BlockHeight(), completionTime, witAmt)
+	k.InsertUBDQueue(ctx, ubd, completionTime)
 
 	// TODO: change "stake"
 	return sdk.NewCoin("stake", witAmt), completionTime, nil

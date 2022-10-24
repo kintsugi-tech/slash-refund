@@ -45,13 +45,22 @@ func (k Keeper) UnbondingDeposit(c context.Context, req *types.QueryGetUnbonding
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
+	depAddr, err := sdk.AccAddressFromBech32(req.DepositorAddress)
+	if err != nil {
+		return nil, err
+	}
+	valAddr, err := sdk.ValAddressFromBech32(req.ValidatorAddress)
+	if err != nil {
+		return nil, err
+	}
+
 	val, found := k.GetUnbondingDeposit(
 		ctx,
-		req.DelegatorAddress,
-		req.ValidatorAddress,
+		depAddr,
+		valAddr,
 	)
 	if !found {
-		return nil, status.Error(codes.NotFound, "not found")
+		return nil, status.Error(codes.NotFound, "unbonding deposit not found")
 	}
 
 	return &types.QueryGetUnbondingDepositResponse{UnbondingDeposit: val}, nil

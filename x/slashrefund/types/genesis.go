@@ -62,7 +62,7 @@ func (gs GenesisState) Validate() error {
 	unbondingDepositIndexMap := make(map[string]struct{})
 
 	for _, elem := range gs.UnbondingDepositList {
-		index := string(UnbondingDepositKey(elem.DelegatorAddress, elem.ValidatorAddress))
+		index := string(UnbondingDepositKey(elem.DepositorAddress, elem.ValidatorAddress))
 		if _, ok := unbondingDepositIndexMap[index]; ok {
 			return fmt.Errorf("duplicated index for unbondingDeposit")
 		}

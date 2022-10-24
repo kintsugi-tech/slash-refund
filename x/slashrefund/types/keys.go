@@ -19,6 +19,5 @@ func KeyPrefix(p string) []byte {
 }
 
 const (
-	UnbondingDepositKey      = "UnbondingDeposit/value/"
 	UnbondingDepositCountKey = "UnbondingDeposit/count/"
 )

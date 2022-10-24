@@ -264,15 +264,15 @@ func request_Query_UnbondingDeposit_0(ctx context.Context, marshaler runtime.Mar
 		_   = err
 	)
 
-	val, ok = pathParams["delegatorAddress"]
+	val, ok = pathParams["depositorAddress"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "delegatorAddress")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "depositorAddress")
 	}
 
-	protoReq.DelegatorAddress, err = runtime.String(val)
+	protoReq.DepositorAddress, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "delegatorAddress", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "depositorAddress", err)
 	}
 
 	val, ok = pathParams["validatorAddress"]
@@ -302,15 +302,15 @@ func local_request_Query_UnbondingDeposit_0(ctx context.Context, marshaler runti
 		_   = err
 	)
 
-	val, ok = pathParams["delegatorAddress"]
+	val, ok = pathParams["depositorAddress"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "delegatorAddress")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "depositorAddress")
 	}
 
-	protoReq.DelegatorAddress, err = runtime.String(val)
+	protoReq.DepositorAddress, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "delegatorAddress", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "depositorAddress", err)
 	}
 
 	val, ok = pathParams["validatorAddress"]
@@ -727,7 +727,7 @@ var (
 
 	pattern_Query_DepositPoolAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"made-in-block", "slash-refund", "slashrefund", "deposit_pool"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_UnbondingDeposit_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 1, 0, 4, 1, 5, 5}, []string{"made-in-block", "slash-refund", "slashrefund", "unbonding_deposit", "delegatorAddress", "validatorAddress"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_UnbondingDeposit_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 1, 0, 4, 1, 5, 5}, []string{"made-in-block", "slash-refund", "slashrefund", "unbonding_deposit", "depositorAddress", "validatorAddress"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_Query_UnbondingDepositAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"made-in-block", "slash-refund", "slashrefund", "unbonding_deposit"}, "", runtime.AssumeColonVerbOpt(true)))
 )

@@ -31,7 +31,7 @@ func TestUnbondingDepositQuerySingle(t *testing.T) {
 		{
 			desc: "First",
 			request: &types.QueryGetUnbondingDepositRequest{
-				DelegatorAddress: msgs[0].DelegatorAddress,
+				DepositorAddress: msgs[0].DepositorAddress,
 				ValidatorAddress: msgs[0].ValidatorAddress,
 			},
 			response: &types.QueryGetUnbondingDepositResponse{UnbondingDeposit: msgs[0]},
@@ -39,7 +39,7 @@ func TestUnbondingDepositQuerySingle(t *testing.T) {
 		{
 			desc: "Second",
 			request: &types.QueryGetUnbondingDepositRequest{
-				DelegatorAddress: msgs[1].DelegatorAddress,
+				DepositorAddress: msgs[1].DepositorAddress,
 				ValidatorAddress: msgs[1].ValidatorAddress,
 			},
 			response: &types.QueryGetUnbondingDepositResponse{UnbondingDeposit: msgs[1]},
@@ -47,7 +47,7 @@ func TestUnbondingDepositQuerySingle(t *testing.T) {
 		{
 			desc: "KeyNotFound",
 			request: &types.QueryGetUnbondingDepositRequest{
-				DelegatorAddress: strconv.Itoa(100000),
+				DepositorAddress: strconv.Itoa(100000),
 				ValidatorAddress: strconv.Itoa(100000),
 			},
 			err: status.Error(codes.NotFound, "not found"),

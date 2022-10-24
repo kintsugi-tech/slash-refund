@@ -18,7 +18,7 @@ var _ = strconv.IntSize
 func createNUnbondingDeposit(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.UnbondingDeposit {
 	items := make([]types.UnbondingDeposit, n)
 	for i := range items {
-		items[i].DelegatorAddress = strconv.Itoa(i)
+		items[i].DepositorAddress = strconv.Itoa(i)
 		items[i].ValidatorAddress = strconv.Itoa(i)
 
 		keeper.SetUnbondingDeposit(ctx, items[i])
@@ -31,7 +31,7 @@ func TestUnbondingDepositGet(t *testing.T) {
 	items := createNUnbondingDeposit(keeper, ctx, 10)
 	for _, item := range items {
 		rst, found := keeper.GetUnbondingDeposit(ctx,
-			item.DelegatorAddress,
+			item.DepositorAddress,
 			item.ValidatorAddress,
 		)
 		require.True(t, found)
@@ -46,11 +46,11 @@ func TestUnbondingDepositRemove(t *testing.T) {
 	items := createNUnbondingDeposit(keeper, ctx, 10)
 	for _, item := range items {
 		keeper.RemoveUnbondingDeposit(ctx,
-			item.DelegatorAddress,
+			item.DepositorAddress,
 			item.ValidatorAddress,
 		)
 		_, found := keeper.GetUnbondingDeposit(ctx,
-			item.DelegatorAddress,
+			item.DepositorAddress,
 			item.ValidatorAddress,
 		)
 		require.False(t, found)
