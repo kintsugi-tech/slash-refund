@@ -13,8 +13,6 @@ option go_package = "github.com/made-in-block/slash-refund/x/slashrefund/types";
 message GenesisState {
   Params params = 1 [(gogoproto.nullable) = false];
   repeated Deposit depositList = 2 [(gogoproto.nullable) = false];
-  repeated UnbondingDeposit unbondingDepositList = 3 [(gogoproto.nullable) = false];
-  uint64 unbondingDepositCount = 4;
   repeated DepositPool depositPoolList = 5 [(gogoproto.nullable) = false];
   // this line is used by starport scaffolding # genesis/proto/state
 }

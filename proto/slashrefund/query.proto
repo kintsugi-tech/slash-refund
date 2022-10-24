@@ -68,23 +68,6 @@ message QueryAllDepositResponse {
 	cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
-message QueryGetUnbondingDepositRequest {
-	uint64 id = 1;
-}
-
-message QueryGetUnbondingDepositResponse {
-	UnbondingDeposit UnbondingDeposit = 1 [(gogoproto.nullable) = false];
-}
-
-message QueryAllUnbondingDepositRequest {
-	cosmos.base.query.v1beta1.PageRequest pagination = 1;
-}
-
-message QueryAllUnbondingDepositResponse {
-	repeated UnbondingDeposit UnbondingDeposit = 1 [(gogoproto.nullable) = false];
-	cosmos.base.query.v1beta1.PageResponse pagination = 2;
-}
-
 message QueryGetDepositPoolRequest {
 	  string operatorAddress = 1;
 

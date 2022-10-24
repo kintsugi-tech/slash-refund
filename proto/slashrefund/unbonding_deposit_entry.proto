@@ -3,10 +3,26 @@ package madeinblock.slashrefund.slashrefund;
 
 option go_package = "github.com/made-in-block/slash-refund/x/slashrefund/types";
 
+import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
+import "cosmos_proto/cosmos.proto";
+
 message UnbondingDepositEntry {
   
-  int32 creationHeight = 1; 
-  string completionTime = 2; 
-  string initialBalance = 3; 
-  string balance = 4; 
+  // option (gogoproto.equal)            = true;
+  // option (gogoproto.goproto_stringer) = false;
+
+  int64 creation_height = 1;
+  google.protobuf.Timestamp completion_time = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.stdtime) = true
+  ];
+  string initial_balance = 3 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable)   = false
+  ];
+  string balance = 4 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", 
+    (gogoproto.nullable) = false
+  ];
 }
