@@ -3,7 +3,6 @@ import * as Long from "long";
 import { util, configure, Writer, Reader } from "protobufjs/minimal";
 import { Params } from "../slashrefund/params";
 import { Deposit } from "../slashrefund/deposit";
-import { UnbondingDeposit } from "../slashrefund/unbonding_deposit";
 import { DepositPool } from "../slashrefund/deposit_pool";
 
 export const protobufPackage = "madeinblock.slashrefund.slashrefund";
@@ -12,7 +11,6 @@ export const protobufPackage = "madeinblock.slashrefund.slashrefund";
 export interface GenesisState {
   params: Params | undefined;
   depositList: Deposit[];
-  unbondingDepositList: UnbondingDeposit[];
   unbondingDepositCount: number;
   /** this line is used by starport scaffolding # genesis/proto/state */
   depositPoolList: DepositPool[];
@@ -27,9 +25,6 @@ export const GenesisState = {
     }
     for (const v of message.depositList) {
       Deposit.encode(v!, writer.uint32(18).fork()).ldelim();
-    }
-    for (const v of message.unbondingDepositList) {
-      UnbondingDeposit.encode(v!, writer.uint32(26).fork()).ldelim();
     }
     if (message.unbondingDepositCount !== 0) {
       writer.uint32(32).uint64(message.unbondingDepositCount);

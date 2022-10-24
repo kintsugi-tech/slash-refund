@@ -624,46 +624,4 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       format: "json",
       ...params,
     });
-
-  /**
-   * No description
-   *
-   * @tags Query
-   * @name QueryUnbondingDepositAll
-   * @summary Queries a list of UnbondingDeposit items.
-   * @request GET:/made-in-block/slash-refund/slashrefund/unbonding_deposit
-   */
-  queryUnbondingDepositAll = (
-    query?: {
-      "pagination.key"?: string;
-      "pagination.offset"?: string;
-      "pagination.limit"?: string;
-      "pagination.count_total"?: boolean;
-      "pagination.reverse"?: boolean;
-    },
-    params: RequestParams = {},
-  ) =>
-    this.request<SlashrefundQueryAllUnbondingDepositResponse, RpcStatus>({
-      path: `/made-in-block/slash-refund/slashrefund/unbonding_deposit`,
-      method: "GET",
-      query: query,
-      format: "json",
-      ...params,
-    });
-
-  /**
-   * No description
-   *
-   * @tags Query
-   * @name QueryUnbondingDeposit
-   * @summary Queries a UnbondingDeposit by id.
-   * @request GET:/made-in-block/slash-refund/slashrefund/unbonding_deposit/{id}
-   */
-  queryUnbondingDeposit = (id: string, params: RequestParams = {}) =>
-    this.request<SlashrefundQueryGetUnbondingDepositResponse, RpcStatus>({
-      path: `/made-in-block/slash-refund/slashrefund/unbonding_deposit/${id}`,
-      method: "GET",
-      format: "json",
-      ...params,
-    });
-}
+  }

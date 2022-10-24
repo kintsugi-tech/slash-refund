@@ -4,7 +4,6 @@ package madeinblock.slashrefund.slashrefund;
 import "gogoproto/gogo.proto";
 import "slashrefund/params.proto";
 import "slashrefund/deposit.proto";
-import "slashrefund/unbonding_deposit.proto";
 import "slashrefund/deposit_pool.proto";
 // this line is used by starport scaffolding # genesis/proto/import
 
