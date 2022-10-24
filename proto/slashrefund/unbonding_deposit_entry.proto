@@ -1,0 +1,12 @@
+syntax = "proto3";
+package madeinblock.slashrefund.slashrefund;
+
+option go_package = "github.com/made-in-block/slash-refund/x/slashrefund/types";
+
+message UnbondingDepositEntry {
+  
+  int32 creationHeight = 1; 
+  string completionTime = 2; 
+  string initialBalance = 3; 
+  string balance = 4; 
+}

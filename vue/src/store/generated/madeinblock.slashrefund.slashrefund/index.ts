@@ -4,10 +4,11 @@ import { Deposit } from "made-in-block-slash-refund-client-ts/madeinblock.slashr
 import { DepositPool } from "made-in-block-slash-refund-client-ts/madeinblock.slashrefund.slashrefund/types"
 import { Params } from "made-in-block-slash-refund-client-ts/madeinblock.slashrefund.slashrefund/types"
 import { UnbondingDeposit } from "made-in-block-slash-refund-client-ts/madeinblock.slashrefund.slashrefund/types"
+import { UnbondingDepositEntry } from "made-in-block-slash-refund-client-ts/madeinblock.slashrefund.slashrefund/types"
 import { Validator } from "made-in-block-slash-refund-client-ts/madeinblock.slashrefund.slashrefund/types"
 
 
-export { Deposit, DepositPool, Params, UnbondingDeposit, Validator };
+export { Deposit, DepositPool, Params, UnbondingDeposit, UnbondingDepositEntry, Validator };
 
 function initClient(vuexGetters) {
 	return new Client(vuexGetters['common/env/getEnv'], vuexGetters['common/wallet/signer'])
@@ -51,6 +52,7 @@ const getDefaultState = () => {
 						DepositPool: getStructure(DepositPool.fromPartial({})),
 						Params: getStructure(Params.fromPartial({})),
 						UnbondingDeposit: getStructure(UnbondingDeposit.fromPartial({})),
+						UnbondingDepositEntry: getStructure(UnbondingDepositEntry.fromPartial({})),
 						Validator: getStructure(Validator.fromPartial({})),
 						
 		},
