@@ -1,8 +1,16 @@
 package types
 
-import "encoding/binary"
+import (
+	"encoding/binary"
+	"time"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+)
 
 var _ binary.ByteOrder
+
+// as staking module does
+var UnbondingQueueKey = []byte{0x41} // prefix for the timestamps in unbonding queue
 
 const (
 	// UnbondingDepositKeyPrefix is the prefix to retrieve all UnbondingDeposit
@@ -25,4 +33,10 @@ func UnbondingDepositKey(
 	key = append(key, []byte("/")...)
 
 	return key
+}
+
+// GetUnbondingDepositTimeKey creates the prefix for all unbonding deposits from a delegator
+func GetUnbondingDepositTimeKey(timestamp time.Time) []byte {
+	bz := sdk.FormatTimeBytes(timestamp)
+	return append(UnbondingQueueKey, bz...)
 }

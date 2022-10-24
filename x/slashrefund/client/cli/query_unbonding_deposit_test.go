@@ -29,7 +29,7 @@ func networkWithUnbondingDepositObjects(t *testing.T, n int) (*network.Network, 
 
 	for i := 0; i < n; i++ {
 		unbondingDeposit := types.UnbondingDeposit{
-			DelegatorAddress: strconv.Itoa(i),
+			DepositorAddress: strconv.Itoa(i),
 			ValidatorAddress: strconv.Itoa(i),
 		}
 		nullify.Fill(&unbondingDeposit)
@@ -50,7 +50,7 @@ func TestShowUnbondingDeposit(t *testing.T) {
 	}
 	for _, tc := range []struct {
 		desc               string
-		idDelegatorAddress string
+		idDepositorAddress string
 		idValidatorAddress string
 
 		args []string
@@ -59,7 +59,7 @@ func TestShowUnbondingDeposit(t *testing.T) {
 	}{
 		{
 			desc:               "found",
-			idDelegatorAddress: objs[0].DelegatorAddress,
+			idDepositorAddress: objs[0].DepositorAddress,
 			idValidatorAddress: objs[0].ValidatorAddress,
 
 			args: common,
@@ -67,7 +67,7 @@ func TestShowUnbondingDeposit(t *testing.T) {
 		},
 		{
 			desc:               "not found",
-			idDelegatorAddress: strconv.Itoa(100000),
+			idDepositorAddress: strconv.Itoa(100000),
 			idValidatorAddress: strconv.Itoa(100000),
 
 			args: common,
@@ -76,7 +76,7 @@ func TestShowUnbondingDeposit(t *testing.T) {
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
 			args := []string{
-				tc.idDelegatorAddress,
+				tc.idDepositorAddress,
 				tc.idValidatorAddress,
 			}
 			args = append(args, tc.args...)

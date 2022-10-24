@@ -93,8 +93,6 @@ func (k Keeper) SetUnbondingDepositEntry(
 // in the unbonding queue.
 func (k Keeper) InsertUBDQueue(ctx sdk.Context, ubd types.UnbondingDeposit, completionTime time.Time) {
 
-	// TODO scaffold DVPair
-
 	dvPair := types.DVPair{DepositorAddress: ubd.DepositorAddress, ValidatorAddress: ubd.ValidatorAddress}
 
 	timeSlice := k.GetUBDQueueTimeSlice(ctx, completionTime)
@@ -104,4 +102,19 @@ func (k Keeper) InsertUBDQueue(ctx sdk.Context, ubd types.UnbondingDeposit, comp
 		timeSlice = append(timeSlice, dvPair)
 		k.SetUBDQueueTimeSlice(ctx, completionTime, timeSlice)
 	}
+}
+
+func (k Keeper) GetUBDQueueTimeSlice(ctx sdk.Context, timestamp time.Time) (dvPairs []types.DVPair) {
+	store := ctx.KVStore(k.storeKey)
+
+	bz := store.Get(types.GetUnbondingDepositTimeKey(timestamp))
+	if bz == nil {
+		return []types.DVPair{}
+	}
+
+	// TODO DVPairs proto
+	pairs := types.DVPairs{}
+	k.cdc.MustUnmarshal(bz, &pairs)
+
+	return pairs.Pairs
 }
