@@ -40,7 +40,7 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 	}
 
 	// === STATE TRANSITION ===
-	witToken, completionTime, err := k.Keeper.Withdraw(ctx, depositorAddress, validatorAddress, shares)
+	_, completionTime, err := k.Keeper.Withdraw(ctx, depositorAddress, validatorAddress, shares)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +60,7 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 		),
 	})
 
-	return &types.MsgWithdrawResponse{}, nil
+	return &types.MsgWithdrawResponse{CompletionTime: completionTime}, nil
 	// sender, _ := sdk.AccAddressFromBech32(msg.Creator)
 
 	/*
@@ -93,6 +93,4 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 		k.AppendUnbondingDeposit(ctx, unbonding_deposit)
 
 	*/
-
-	return &types.MsgWithdrawResponse{}, nil
 }
