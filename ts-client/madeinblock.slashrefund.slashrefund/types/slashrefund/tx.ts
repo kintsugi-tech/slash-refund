@@ -1,5 +1,6 @@
 /* eslint-disable */
 import { Reader, Writer } from "protobufjs/minimal";
+import { Timestamp } from "../google/protobuf/timestamp";
 import { Coin } from "../cosmos/base/v1beta1/coin";
 
 export const protobufPackage = "madeinblock.slashrefund.slashrefund";
@@ -22,7 +23,9 @@ export interface MsgWithdraw {
   amount: Coin | undefined;
 }
 
-export interface MsgWithdrawResponse {}
+export interface MsgWithdrawResponse {
+  completionTime: Date | undefined;
+}
 
 const baseMsgDeposit: object = { depositorAddress: "", validatorAddress: "" };
 
@@ -273,7 +276,16 @@ export const MsgWithdraw = {
 const baseMsgWithdrawResponse: object = {};
 
 export const MsgWithdrawResponse = {
-  encode(_: MsgWithdrawResponse, writer: Writer = Writer.create()): Writer {
+  encode(
+    message: MsgWithdrawResponse,
+    writer: Writer = Writer.create()
+  ): Writer {
+    if (message.completionTime !== undefined) {
+      Timestamp.encode(
+        toTimestamp(message.completionTime),
+        writer.uint32(10).fork()
+      ).ldelim();
+    }
     return writer;
   },
 
@@ -284,6 +296,11 @@ export const MsgWithdrawResponse = {
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
+        case 1:
+          message.completionTime = fromTimestamp(
+            Timestamp.decode(reader, reader.uint32())
+          );
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -292,18 +309,33 @@ export const MsgWithdrawResponse = {
     return message;
   },
 
-  fromJSON(_: any): MsgWithdrawResponse {
+  fromJSON(object: any): MsgWithdrawResponse {
     const message = { ...baseMsgWithdrawResponse } as MsgWithdrawResponse;
+    if (object.completionTime !== undefined && object.completionTime !== null) {
+      message.completionTime = fromJsonTimestamp(object.completionTime);
+    } else {
+      message.completionTime = undefined;
+    }
     return message;
   },
 
-  toJSON(_: MsgWithdrawResponse): unknown {
+  toJSON(message: MsgWithdrawResponse): unknown {
     const obj: any = {};
+    message.completionTime !== undefined &&
+      (obj.completionTime =
+        message.completionTime !== undefined
+          ? message.completionTime.toISOString()
+          : null);
     return obj;
   },
 
-  fromPartial(_: DeepPartial<MsgWithdrawResponse>): MsgWithdrawResponse {
+  fromPartial(object: DeepPartial<MsgWithdrawResponse>): MsgWithdrawResponse {
     const message = { ...baseMsgWithdrawResponse } as MsgWithdrawResponse;
+    if (object.completionTime !== undefined && object.completionTime !== null) {
+      message.completionTime = object.completionTime;
+    } else {
+      message.completionTime = undefined;
+    }
     return message;
   },
 };
@@ -360,3 +392,25 @@ export type DeepPartial<T> = T extends Builtin
   : T extends {}
   ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
+
+function toTimestamp(date: Date): Timestamp {
+  const seconds = date.getTime() / 1_000;
+  const nanos = (date.getTime() % 1_000) * 1_000_000;
+  return { seconds, nanos };
+}
+
+function fromTimestamp(t: Timestamp): Date {
+  let millis = t.seconds * 1_000;
+  millis += t.nanos / 1_000_000;
+  return new Date(millis);
+}
+
+function fromJsonTimestamp(o: any): Date {
+  if (o instanceof Date) {
+    return o;
+  } else if (typeof o === "string") {
+    return new Date(o);
+  } else {
+    return fromTimestamp(Timestamp.fromJSON(o));
+  }
+}

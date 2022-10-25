@@ -75019,6 +75019,10 @@ definitions:
     type: object
   madeinblock.slashrefund.slashrefund.MsgWithdrawResponse:
     type: object
+    properties:
+      completion_time:
+        type: string
+        format: date-time
   madeinblock.slashrefund.slashrefund.Params:
     type: object
     properties:
