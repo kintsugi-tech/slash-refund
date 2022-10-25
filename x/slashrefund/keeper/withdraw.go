@@ -22,7 +22,7 @@ func (k Keeper) Withdraw(
 
 	witAmt, err := k.Unbond(ctx, depAddr, valAddr, witShares)
 	if err != nil {
-		return time.Time{}, err
+		return sdk.NewCoin("", sdk.NewInt(0)), time.Time{}, err
 	}
 
 	// return Coin , time
