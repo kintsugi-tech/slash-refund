@@ -4,16 +4,16 @@ import { Writer, Reader } from "protobufjs/minimal";
 export const protobufPackage = "madeinblock.slashrefund.slashrefund";
 
 export interface DVPair {
-  delegatorAddress: string;
+  depositorAddress: string;
   validatorAddress: string;
 }
 
-const baseDVPair: object = { delegatorAddress: "", validatorAddress: "" };
+const baseDVPair: object = { depositorAddress: "", validatorAddress: "" };
 
 export const DVPair = {
   encode(message: DVPair, writer: Writer = Writer.create()): Writer {
-    if (message.delegatorAddress !== "") {
-      writer.uint32(10).string(message.delegatorAddress);
+    if (message.depositorAddress !== "") {
+      writer.uint32(10).string(message.depositorAddress);
     }
     if (message.validatorAddress !== "") {
       writer.uint32(18).string(message.validatorAddress);
@@ -29,7 +29,7 @@ export const DVPair = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.delegatorAddress = reader.string();
+          message.depositorAddress = reader.string();
           break;
         case 2:
           message.validatorAddress = reader.string();
@@ -45,12 +45,12 @@ export const DVPair = {
   fromJSON(object: any): DVPair {
     const message = { ...baseDVPair } as DVPair;
     if (
-      object.delegatorAddress !== undefined &&
-      object.delegatorAddress !== null
+      object.depositorAddress !== undefined &&
+      object.depositorAddress !== null
     ) {
-      message.delegatorAddress = String(object.delegatorAddress);
+      message.depositorAddress = String(object.depositorAddress);
     } else {
-      message.delegatorAddress = "";
+      message.depositorAddress = "";
     }
     if (
       object.validatorAddress !== undefined &&
@@ -65,8 +65,8 @@ export const DVPair = {
 
   toJSON(message: DVPair): unknown {
     const obj: any = {};
-    message.delegatorAddress !== undefined &&
-      (obj.delegatorAddress = message.delegatorAddress);
+    message.depositorAddress !== undefined &&
+      (obj.depositorAddress = message.depositorAddress);
     message.validatorAddress !== undefined &&
       (obj.validatorAddress = message.validatorAddress);
     return obj;
@@ -75,12 +75,12 @@ export const DVPair = {
   fromPartial(object: DeepPartial<DVPair>): DVPair {
     const message = { ...baseDVPair } as DVPair;
     if (
-      object.delegatorAddress !== undefined &&
-      object.delegatorAddress !== null
+      object.depositorAddress !== undefined &&
+      object.depositorAddress !== null
     ) {
-      message.delegatorAddress = object.delegatorAddress;
+      message.depositorAddress = object.depositorAddress;
     } else {
-      message.delegatorAddress = "";
+      message.depositorAddress = "";
     }
     if (
       object.validatorAddress !== undefined &&

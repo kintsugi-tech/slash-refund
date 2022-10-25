@@ -45386,7 +45386,7 @@ paths:
                 items:
                   type: object
                   properties:
-                    delegatorAddress:
+                    depositorAddress:
                       type: string
                     validatorAddress:
                       type: string
@@ -45677,7 +45677,7 @@ paths:
           type: boolean
       tags:
         - Query
-  '/made-in-block/slash-refund/slashrefund/unbonding_deposit/{delegatorAddress}/{validatorAddress}':
+  '/made-in-block/slash-refund/slashrefund/unbonding_deposit/{depositorAddress}/{validatorAddress}':
     get:
       summary: Queries a UnbondingDeposit by index.
       operationId: MadeinblockSlashrefundSlashrefundUnbondingDeposit
@@ -45690,7 +45690,7 @@ paths:
               unbondingDeposit:
                 type: object
                 properties:
-                  delegatorAddress:
+                  depositorAddress:
                     type: string
                   validatorAddress:
                     type: string
@@ -45895,7 +45895,7 @@ paths:
                           "value": "1.212s"
                         }
       parameters:
-        - name: delegatorAddress
+        - name: depositorAddress
           in: path
           required: true
           type: string
@@ -75129,7 +75129,7 @@ definitions:
         items:
           type: object
           properties:
-            delegatorAddress:
+            depositorAddress:
               type: string
             validatorAddress:
               type: string
@@ -75220,7 +75220,7 @@ definitions:
       unbondingDeposit:
         type: object
         properties:
-          delegatorAddress:
+          depositorAddress:
             type: string
           validatorAddress:
             type: string
@@ -75252,7 +75252,7 @@ definitions:
   madeinblock.slashrefund.slashrefund.UnbondingDeposit:
     type: object
     properties:
-      delegatorAddress:
+      depositorAddress:
         type: string
       validatorAddress:
         type: string

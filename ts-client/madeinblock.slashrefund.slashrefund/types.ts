@@ -1,6 +1,7 @@
 import { Deposit } from "./types/slashrefund/deposit"
 import { DepositPool } from "./types/slashrefund/deposit_pool"
 import { DVPair } from "./types/slashrefund/dv_pair"
+import { DVPairs } from "./types/slashrefund/dv_pairs"
 import { Params } from "./types/slashrefund/params"
 import { UnbondingDeposit } from "./types/slashrefund/unbonding_deposit"
 import { UnbondingDepositEntry } from "./types/slashrefund/unbonding_deposit_entry"
@@ -11,6 +12,7 @@ export {
     Deposit,
     DepositPool,
     DVPair,
+    DVPairs,
     Params,
     UnbondingDeposit,
     UnbondingDepositEntry,

@@ -56,7 +56,7 @@ export interface QueryAllDepositPoolResponse {
 }
 
 export interface QueryGetUnbondingDepositRequest {
-  delegatorAddress: string;
+  depositorAddress: string;
   validatorAddress: string;
 }
 
@@ -819,7 +819,7 @@ export const QueryAllDepositPoolResponse = {
 };
 
 const baseQueryGetUnbondingDepositRequest: object = {
-  delegatorAddress: "",
+  depositorAddress: "",
   validatorAddress: "",
 };
 
@@ -828,8 +828,8 @@ export const QueryGetUnbondingDepositRequest = {
     message: QueryGetUnbondingDepositRequest,
     writer: Writer = Writer.create()
   ): Writer {
-    if (message.delegatorAddress !== "") {
-      writer.uint32(10).string(message.delegatorAddress);
+    if (message.depositorAddress !== "") {
+      writer.uint32(10).string(message.depositorAddress);
     }
     if (message.validatorAddress !== "") {
       writer.uint32(18).string(message.validatorAddress);
@@ -850,7 +850,7 @@ export const QueryGetUnbondingDepositRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.delegatorAddress = reader.string();
+          message.depositorAddress = reader.string();
           break;
         case 2:
           message.validatorAddress = reader.string();
@@ -868,12 +868,12 @@ export const QueryGetUnbondingDepositRequest = {
       ...baseQueryGetUnbondingDepositRequest,
     } as QueryGetUnbondingDepositRequest;
     if (
-      object.delegatorAddress !== undefined &&
-      object.delegatorAddress !== null
+      object.depositorAddress !== undefined &&
+      object.depositorAddress !== null
     ) {
-      message.delegatorAddress = String(object.delegatorAddress);
+      message.depositorAddress = String(object.depositorAddress);
     } else {
-      message.delegatorAddress = "";
+      message.depositorAddress = "";
     }
     if (
       object.validatorAddress !== undefined &&
@@ -888,8 +888,8 @@ export const QueryGetUnbondingDepositRequest = {
 
   toJSON(message: QueryGetUnbondingDepositRequest): unknown {
     const obj: any = {};
-    message.delegatorAddress !== undefined &&
-      (obj.delegatorAddress = message.delegatorAddress);
+    message.depositorAddress !== undefined &&
+      (obj.depositorAddress = message.depositorAddress);
     message.validatorAddress !== undefined &&
       (obj.validatorAddress = message.validatorAddress);
     return obj;
@@ -902,12 +902,12 @@ export const QueryGetUnbondingDepositRequest = {
       ...baseQueryGetUnbondingDepositRequest,
     } as QueryGetUnbondingDepositRequest;
     if (
-      object.delegatorAddress !== undefined &&
-      object.delegatorAddress !== null
+      object.depositorAddress !== undefined &&
+      object.depositorAddress !== null
     ) {
-      message.delegatorAddress = object.delegatorAddress;
+      message.depositorAddress = object.depositorAddress;
     } else {
-      message.delegatorAddress = "";
+      message.depositorAddress = "";
     }
     if (
       object.validatorAddress !== undefined &&

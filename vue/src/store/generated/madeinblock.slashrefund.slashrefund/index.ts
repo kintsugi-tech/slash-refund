@@ -3,13 +3,14 @@ import { Client, registry, MissingWalletError } from 'made-in-block-slash-refund
 import { Deposit } from "made-in-block-slash-refund-client-ts/madeinblock.slashrefund.slashrefund/types"
 import { DepositPool } from "made-in-block-slash-refund-client-ts/madeinblock.slashrefund.slashrefund/types"
 import { DVPair } from "made-in-block-slash-refund-client-ts/madeinblock.slashrefund.slashrefund/types"
+import { DVPairs } from "made-in-block-slash-refund-client-ts/madeinblock.slashrefund.slashrefund/types"
 import { Params } from "made-in-block-slash-refund-client-ts/madeinblock.slashrefund.slashrefund/types"
 import { UnbondingDeposit } from "made-in-block-slash-refund-client-ts/madeinblock.slashrefund.slashrefund/types"
 import { UnbondingDepositEntry } from "made-in-block-slash-refund-client-ts/madeinblock.slashrefund.slashrefund/types"
 import { Validator } from "made-in-block-slash-refund-client-ts/madeinblock.slashrefund.slashrefund/types"
 
 
-export { Deposit, DepositPool, DVPair, Params, UnbondingDeposit, UnbondingDepositEntry, Validator };
+export { Deposit, DepositPool, DVPair, DVPairs, Params, UnbondingDeposit, UnbondingDepositEntry, Validator };
 
 function initClient(vuexGetters) {
 	return new Client(vuexGetters['common/env/getEnv'], vuexGetters['common/wallet/signer'])
@@ -52,6 +53,7 @@ const getDefaultState = () => {
 						Deposit: getStructure(Deposit.fromPartial({})),
 						DepositPool: getStructure(DepositPool.fromPartial({})),
 						DVPair: getStructure(DVPair.fromPartial({})),
+						DVPairs: getStructure(DVPairs.fromPartial({})),
 						Params: getStructure(Params.fromPartial({})),
 						UnbondingDeposit: getStructure(UnbondingDeposit.fromPartial({})),
 						UnbondingDepositEntry: getStructure(UnbondingDepositEntry.fromPartial({})),
@@ -287,7 +289,7 @@ export default {
 			try {
 				const key = params ?? {};
 				const client = initClient(rootGetters);
-				let value= (await client.MadeinblockSlashrefundSlashrefund.query.queryUnbondingDeposit( key.delegatorAddress,  key.validatorAddress)).data
+				let value= (await client.MadeinblockSlashrefundSlashrefund.query.queryUnbondingDeposit( key.depositorAddress,  key.validatorAddress)).data
 				
 					
 				commit('QUERY', { query: 'UnbondingDeposit', key: { params: {...key}, query}, value })

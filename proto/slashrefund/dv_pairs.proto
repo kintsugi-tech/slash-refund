@@ -1,0 +1,12 @@
+syntax = "proto3";
+package madeinblock.slashrefund.slashrefund;
+
+import "gogoproto/gogo.proto";
+import "slashrefund/dv_pair.proto";
+
+option go_package = "github.com/made-in-block/slash-refund/x/slashrefund/types";
+
+message DVPairs {
+  
+  repeated DVPair pairs = 1 [(gogoproto.nullable) = false];
+}

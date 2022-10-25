@@ -233,7 +233,7 @@ export interface SlashrefundQueryParamsResponse {
 }
 
 export interface SlashrefundUnbondingDeposit {
-  delegatorAddress?: string;
+  depositorAddress?: string;
   validatorAddress?: string;
   entries?: SlashrefundUnbondingDepositEntry[];
 }
@@ -655,11 +655,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
    * @tags Query
    * @name QueryUnbondingDeposit
    * @summary Queries a UnbondingDeposit by index.
-   * @request GET:/made-in-block/slash-refund/slashrefund/unbonding_deposit/{delegatorAddress}/{validatorAddress}
+   * @request GET:/made-in-block/slash-refund/slashrefund/unbonding_deposit/{depositorAddress}/{validatorAddress}
    */
-  queryUnbondingDeposit = (delegatorAddress: string, validatorAddress: string, params: RequestParams = {}) =>
+  queryUnbondingDeposit = (depositorAddress: string, validatorAddress: string, params: RequestParams = {}) =>
     this.request<SlashrefundQueryGetUnbondingDepositResponse, RpcStatus>({
-      path: `/made-in-block/slash-refund/slashrefund/unbonding_deposit/${delegatorAddress}/${validatorAddress}`,
+      path: `/made-in-block/slash-refund/slashrefund/unbonding_deposit/${depositorAddress}/${validatorAddress}`,
       method: "GET",
       format: "json",
       ...params,
