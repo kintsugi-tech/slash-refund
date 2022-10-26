@@ -1,5 +1,7 @@
 #/bin/bash
 
+clear
+
 # TEST KEYS
 VALKEY1="alice"    #VALIDATOR 1
 #not set#VALKEY2="bob"      #VALIDATOR 2
@@ -67,7 +69,20 @@ echo "list unbonding deposits:" ; slash-refundd q slashrefund list-unbonding-dep
 echo
 
 
-echo  "TEST: withdraw from depositor 2" ; echo ------------------------------------------ 
+#    ERROR TESTING    ---------------------#
+echo  "TEST ERROR: withdraw banane" ; echo ------------------------------------------ 
+slash-refundd tx slashrefund withdraw $valaddr1 2banane --from $DEPKEY2 -y | grep raw_log
+echo
+
+echo  "TEST ERROR: withdraw all+1" ; echo ------------------------------------------ 
+slash-refundd tx slashrefund withdraw $valaddr1 $(expr $DEPamt1 + 1)$DENOM --from $DEPKEY1 -y | grep raw_log
+echo
+
+echo  "TEST ERROR: withdraw zero" ; echo ------------------------------------------ 
+slash-refundd tx slashrefund withdraw $valaddr1 0$DENOM --from $DEPKEY1 -y | grep raw_log
+echo
+
+echo  "TEST ERROR: withdraw from depositor 2" ; echo ------------------------------------------ 
 slash-refundd tx slashrefund withdraw $valaddr1 1$DENOM --from $DEPKEY2 -y | grep raw_log
 echo
 
@@ -77,6 +92,7 @@ echo "list all deposits:" ; slash-refundd q  slashrefund list-deposit
 echo "deposit-pool:" ; slash-refundd q slashrefund show-deposit-pool $valaddr1
 echo "list unbonding deposits:" ; slash-refundd q slashrefund list-unbonding-deposit
 echo
+#------------------------------------------#
 
 
 DEPamt2=200
@@ -146,5 +162,26 @@ echo "deposit-pool:" ; slash-refundd q slashrefund show-deposit-pool $valaddr1
 echo "list unbonding deposits:" ; slash-refundd q slashrefund list-unbonding-deposit
 echo
 
-#TODO: try withdraw = all
-#TODO: try withdraw > all : ErrInvalidRequest, "invalid token amount"
+
+echo  "withdraw 4: all remaining from dep1" ; echo ------------------------------------------ 
+WITamt4=$(expr $DEPamt1 - $WITamt1 - $WITamt3)
+slash-refundd tx slashrefund withdraw $valaddr1 $WITamt4$DENOM --from $DEPKEY1 -y | grep raw_log
+echo
+
+echo  "list balances and deposits and deposit pool and unbonding-deposits" ; echo ------------------------------------------
+echo "depositor1:" ; slash-refundd q bank balances $depadrr1 ; echo "depositor2:" ; slash-refundd q bank balances $depadrr2 
+echo "list all deposits:" ; slash-refundd q  slashrefund list-deposit
+echo "deposit-pool:" ; slash-refundd q slashrefund show-deposit-pool $valaddr1
+echo "list unbonding deposits:" ; slash-refundd q slashrefund list-unbonding-deposit
+echo
+
+
+
+
+#    WARNINGS     -------------------------#
+# TODO: withdraw decimal is allowed
+echo  "TEST: withdraw decimal" ; echo ------------------------------------------ 
+slash-refundd tx slashrefund withdraw $valaddr1 1.5$DENOM --from $DEPKEY2 -y | grep raw_log
+echo
+#------------------------------------------#
+
