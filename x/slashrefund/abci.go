@@ -2,19 +2,19 @@ package slashrefund
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
+	// slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	"github.com/made-in-block/slash-refund/x/slashrefund/keeper"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k keeper.Keeper) {
 
+	/*
 	logger := k.Logger(ctx)
 
 	logger.Error("Height", "height", ctx.BlockHeight())
 
 	events := ctx.EventManager().Events()
-
 	// Iterate all events in this block
 	for _, event := range events {
 
@@ -47,5 +47,6 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k keeper.Keeper) 
 	}
 
 	k.SendUnbondedTokens(ctx)
+	*/
 
 }

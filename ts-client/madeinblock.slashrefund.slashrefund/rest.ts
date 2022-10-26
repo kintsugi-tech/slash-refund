@@ -157,7 +157,10 @@ export interface SlashrefundDepositPool {
 
 export type SlashrefundMsgDepositResponse = object;
 
-export type SlashrefundMsgWithdrawResponse = object;
+export interface SlashrefundMsgWithdrawResponse {
+  /** @format date-time */
+  completion_time?: string;
+}
 
 /**
  * Params defines the parameters for the module.
