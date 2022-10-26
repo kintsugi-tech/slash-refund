@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	//"fmt"
+	"fmt"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -78,7 +78,11 @@ func (k Keeper) Unbond(
 	valAddr sdk.ValAddress,
 	shares sdk.Dec,
 ) (issuedTokensAmt sdk.Int, err error) {
-	// check if a delegation object exists in the store
+
+	logger := k.Logger(ctx)
+	logger.Error(fmt.Sprintf("entered: Unbond"))
+
+	// check if a deposit object exists in the store
 	deposit, found := k.GetDeposit(ctx, delAddr, valAddr)
 	if !found {
 		return issuedTokensAmt, types.ErrNoDepositForAddress
@@ -102,10 +106,10 @@ func (k Keeper) Unbond(
 		return issuedTokensAmt, stakingtypes.ErrNoValidatorFound
 	}
 
-	// subtract shares from delegation
+	// subtract shares from deposit
 	deposit.Shares = deposit.Shares.Sub(shares)
 
-	// remove the delegation
+	// remove the deposit if zero or set a new doposit
 	if deposit.Shares.IsZero() {
 		k.RemoveDeposit(ctx, deposit)
 	} else {
@@ -113,6 +117,9 @@ func (k Keeper) Unbond(
 	}
 
 	issuedTokensAmt = k.RemovePoolTokensAndShares(ctx, depPool, shares)
+
+	logger.Error(fmt.Sprintf("returned to: Unbond"))
+	logger.Error(fmt.Sprintf("    depPool.Shares: %s", depPool.Shares.String()))
 
 	if depPool.Shares.IsZero() {
 		// if not unbonded, we must instead remove validator in EndBlocker once it finishes its unbonding period
