@@ -119,8 +119,8 @@ func (k Keeper) Deposit(
 	if !found {
 		// TODO: should be initialized with actual Coins allowed. Now the hp is of just one allowed token.
 		depPool = types.NewDepositPool(
-			valOperAddr, 
-			sdk.NewCoin(k.AllowedTokensList(ctx)[0], sdk.ZeroInt()), 
+			valOperAddr,
+			sdk.NewCoin(k.AllowedTokensList(ctx)[0], sdk.ZeroInt()),
 			sdk.ZeroDec(),
 		)
 	}

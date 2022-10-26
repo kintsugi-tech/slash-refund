@@ -2,7 +2,6 @@ package cli
 
 import (
 	"context"
-	"strconv"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -13,7 +12,7 @@ import (
 func CmdListUnbondingDeposit() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list-unbonding-deposit",
-		Short: "list all unbonding-deposit",
+		Short: "list all unbonding_deposit",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
@@ -45,21 +44,20 @@ func CmdListUnbondingDeposit() *cobra.Command {
 
 func CmdShowUnbondingDeposit() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "show-unbonding-deposit [id]",
-		Short: "shows a unbonding-deposit",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
+		Use:   "show-unbonding-deposit [depositor-address] [validator-address]",
+		Short: "shows a unbonding_deposit",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			id, err := strconv.ParseUint(args[0], 10, 64)
-			if err != nil {
-				return err
-			}
+			argDepositorAddress := args[0]
+			argValidatorAddress := args[1]
 
 			params := &types.QueryGetUnbondingDepositRequest{
-				Id: id,
+				DepositorAddress: argDepositorAddress,
+				ValidatorAddress: argValidatorAddress,
 			}
 
 			res, err := queryClient.UnbondingDeposit(context.Background(), params)

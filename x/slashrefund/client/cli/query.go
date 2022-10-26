@@ -31,6 +31,8 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 	cmd.AddCommand(CmdShowUnbondingDeposit())
 	cmd.AddCommand(CmdListDepositPool())
 	cmd.AddCommand(CmdShowDepositPool())
+	cmd.AddCommand(CmdListUnbondingDeposit())
+	cmd.AddCommand(CmdShowUnbondingDeposit())
 	// this line is used by starport scaffolding # 1
 
 	return cmd

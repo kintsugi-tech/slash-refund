@@ -157,7 +157,10 @@ export interface SlashrefundDepositPool {
 
 export type SlashrefundMsgDepositResponse = object;
 
-export type SlashrefundMsgWithdrawResponse = object;
+export interface SlashrefundMsgWithdrawResponse {
+  /** @format date-time */
+  completion_time?: string;
+}
 
 /**
  * Params defines the parameters for the module.
@@ -197,7 +200,7 @@ export interface SlashrefundQueryAllDepositResponse {
 }
 
 export interface SlashrefundQueryAllUnbondingDepositResponse {
-  UnbondingDeposit?: SlashrefundUnbondingDeposit[];
+  unbondingDeposit?: SlashrefundUnbondingDeposit[];
 
   /**
    * PageResponse is to be embedded in gRPC response messages where the
@@ -221,7 +224,7 @@ export interface SlashrefundQueryGetDepositResponse {
 }
 
 export interface SlashrefundQueryGetUnbondingDepositResponse {
-  UnbondingDeposit?: SlashrefundUnbondingDeposit;
+  unbondingDeposit?: SlashrefundUnbondingDeposit;
 }
 
 /**
@@ -233,21 +236,19 @@ export interface SlashrefundQueryParamsResponse {
 }
 
 export interface SlashrefundUnbondingDeposit {
-  /** @format uint64 */
-  id?: string;
-
-  /** @format date-time */
-  unbondingStart?: string;
   depositorAddress?: string;
   validatorAddress?: string;
+  entries?: SlashrefundUnbondingDepositEntry[];
+}
 
-  /**
-   * Coin defines a token with a denomination and an amount.
-   *
-   * NOTE: The amount field is an Int which implements the custom method
-   * signatures required by gogoproto.
-   */
-  balance?: V1Beta1Coin;
+export interface SlashrefundUnbondingDepositEntry {
+  /** @format int64 */
+  creation_height?: string;
+
+  /** @format date-time */
+  completion_time?: string;
+  initial_balance?: string;
+  balance?: string;
 }
 
 /**
@@ -656,12 +657,12 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
    *
    * @tags Query
    * @name QueryUnbondingDeposit
-   * @summary Queries a UnbondingDeposit by id.
-   * @request GET:/made-in-block/slash-refund/slashrefund/unbonding_deposit/{id}
+   * @summary Queries a UnbondingDeposit by index.
+   * @request GET:/made-in-block/slash-refund/slashrefund/unbonding_deposit/{depositorAddress}/{validatorAddress}
    */
-  queryUnbondingDeposit = (id: string, params: RequestParams = {}) =>
+  queryUnbondingDeposit = (depositorAddress: string, validatorAddress: string, params: RequestParams = {}) =>
     this.request<SlashrefundQueryGetUnbondingDepositResponse, RpcStatus>({
-      path: `/made-in-block/slash-refund/slashrefund/unbonding_deposit/${id}`,
+      path: `/made-in-block/slash-refund/slashrefund/unbonding_deposit/${depositorAddress}/${validatorAddress}`,
       method: "GET",
       format: "json",
       ...params,

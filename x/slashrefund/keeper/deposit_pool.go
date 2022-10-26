@@ -41,16 +41,12 @@ func (k Keeper) GetDepositPool(
 // RemoveDepositPool removes a depositPool from the store
 func (k Keeper) RemoveDepositPool(
 	ctx sdk.Context,
-	operatorAddress string,
+	operatorAddress sdk.ValAddress,
 
 ) {
-	valOperAddr, err := sdk.ValAddressFromBech32(operatorAddress)
-	if err != nil {
-		panic(err)
-	}
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.DepositPoolKeyPrefix))
 	store.Delete(types.DepositPoolKey(
-		valOperAddr,
+		operatorAddress,
 	))
 }
 
@@ -71,7 +67,7 @@ func (k Keeper) GetAllDepositPool(ctx sdk.Context) (list []types.DepositPool) {
 }
 
 func (k Keeper) AddPoolTokensAndShares(
-	ctx sdk.Context, 
+	ctx sdk.Context,
 	depositPool types.DepositPool,
 	tokensToAdd sdk.Coin,
 ) (addedShares sdk.Dec) {
@@ -98,31 +94,28 @@ func (k Keeper) AddPoolTokensAndShares(
 }
 
 func (k Keeper) RemovePoolTokensAndShares(
-	ctx sdk.Context, 
+	ctx sdk.Context,
 	depositPool types.DepositPool,
 	sharesToRemove sdk.Dec,
-) (addedShares sdk.Dec) {
+) (issuedTokensAmt sdk.Int) {
 
 	remainingShares := depositPool.Shares.Sub(sharesToRemove)
 
-	var issuedTokens sdk.Coin
 	if remainingShares.IsZero() {
 		// last delegation share gets any trimmings
-		issuedTokens = depositPool.Tokens
-		// TODO: generalize it
-		depositPool.Tokens = sdk.NewCoin(k.AllowedTokensList(ctx)[0], sdk.ZeroInt())
+		issuedTokensAmt = depositPool.Tokens.Amount
+		// TODO: generalize it considering AllowedTokens param
+		depositPool.Tokens.Amount = sdk.ZeroInt()
 	} else {
-		// leave excess tokens in the validator
-		// however fully use all the delegator shares
-		issuedTokens = depositPool.TokensFromShares(delShares).TruncateInt()
-		v.Tokens = v.Tokens.Sub(issuedTokens)
-
-		if v.Tokens.IsNegative() {
+		// leave excess tokens in the deposit pool
+		// however fully use all the depositor shares
+		issuedTokensAmt = depositPool.TokensFromShares(sharesToRemove).TruncateInt()
+		depositPool.Tokens.Amount = depositPool.Tokens.Amount.Sub(issuedTokensAmt)
+		if depositPool.Tokens.Amount.IsNegative() {
 			panic("attempting to remove more tokens than available in validator")
 		}
 	}
+	depositPool.Shares = remainingShares
 
-	v.DelegatorShares = remainingShares
-
-	return issuedShares
+	return issuedTokensAmt
 }

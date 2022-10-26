@@ -36,7 +36,6 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 
 	// Validate withdraw amount
 
-
 	// Check if allowed token
 	isValid, err := k.CheckAllowedTokens(ctx, msg.Amount.Denom)
 	if !isValid {

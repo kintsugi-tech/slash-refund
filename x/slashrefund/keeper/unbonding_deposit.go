@@ -1,86 +1,63 @@
 package keeper
 
 import (
-	"encoding/binary"
 	"time"
+
+	"cosmossdk.io/math"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 )
 
-// GetUnbondingDepositCount get the total number of unbondingDeposit
-func (k Keeper) GetUnbondingDepositCount(ctx sdk.Context) uint64 {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
-	byteKey := types.KeyPrefix(types.UnbondingDepositCountKey)
-	bz := store.Get(byteKey)
-
-	// Count doesn't exist: no element
-	if bz == nil {
-		return 0
-	}
-
-	// Parse bytes
-	return binary.BigEndian.Uint64(bz)
-}
-
-// SetUnbondingDepositCount set the total number of unbondingDeposit
-func (k Keeper) SetUnbondingDepositCount(ctx sdk.Context, count uint64) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
-	byteKey := types.KeyPrefix(types.UnbondingDepositCountKey)
-	bz := make([]byte, 8)
-	binary.BigEndian.PutUint64(bz, count)
-	store.Set(byteKey, bz)
-}
-
-// AppendUnbondingDeposit appends a unbondingDeposit in the store with a new id and update the count
-func (k Keeper) AppendUnbondingDeposit(
-	ctx sdk.Context,
-	unbondingDeposit types.UnbondingDeposit,
-) uint64 {
-	// Create the unbondingDeposit
-	count := k.GetUnbondingDepositCount(ctx)
-
-	// Set the ID of the appended value
-	unbondingDeposit.Id = count
-
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.UnbondingDepositKey))
-	appendedValue := k.cdc.MustMarshal(&unbondingDeposit)
-	store.Set(GetUnbondingDepositIDBytes(unbondingDeposit.Id), appendedValue)
-
-	// Update unbondingDeposit count
-	k.SetUnbondingDepositCount(ctx, count+1)
-
-	return count
-}
-
-// SetUnbondingDeposit set a specific unbondingDeposit in the store
+// SetUnbondingDeposit set a specific unbondingDeposit in the store from its index
 func (k Keeper) SetUnbondingDeposit(ctx sdk.Context, unbondingDeposit types.UnbondingDeposit) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.UnbondingDepositKey))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.UnbondingDepositKeyPrefix))
 	b := k.cdc.MustMarshal(&unbondingDeposit)
-	store.Set(GetUnbondingDepositIDBytes(unbondingDeposit.Id), b)
+	store.Set(types.UnbondingDepositKey(
+		unbondingDeposit.DepositorAddress,
+		unbondingDeposit.ValidatorAddress,
+	), b)
 }
 
-// GetUnbondingDeposit returns a unbondingDeposit from its id
-func (k Keeper) GetUnbondingDeposit(ctx sdk.Context, id uint64) (val types.UnbondingDeposit, found bool) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.UnbondingDepositKey))
-	b := store.Get(GetUnbondingDepositIDBytes(id))
+// GetUnbondingDeposit returns a unbondingDeposit from its index
+func (k Keeper) GetUnbondingDeposit(
+	ctx sdk.Context,
+	depositorAddress sdk.AccAddress,
+	validatorAddress sdk.ValAddress,
+
+) (val types.UnbondingDeposit, found bool) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.UnbondingDepositKeyPrefix))
+
+	b := store.Get(types.UnbondingDepositKey(
+		depositorAddress.String(),
+		validatorAddress.String(),
+	))
 	if b == nil {
 		return val, false
 	}
+
 	k.cdc.MustUnmarshal(b, &val)
 	return val, true
 }
 
 // RemoveUnbondingDeposit removes a unbondingDeposit from the store
-func (k Keeper) RemoveUnbondingDeposit(ctx sdk.Context, id uint64) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.UnbondingDepositKey))
-	store.Delete(GetUnbondingDepositIDBytes(id))
+func (k Keeper) RemoveUnbondingDeposit(
+	ctx sdk.Context,
+	depositorAddress string,
+	validatorAddress string,
+
+) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.UnbondingDepositKeyPrefix))
+	store.Delete(types.UnbondingDepositKey(
+		depositorAddress,
+		validatorAddress,
+	))
 }
 
 // GetAllUnbondingDeposit returns all unbondingDeposit
 func (k Keeper) GetAllUnbondingDeposit(ctx sdk.Context) (list []types.UnbondingDeposit) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.UnbondingDepositKey))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.UnbondingDepositKeyPrefix))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 
 	defer iterator.Close()
@@ -94,64 +71,57 @@ func (k Keeper) GetAllUnbondingDeposit(ctx sdk.Context) (list []types.UnbondingD
 	return
 }
 
-// GetUnbondingDepositIDBytes returns the byte representation of the ID
-func GetUnbondingDepositIDBytes(id uint64) []byte {
-	bz := make([]byte, 8)
-	binary.BigEndian.PutUint64(bz, id)
-	return bz
-}
-
-// GetUnbondingDepositIDFromBytes returns ID in uint64 format from a byte array
-func GetUnbondingDepositIDFromBytes(bz []byte) uint64 {
-	return binary.BigEndian.Uint64(bz)
-}
-
-// CUSTOM IMPLEMENTATIONS
-// Return unbonded tokens to their owners.
-func (k Keeper) SendUnbondedTokens(ctx sdk.Context) {
-
-	logger := k.Logger(ctx)
-
-	unbonding_deposits := k.GetAllUnbondingDeposit(ctx)
-
-	var unboded_deposits []types.UnbondingDeposit
-	for _, unbonding_deposit := range unbonding_deposits {
-		// List of unbonded deposit to return to owners
-
-		logger.Error("Check token da restituire")
-		unbonding_time := unbonding_deposit.UnbondingStart.Add(10 * time.Second)
-		// If the oldest UnbondingDeposit is unbonded check for the next one, else break
-		if ctx.BlockTime().After(unbonding_time) {
-			logger.Error("Un unbonding verrà restituito")
-			unboded_deposits = append(unboded_deposits, unbonding_deposit)
-		} else {
-			break
-		}
-
+// SetUnbondingDepositEntry adds an entry to the unbonding deposit at
+// the given addresses. It creates the unbonding deposit if it does not exist.
+func (k Keeper) SetUnbondingDepositEntry(
+	ctx sdk.Context, depositorAddr sdk.AccAddress, validatorAddr sdk.ValAddress,
+	creationHeight int64, minTime time.Time, balance math.Int,
+) types.UnbondingDeposit {
+	ubd, found := k.GetUnbondingDeposit(ctx, depositorAddr, validatorAddr)
+	if found {
+		ubd.AddEntry(creationHeight, minTime, balance)
+	} else {
+		ubd = types.NewUnbondingDeposit(depositorAddr, validatorAddr, creationHeight, minTime, balance)
 	}
 
-	n_unbonded_deposits := len(unboded_deposits)
+	k.SetUnbondingDeposit(ctx, ubd)
 
-	for _, unbonded_deposit := range unboded_deposits {
+	return ubd
+}
 
-		k.RemoveUnbondingDeposit(ctx, 0)
+// InsertUBDQueue inserts an unbonding deposit to the appropriate timeslice
+// in the unbonding queue.
+func (k Keeper) InsertUBDQueue(ctx sdk.Context, ubd types.UnbondingDeposit, completionTime time.Time) {
 
-		sender, _ := sdk.AccAddressFromBech32(unbonded_deposit.DepositorAddress)
+	dvPair := types.DVPair{DepositorAddress: ubd.DepositorAddress, ValidatorAddress: ubd.ValidatorAddress}
 
-		logger.Error("Restituzione..")
-		err := k.bankKeeper.SendCoinsFromModuleToAccount(
-			ctx,
-			types.ModuleName,
-			sender,
-			sdk.Coins{unbonded_deposit.Balance},
-		)
-		if err != nil {
-			logger.Error(err.Error())
-			return
-		}
-		logger.Error("..completata")
+	timeSlice := k.GetUBDQueueTimeSlice(ctx, completionTime)
+	// append dvPair to timeSlice and SetUBDQueueTimeSlice
+	if len(timeSlice) == 0 {
+		k.SetUBDQueueTimeSlice(ctx, completionTime, []types.DVPair{dvPair})
+	} else {
+		timeSlice = append(timeSlice, dvPair)
+		k.SetUBDQueueTimeSlice(ctx, completionTime, timeSlice)
+	}
+}
+
+func (k Keeper) GetUBDQueueTimeSlice(ctx sdk.Context, timestamp time.Time) (dvPairs []types.DVPair) {
+	store := ctx.KVStore(k.storeKey)
+
+	bz := store.Get(types.GetUnbondingDepositTimeKey(timestamp))
+	if bz == nil {
+		return []types.DVPair{}
 	}
 
-	k.SetUnbondingDepositCount(ctx, uint64(len(unboded_deposits)-n_unbonded_deposits))
+	pairs := types.DVPairs{}
+	k.cdc.MustUnmarshal(bz, &pairs)
 
+	return pairs.Pairs
+}
+
+// SetUBDQueueTimeSlice sets a specific unbonding queue timeslice.
+func (k Keeper) SetUBDQueueTimeSlice(ctx sdk.Context, timestamp time.Time, keys []types.DVPair) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshal(&types.DVPairs{Pairs: keys})
+	store.Set(types.GetUnbondingDepositTimeKey(timestamp), bz)
 }

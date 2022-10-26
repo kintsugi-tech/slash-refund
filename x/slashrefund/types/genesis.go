@@ -13,8 +13,8 @@ const DefaultIndex uint64 = 1
 func DefaultGenesis() *GenesisState {
 	return &GenesisState{
 		DepositList:          []Deposit{},
-		UnbondingDepositList: []UnbondingDeposit{},
 		DepositPoolList:      []DepositPool{},
+		UnbondingDepositList: []UnbondingDeposit{},
 		// this line is used by starport scaffolding # genesis/types/default
 		Params: DefaultParams(),
 	}
@@ -43,18 +43,7 @@ func (gs GenesisState) Validate() error {
 		}
 		depositIndexMap[index] = struct{}{}
 	}
-	// Check for duplicated ID in unbondingDeposit
-	unbondingDepositIdMap := make(map[uint64]bool)
-	unbondingDepositCount := gs.GetUnbondingDepositCount()
-	for _, elem := range gs.UnbondingDepositList {
-		if _, ok := unbondingDepositIdMap[elem.Id]; ok {
-			return fmt.Errorf("duplicated id for unbondingDeposit")
-		}
-		if elem.Id >= unbondingDepositCount {
-			return fmt.Errorf("unbondingDeposit id should be lower or equal than the last id")
-		}
-		unbondingDepositIdMap[elem.Id] = true
-	}
+
 	// Check for duplicated index in depositPool
 	depositPoolIndexMap := make(map[string]struct{})
 
@@ -68,6 +57,16 @@ func (gs GenesisState) Validate() error {
 			return fmt.Errorf("duplicated index for depositPool")
 		}
 		depositPoolIndexMap[index] = struct{}{}
+	}
+	// Check for duplicated index in unbondingDeposit
+	unbondingDepositIndexMap := make(map[string]struct{})
+
+	for _, elem := range gs.UnbondingDepositList {
+		index := string(UnbondingDepositKey(elem.DepositorAddress, elem.ValidatorAddress))
+		if _, ok := unbondingDepositIndexMap[index]; ok {
+			return fmt.Errorf("duplicated index for unbondingDeposit")
+		}
+		unbondingDepositIndexMap[index] = struct{}{}
 	}
 	// this line is used by starport scaffolding # genesis/types/validate
 

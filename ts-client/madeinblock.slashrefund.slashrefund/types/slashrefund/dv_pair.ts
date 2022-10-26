@@ -1,44 +1,30 @@
 /* eslint-disable */
-import { UnbondingDepositEntry } from "../slashrefund/unbonding_deposit_entry";
 import { Writer, Reader } from "protobufjs/minimal";
 
 export const protobufPackage = "madeinblock.slashrefund.slashrefund";
 
-/**
- * option (gogoproto.goproto_getters)  = false;
- * option (gogoproto.equal)            = false;
- * option (gogoproto.goproto_stringer) = false;
- */
-export interface UnbondingDeposit {
+export interface DVPair {
   depositorAddress: string;
   validatorAddress: string;
-  entries: UnbondingDepositEntry[];
 }
 
-const baseUnbondingDeposit: object = {
-  depositorAddress: "",
-  validatorAddress: "",
-};
+const baseDVPair: object = { depositorAddress: "", validatorAddress: "" };
 
-export const UnbondingDeposit = {
-  encode(message: UnbondingDeposit, writer: Writer = Writer.create()): Writer {
+export const DVPair = {
+  encode(message: DVPair, writer: Writer = Writer.create()): Writer {
     if (message.depositorAddress !== "") {
       writer.uint32(10).string(message.depositorAddress);
     }
     if (message.validatorAddress !== "") {
       writer.uint32(18).string(message.validatorAddress);
     }
-    for (const v of message.entries) {
-      UnbondingDepositEntry.encode(v!, writer.uint32(26).fork()).ldelim();
-    }
     return writer;
   },
 
-  decode(input: Reader | Uint8Array, length?: number): UnbondingDeposit {
+  decode(input: Reader | Uint8Array, length?: number): DVPair {
     const reader = input instanceof Uint8Array ? new Reader(input) : input;
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseUnbondingDeposit } as UnbondingDeposit;
-    message.entries = [];
+    const message = { ...baseDVPair } as DVPair;
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -48,11 +34,6 @@ export const UnbondingDeposit = {
         case 2:
           message.validatorAddress = reader.string();
           break;
-        case 3:
-          message.entries.push(
-            UnbondingDepositEntry.decode(reader, reader.uint32())
-          );
-          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -61,9 +42,8 @@ export const UnbondingDeposit = {
     return message;
   },
 
-  fromJSON(object: any): UnbondingDeposit {
-    const message = { ...baseUnbondingDeposit } as UnbondingDeposit;
-    message.entries = [];
+  fromJSON(object: any): DVPair {
+    const message = { ...baseDVPair } as DVPair;
     if (
       object.depositorAddress !== undefined &&
       object.depositorAddress !== null
@@ -80,33 +60,20 @@ export const UnbondingDeposit = {
     } else {
       message.validatorAddress = "";
     }
-    if (object.entries !== undefined && object.entries !== null) {
-      for (const e of object.entries) {
-        message.entries.push(UnbondingDepositEntry.fromJSON(e));
-      }
-    }
     return message;
   },
 
-  toJSON(message: UnbondingDeposit): unknown {
+  toJSON(message: DVPair): unknown {
     const obj: any = {};
     message.depositorAddress !== undefined &&
       (obj.depositorAddress = message.depositorAddress);
     message.validatorAddress !== undefined &&
       (obj.validatorAddress = message.validatorAddress);
-    if (message.entries) {
-      obj.entries = message.entries.map((e) =>
-        e ? UnbondingDepositEntry.toJSON(e) : undefined
-      );
-    } else {
-      obj.entries = [];
-    }
     return obj;
   },
 
-  fromPartial(object: DeepPartial<UnbondingDeposit>): UnbondingDeposit {
-    const message = { ...baseUnbondingDeposit } as UnbondingDeposit;
-    message.entries = [];
+  fromPartial(object: DeepPartial<DVPair>): DVPair {
+    const message = { ...baseDVPair } as DVPair;
     if (
       object.depositorAddress !== undefined &&
       object.depositorAddress !== null
@@ -122,11 +89,6 @@ export const UnbondingDeposit = {
       message.validatorAddress = object.validatorAddress;
     } else {
       message.validatorAddress = "";
-    }
-    if (object.entries !== undefined && object.entries !== null) {
-      for (const e of object.entries) {
-        message.entries.push(UnbondingDepositEntry.fromPartial(e));
-      }
     }
     return message;
   },

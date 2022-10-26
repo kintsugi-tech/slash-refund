@@ -1,14 +1,14 @@
 accounts:
   - name: alice
-    coins: ["20000token", "100000000000stake"]
+    coins: ["20000token", "200000000000stake"]
   - name: bob
-    coins: ["10000token", "500000000stake"]
+    coins: ["10000token", "100000000000stake"]
   - name: pippo
     coins: ["20000token", "200000000stake"]
     mnemonic: "dragon shrimp eyebrow guide vendor cover find vital draw catalog coconut venture lyrics supply almost skull apple oil apology illegal apple sugar charge ring"
 validator:
   name: alice
-  staked: "10000000000stake"
+  staked: "20000000000stake"
 client:
   openapi:
     path: "docs/static/openapi.yml"
@@ -25,8 +25,11 @@ init:
     log_level: error
     p2p:
       allow_duplicate_ip: true
-genesis:
+genesis: 
   app_state:
     slashing:
       params:
         signed_blocks_window: 35
+    staking:
+      params:
+        unbonding_time: "5s"  # 5 seconds

@@ -2,6 +2,7 @@ package cli_test
 
 import (
 	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -17,6 +18,9 @@ import (
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 )
 
+// Prevent strconv unused error
+var _ = strconv.IntSize
+
 func networkWithUnbondingDepositObjects(t *testing.T, n int) (*network.Network, []types.UnbondingDeposit) {
 	t.Helper()
 	cfg := network.DefaultConfig()
@@ -25,7 +29,8 @@ func networkWithUnbondingDepositObjects(t *testing.T, n int) (*network.Network, 
 
 	for i := 0; i < n; i++ {
 		unbondingDeposit := types.UnbondingDeposit{
-			Id: uint64(i),
+			DepositorAddress: strconv.Itoa(i),
+			ValidatorAddress: strconv.Itoa(i),
 		}
 		nullify.Fill(&unbondingDeposit)
 		state.UnbondingDepositList = append(state.UnbondingDepositList, unbondingDeposit)
@@ -44,28 +49,36 @@ func TestShowUnbondingDeposit(t *testing.T) {
 		fmt.Sprintf("--%s=json", tmcli.OutputFlag),
 	}
 	for _, tc := range []struct {
-		desc string
-		id   string
+		desc               string
+		idDepositorAddress string
+		idValidatorAddress string
+
 		args []string
 		err  error
 		obj  types.UnbondingDeposit
 	}{
 		{
-			desc: "found",
-			id:   fmt.Sprintf("%d", objs[0].Id),
+			desc:               "found",
+			idDepositorAddress: objs[0].DepositorAddress,
+			idValidatorAddress: objs[0].ValidatorAddress,
+
 			args: common,
 			obj:  objs[0],
 		},
 		{
-			desc: "not found",
-			id:   "not_found",
+			desc:               "not found",
+			idDepositorAddress: strconv.Itoa(100000),
+			idValidatorAddress: strconv.Itoa(100000),
+
 			args: common,
 			err:  status.Error(codes.NotFound, "not found"),
 		},
 	} {
-		tc := tc
 		t.Run(tc.desc, func(t *testing.T) {
-			args := []string{tc.id}
+			args := []string{
+				tc.idDepositorAddress,
+				tc.idValidatorAddress,
+			}
 			args = append(args, tc.args...)
 			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdShowUnbondingDeposit(), args)
 			if tc.err != nil {

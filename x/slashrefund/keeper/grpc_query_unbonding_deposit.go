@@ -5,7 +5,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 	"google.golang.org/grpc/codes"
@@ -21,7 +20,7 @@ func (k Keeper) UnbondingDepositAll(c context.Context, req *types.QueryAllUnbond
 	ctx := sdk.UnwrapSDKContext(c)
 
 	store := ctx.KVStore(k.storeKey)
-	unbondingDepositStore := prefix.NewStore(store, types.KeyPrefix(types.UnbondingDepositKey))
+	unbondingDepositStore := prefix.NewStore(store, types.KeyPrefix(types.UnbondingDepositKeyPrefix))
 
 	pageRes, err := query.Paginate(unbondingDepositStore, req.Pagination, func(key []byte, value []byte) error {
 		var unbondingDeposit types.UnbondingDeposit
@@ -44,12 +43,25 @@ func (k Keeper) UnbondingDeposit(c context.Context, req *types.QueryGetUnbonding
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
-
 	ctx := sdk.UnwrapSDKContext(c)
-	unbondingDeposit, found := k.GetUnbondingDeposit(ctx, req.Id)
-	if !found {
-		return nil, sdkerrors.ErrKeyNotFound
+
+	depAddr, err := sdk.AccAddressFromBech32(req.DepositorAddress)
+	if err != nil {
+		return nil, err
+	}
+	valAddr, err := sdk.ValAddressFromBech32(req.ValidatorAddress)
+	if err != nil {
+		return nil, err
 	}
 
-	return &types.QueryGetUnbondingDepositResponse{UnbondingDeposit: unbondingDeposit}, nil
+	val, found := k.GetUnbondingDeposit(
+		ctx,
+		depAddr,
+		valAddr,
+	)
+	if !found {
+		return nil, status.Error(codes.NotFound, "unbonding deposit not found")
+	}
+
+	return &types.QueryGetUnbondingDepositResponse{UnbondingDeposit: val}, nil
 }

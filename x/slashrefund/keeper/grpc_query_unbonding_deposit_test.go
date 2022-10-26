@@ -1,10 +1,10 @@
 package keeper_test
 
 import (
+	"strconv"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
@@ -14,6 +14,9 @@ import (
 	"github.com/made-in-block/slash-refund/testutil/nullify"
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 )
+
+// Prevent strconv unused error
+var _ = strconv.IntSize
 
 func TestUnbondingDepositQuerySingle(t *testing.T) {
 	keeper, ctx := keepertest.SlashrefundKeeper(t)
@@ -26,19 +29,28 @@ func TestUnbondingDepositQuerySingle(t *testing.T) {
 		err      error
 	}{
 		{
-			desc:     "First",
-			request:  &types.QueryGetUnbondingDepositRequest{Id: msgs[0].Id},
+			desc: "First",
+			request: &types.QueryGetUnbondingDepositRequest{
+				DepositorAddress: msgs[0].DepositorAddress,
+				ValidatorAddress: msgs[0].ValidatorAddress,
+			},
 			response: &types.QueryGetUnbondingDepositResponse{UnbondingDeposit: msgs[0]},
 		},
 		{
-			desc:     "Second",
-			request:  &types.QueryGetUnbondingDepositRequest{Id: msgs[1].Id},
+			desc: "Second",
+			request: &types.QueryGetUnbondingDepositRequest{
+				DepositorAddress: msgs[1].DepositorAddress,
+				ValidatorAddress: msgs[1].ValidatorAddress,
+			},
 			response: &types.QueryGetUnbondingDepositResponse{UnbondingDeposit: msgs[1]},
 		},
 		{
-			desc:    "KeyNotFound",
-			request: &types.QueryGetUnbondingDepositRequest{Id: uint64(len(msgs))},
-			err:     sdkerrors.ErrKeyNotFound,
+			desc: "KeyNotFound",
+			request: &types.QueryGetUnbondingDepositRequest{
+				DepositorAddress: strconv.Itoa(100000),
+				ValidatorAddress: strconv.Itoa(100000),
+			},
+			err: status.Error(codes.NotFound, "not found"),
 		},
 		{
 			desc: "InvalidRequest",
