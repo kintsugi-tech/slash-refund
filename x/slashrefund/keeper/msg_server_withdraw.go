@@ -34,6 +34,7 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 	}
 
 	// Check if allowed token for deposit
+	// TODO: this should be removed since included in the previous check.
 	isValid, err := k.CheckAllowedTokens(ctx, msg.Amount.Denom)
 	if !isValid {
 		return nil, err
@@ -61,36 +62,4 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 	})
 
 	return &types.MsgWithdrawResponse{CompletionTime: completionTime}, nil
-	// sender, _ := sdk.AccAddressFromBech32(msg.Creator)
-
-	/*
-		deposit, isFound := k.GetDeposit(ctx, sdk.AccAddress(msg.DepositorAddress), sdk.ValAddress(msg.ValidatorAddress))
-
-		if !isFound {
-			return nil, errors.New("Don't fuck with mib")
-		} else if deposit.Shares.Amount.LT(msg.Amount.Amount) {
-			return nil, errors.New("Too much zio")
-		}
-
-		updated_balance := deposit.Balance.SubAmount(msg.Amount.Amount)
-
-		deposit = types.Deposit{
-			Address:          msg.Creator,
-			ValidatorAddress: msg.ValidatorAddress,
-			Balance:          updated_balance,
-		}
-
-		k.SetDeposit(ctx, deposit)
-
-		unbonding_deposit := types.UnbondingDeposit{
-			Id: k.GetUnbondingDepositCount(ctx),
-			UnbondingStart: ctx.BlockTime(),
-			Address: msg.Creator,
-			ValidatorAddress: msg.ValidatorAddress,
-			Balance: msg.Amount,
-		}
-
-		k.AppendUnbondingDeposit(ctx, unbonding_deposit)
-
-	*/
 }
