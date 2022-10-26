@@ -18,19 +18,15 @@ func (k Keeper) Withdraw(
 ) (sdk.Coin, time.Time, error) {
 	//logger := k.Logger(ctx)
 
-	//TODO: check max unbonding entries
-
 	witAmt, err := k.Unbond(ctx, depAddr, valAddr, witShares)
 	if err != nil {
 		return sdk.NewCoin("", sdk.NewInt(0)), time.Time{}, err
 	}
 
-	// return Coin , time
 	completionTime := ctx.BlockHeader().Time.Add(k.stakingKeeper.UnbondingTime(ctx))
 
-	// SET UNBONDING DEPOSIT ENTRY
 	ubd := k.SetUnbondingDepositEntry(ctx, depAddr, valAddr, ctx.BlockHeight(), completionTime, witAmt)
-	// SET UNBDONDING DEPOSIT QUEUE
+
 	k.InsertUBDQueue(ctx, ubd, completionTime)
 
 	// TODO: change "stake"
