@@ -40,6 +40,15 @@ func (k Keeper) ValidateWithdrawAmount(
 	tokens sdk.Coin,
 ) (shares sdk.Dec, err error) {
 
+	isValid, err := k.CheckAllowedTokens(ctx, tokens.Denom)
+	if !isValid {
+		return sdk.NewDec(0), err
+	}
+
+	if tokens.Amount.IsZero() {
+		return shares, types.ErrZeroWithdraw
+	}
+
 	dep, found := k.GetDeposit(ctx, depAddr, valAddr)
 	if !found {
 		return shares, types.ErrNoDepositForAddress
@@ -93,6 +102,8 @@ func (k Keeper) Unbond(
 		return issuedTokensAmt, types.ErrNoDepositPoolForValidator
 	}
 
+	logger.Error(fmt.Sprintf("    depPool.Shares: %s", depPool.Shares.String()))
+
 	// ensure that we have enough shares to remove
 	if deposit.Shares.LT(shares) {
 		return issuedTokensAmt, sdkerrors.Wrap(types.ErrNotEnoughDepositShares, deposit.Shares.String())
@@ -116,13 +127,15 @@ func (k Keeper) Unbond(
 		k.SetDeposit(ctx, deposit)
 	}
 
-	issuedTokensAmt = k.RemovePoolTokensAndShares(ctx, depPool, shares)
+	logger.Error(fmt.Sprintf("    call k.RemovePoolTokensAndShares:"))
+
+	depPool, issuedTokensAmt = k.RemovePoolTokensAndShares(ctx, depPool, shares)
 
 	logger.Error(fmt.Sprintf("returned to: Unbond"))
 	logger.Error(fmt.Sprintf("    depPool.Shares: %s", depPool.Shares.String()))
 
 	if depPool.Shares.IsZero() {
-		// if not unbonded, we must instead remove validator in EndBlocker once it finishes its unbonding period
+		//TODO: if not unbonded, we must instead remove validator in EndBlocker once it finishes its unbonding period
 		k.RemoveDepositPool(ctx, valAddr)
 	}
 

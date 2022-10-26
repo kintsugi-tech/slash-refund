@@ -33,13 +33,6 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 		return nil, err
 	}
 
-	// Check if allowed token for deposit
-	// TODO: this should be removed since included in the previous check.
-	isValid, err := k.CheckAllowedTokens(ctx, msg.Amount.Denom)
-	if !isValid {
-		return nil, err
-	}
-
 	// === STATE TRANSITION ===
 	_, completionTime, err := k.Keeper.Withdraw(ctx, depositorAddress, validatorAddress, shares)
 	if err != nil {
