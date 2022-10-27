@@ -157,10 +157,21 @@ func (AppModule) ConsensusVersion() uint64 { return 1 }
 
 // BeginBlock contains the logic that is automatically triggered at the beginning of each block
 func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
+	logger := am.keeper.Logger(ctx)
+	logger.Error("Module.go calls BeginBlock")
+
 	BeginBlocker(ctx, req, am.keeper)
+
+	logger.Error("Module.go called BeginBlock")
 }
 
 // EndBlock contains the logic that is automatically triggered at the end of each block
-func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	return []abci.ValidatorUpdate{}
+func (am AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) {
+
+	logger := am.keeper.Logger(ctx)
+	logger.Error("Module.go calls EndBlock")
+
+	EndBlocker(ctx, req, am.keeper)
+
+	logger.Error("Module.go called EndBlock")
 }
