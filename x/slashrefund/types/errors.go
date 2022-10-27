@@ -14,4 +14,5 @@ var (
 	ErrInsufficientShares          = sdkerrors.Register(ModuleName, 22, "insufficient deposit shares")
 	ErrDepositorShareExRateInvalid = sdkerrors.Register(ModuleName, 2, "cannot deposit for validators with invalid (zero) ex-rate")
 	ErrNotEnoughDepositShares      = sdkerrors.Register(ModuleName, 24, "not enough deposit shares")
+	ErrNoUnbondingDeposit          = sdkerrors.Register(ModuleName, 26, "no unbonding deposit found")
 )

@@ -53,3 +53,13 @@ func NewUnbondingDeposit(
 		},
 	}
 }
+
+// IsMature - is the current entry mature
+func (e UnbondingDepositEntry) IsMature(currentTime time.Time) bool {
+	return !e.CompletionTime.After(currentTime)
+}
+
+// RemoveEntry - remove entry at index i to the unbonding delegation
+func (ubd *UnbondingDeposit) RemoveEntry(i int64) {
+	ubd.Entries = append(ubd.Entries[:i], ubd.Entries[i+1:]...)
+}

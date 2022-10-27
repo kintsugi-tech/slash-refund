@@ -125,3 +125,84 @@ func (k Keeper) SetUBDQueueTimeSlice(ctx sdk.Context, timestamp time.Time, keys 
 	bz := k.cdc.MustMarshal(&types.DVPairs{Pairs: keys})
 	store.Set(types.GetUnbondingDepositTimeKey(timestamp), bz)
 }
+
+// UBDQueueIterator returns all the unbonding queue timeslices from time 0 until endTime.
+func (k Keeper) UBDQueueIterator(ctx sdk.Context, endTime time.Time) sdk.Iterator {
+	store := ctx.KVStore(k.storeKey)
+	return store.Iterator(types.UnbondingQueueKey,
+		sdk.InclusiveEndBytes(types.GetUnbondingDepositTimeKey(endTime)))
+}
+
+// DequeueAllMatureUBDQueue returns a concatenated list of all the timeslices inclusively previous to
+// currTime, and deletes the timeslices from the queue.
+func (k Keeper) DequeueAllMatureUBDQueue(ctx sdk.Context, currTime time.Time) (matureUnbonds []types.DVPair) {
+	store := ctx.KVStore(k.storeKey)
+
+	// gets an iterator for all timeslices from time 0 until the current Blockheader time
+	unbondingTimesliceIterator := k.UBDQueueIterator(ctx, currTime)
+	defer unbondingTimesliceIterator.Close()
+
+	for ; unbondingTimesliceIterator.Valid(); unbondingTimesliceIterator.Next() {
+		timeslice := types.DVPairs{}
+		value := unbondingTimesliceIterator.Value()
+		k.cdc.MustUnmarshal(value, &timeslice)
+
+		matureUnbonds = append(matureUnbonds, timeslice.Pairs...)
+
+		store.Delete(unbondingTimesliceIterator.Key())
+	}
+
+	return matureUnbonds
+}
+
+// CompleteUnbonding completes the unbonding of all mature entries in the
+// retrieved unbonding deposit object and returns the total unbonding balance
+// or an error upon failure.
+func (k Keeper) CompleteUnbonding(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (sdk.Coins, error) {
+	ubd, found := k.GetUnbondingDeposit(ctx, delAddr, valAddr)
+	if !found {
+		return nil, types.ErrNoUnbondingDeposit
+	}
+
+	refundDenom := k.AllowedTokensList(ctx)[0] //TODO: generalize refundDenom with all the AllowedTokens
+	balances := sdk.NewCoins()
+	ctxTime := ctx.BlockHeader().Time
+
+	depositorAddress, err := sdk.AccAddressFromBech32(ubd.DepositorAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	// loop through all the entries and complete unbonding mature entries
+	for i := 0; i < len(ubd.Entries); i++ {
+		entry := ubd.Entries[i]
+		if entry.IsMature(ctxTime) {
+			ubd.RemoveEntry(int64(i))
+			i--
+
+			// track withdraw only when remaining or truncated shares are non-zero
+			if !entry.Balance.IsZero() {
+				amt := sdk.NewCoin(refundDenom, entry.Balance)
+
+				//TODO: handle different denoms from governance ones
+
+				if err := k.bankKeeper.SendCoinsFromModuleToAccount(
+					ctx, types.ModuleName, depositorAddress, sdk.NewCoins(amt),
+				); err != nil {
+					return nil, err
+				}
+
+				balances = balances.Add(amt)
+			}
+		}
+	}
+
+	// set the unbonding deposit or remove it if there are no more entries
+	if len(ubd.Entries) == 0 {
+		k.RemoveUnbondingDeposit(ctx, ubd.DepositorAddress, ubd.ValidatorAddress)
+	} else {
+		k.SetUnbondingDeposit(ctx, ubd)
+	}
+
+	return balances, nil
+}
