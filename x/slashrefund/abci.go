@@ -15,11 +15,6 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k keeper.Keeper) 
 
 	logger.Error("Height", "height", ctx.BlockHeight())
 
-	matureUnbonds := k.BlockUnbondingDepositUpdates(ctx)
-	if matureUnbonds != nil {
-		logger.Error("    found and processed mature unbonds")
-	}
-
 	//events := ctx.EventManager().Events()
 	//
 	//// Iterate all events in this block
@@ -58,12 +53,11 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k keeper.Keeper) 
 func EndBlocker(ctx sdk.Context, req abci.RequestEndBlock, k keeper.Keeper) []types.DVPair {
 
 	logger := k.Logger(ctx)
-	logger.Error("HEY!!")
-	//logger.Error("End blocker for block %d", ctx.BlockHeight())
+	logger.Error("|_ End blocker")
 
 	matureUnbonds := k.BlockUnbondingDepositUpdates(ctx)
 	if matureUnbonds != nil {
-		logger.Error("    found and processed mature unbonds")
+		logger.Error("    |_ found and processed mature unbonds")
 	}
 
 	return matureUnbonds
