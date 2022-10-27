@@ -7,17 +7,11 @@ import { msgTypes } from './registry';
 import { IgniteClient } from "../client"
 import { MissingWalletError } from "../helpers"
 import { Api } from "./rest";
-import { MsgDeposit } from "./types/slashrefund/tx";
 import { MsgWithdraw } from "./types/slashrefund/tx";
+import { MsgDeposit } from "./types/slashrefund/tx";
 
 
-export { MsgDeposit, MsgWithdraw };
-
-type sendMsgDepositParams = {
-  value: MsgDeposit,
-  fee?: StdFee,
-  memo?: string
-};
+export { MsgWithdraw, MsgDeposit };
 
 type sendMsgWithdrawParams = {
   value: MsgWithdraw,
@@ -25,13 +19,19 @@ type sendMsgWithdrawParams = {
   memo?: string
 };
 
-
-type msgDepositParams = {
+type sendMsgDepositParams = {
   value: MsgDeposit,
+  fee?: StdFee,
+  memo?: string
 };
+
 
 type msgWithdrawParams = {
   value: MsgWithdraw,
+};
+
+type msgDepositParams = {
+  value: MsgDeposit,
 };
 
 
@@ -52,20 +52,6 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 
   return {
 		
-		async sendMsgDeposit({ value, fee, memo }: sendMsgDepositParams): Promise<DeliverTxResponse> {
-			if (!signer) {
-					throw new Error('TxClient:sendMsgDeposit: Unable to sign Tx. Signer is not present.')
-			}
-			try {			
-				const { address } = (await signer.getAccounts())[0]; 
-				const signingClient = await SigningStargateClient.connectWithSigner(addr,signer,{registry, prefix});
-				let msg = this.msgDeposit({ value: MsgDeposit.fromPartial(value) })
-				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
-			} catch (e: any) {
-				throw new Error('TxClient:sendMsgDeposit: Could not broadcast Tx: '+ e.message)
-			}
-		},
-		
 		async sendMsgWithdraw({ value, fee, memo }: sendMsgWithdrawParams): Promise<DeliverTxResponse> {
 			if (!signer) {
 					throw new Error('TxClient:sendMsgWithdraw: Unable to sign Tx. Signer is not present.')
@@ -80,20 +66,34 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 			}
 		},
 		
-		
-		msgDeposit({ value }: msgDepositParams): EncodeObject {
-			try {
-				return { typeUrl: "/madeinblock.slashrefund.slashrefund.MsgDeposit", value: MsgDeposit.fromPartial( value ) }  
+		async sendMsgDeposit({ value, fee, memo }: sendMsgDepositParams): Promise<DeliverTxResponse> {
+			if (!signer) {
+					throw new Error('TxClient:sendMsgDeposit: Unable to sign Tx. Signer is not present.')
+			}
+			try {			
+				const { address } = (await signer.getAccounts())[0]; 
+				const signingClient = await SigningStargateClient.connectWithSigner(addr,signer,{registry, prefix});
+				let msg = this.msgDeposit({ value: MsgDeposit.fromPartial(value) })
+				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
 			} catch (e: any) {
-				throw new Error('TxClient:MsgDeposit: Could not create message: ' + e.message)
+				throw new Error('TxClient:sendMsgDeposit: Could not broadcast Tx: '+ e.message)
 			}
 		},
+		
 		
 		msgWithdraw({ value }: msgWithdrawParams): EncodeObject {
 			try {
 				return { typeUrl: "/madeinblock.slashrefund.slashrefund.MsgWithdraw", value: MsgWithdraw.fromPartial( value ) }  
 			} catch (e: any) {
 				throw new Error('TxClient:MsgWithdraw: Could not create message: ' + e.message)
+			}
+		},
+		
+		msgDeposit({ value }: msgDepositParams): EncodeObject {
+			try {
+				return { typeUrl: "/madeinblock.slashrefund.slashrefund.MsgDeposit", value: MsgDeposit.fromPartial( value ) }  
+			} catch (e: any) {
+				throw new Error('TxClient:MsgDeposit: Could not create message: ' + e.message)
 			}
 		},
 		
