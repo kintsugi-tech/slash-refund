@@ -89,16 +89,15 @@ func (k Keeper) GetDepositOfValidator(ctx sdk.Context, valAddr sdk.ValAddress) (
 }
 
 // Deposit implements the state transition logic for a deposit
-// TODO: controllare hook: logiche da eseguire se deposito viene creato o modificato.
 func (k Keeper) Deposit(
 	ctx sdk.Context,
 	depAddr sdk.AccAddress,
 	depCoin sdk.Coin,
 	validator stakingtypes.Validator,
 ) (newShares sdk.Dec, err error) {
-	//logger := k.Logger(ctx)
 
-	// Check if a validator has zero token but shares.
+	// Check if a validator has zero token but shares. This situation can arise due to slashing
+	// of the considered validator.
 	if validator.InvalidExRate() {
 		// Return zero shares and an error
 		return sdk.ZeroDec(), types.ErrDepositorShareExRateInvalid

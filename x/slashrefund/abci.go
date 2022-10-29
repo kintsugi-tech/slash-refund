@@ -23,43 +23,7 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k keeper.Keeper) 
 		// Check if we have a slashing event
 		if event.Type == slashingtypes.EventTypeSlash {
 
-			// Iterate attributes to find which validators has been slashed
-			for _, attr := range event.Attributes {
-
-				// Check if validator has a deposit ready to use as refund
-				if string(attr.GetKey()) == "address" {
-					validator, _ := k.GetValidatorByConsAddrBytes(ctx, attr.GetValue())
-					deposits, total := k.GetDepositOfValidator(ctx, validator.GetOperator())
-
-					logger.Error("deposits", "dep", len(deposits), "tot", total)
-
-					// skip if we don't have any deposit
-					if len(deposits) == 0 || total.Amount.LTE(sdk.NewInt(0)) {
-						return
-					}
-
-					//deposit slashing modifico deposit
-					//
-					//
-					//if depositCreationTime > slashingEventTime
-					//	non slashare deposito
-					//else
-					//	slasha deposito
-					////end
-
-					// Check how much we should refund
-					for _, deposit := range deposits {
-						shares := deposit.Shares
-						depAddr := deposit.DepositorAddress
-						_ = shares
-						_ = depAddr
-					}
-
-					// Refund users
-
-					return
-				}
-			}
+			
 		}
 	}
 
