@@ -25,6 +25,7 @@ type BankKeeper interface {
 }
 
 type StakingKeeper interface {
+	AddValidatorTokens(ctx sdk.Context, validator stakingtypes.Validator, tokensToAdd sdk.Int) stakingtypes.Validator
 	GetValidatorDelegations(ctx sdk.Context, valAddr sdk.ValAddress) (delegations []stakingtypes.Delegation)
 	GetValidatorByConsAddr(ctx sdk.Context, consAddr sdk.ConsAddress) (validator stakingtypes.Validator, found bool)
 	GetValidator(ctx sdk.Context, addr sdk.ValAddress) (validator stakingtypes.Validator, found bool)
