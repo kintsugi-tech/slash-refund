@@ -1,6 +1,7 @@
 #/bin/bash
 
 # Init new chain
+cd ..
 MAINFOLDER=$(pwd)/.dimi-sr-test
 VAL2FOL=$(pwd)/.dimi-sr-test-2
 FOLDER=$(pwd)/.dimi-sr-test-3
