@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -62,4 +63,20 @@ func (e UnbondingDepositEntry) IsMature(currentTime time.Time) bool {
 // RemoveEntry - remove entry at index i to the unbonding delegation
 func (ubd *UnbondingDeposit) RemoveEntry(i int64) {
 	ubd.Entries = append(ubd.Entries[:i], ubd.Entries[i+1:]...)
+}
+
+// unmarshal a unbonding delegation from a store value
+func UnmarshalUBD(cdc codec.BinaryCodec, value []byte) (ubd UnbondingDeposit, err error) {
+	err = cdc.Unmarshal(value, &ubd)
+	return ubd, err
+}
+
+// unmarshal a unbonding delegation from a store value
+func MustUnmarshalUBD(cdc codec.BinaryCodec, value []byte) UnbondingDeposit {
+	ubd, err := UnmarshalUBD(cdc, value)
+	if err != nil {
+		panic(err)
+	}
+
+	return ubd
 }

@@ -158,8 +158,8 @@ func (k Keeper) DequeueAllMatureUBDQueue(ctx sdk.Context, currTime time.Time) (m
 // CompleteUnbonding completes the unbonding of all mature entries in the
 // retrieved unbonding deposit object and returns the total unbonding balance
 // or an error upon failure.
-func (k Keeper) CompleteUnbonding(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (sdk.Coins, error) {
-	ubd, found := k.GetUnbondingDeposit(ctx, delAddr, valAddr)
+func (k Keeper) CompleteUnbonding(ctx sdk.Context, depAddr sdk.AccAddress, valAddr sdk.ValAddress) (sdk.Coins, error) {
+	ubd, found := k.GetUnbondingDeposit(ctx, depAddr, valAddr)
 	if !found {
 		return nil, types.ErrNoUnbondingDeposit
 	}
@@ -205,4 +205,22 @@ func (k Keeper) CompleteUnbonding(ctx sdk.Context, delAddr sdk.AccAddress, valAd
 	}
 
 	return balances, nil
+}
+
+// GetUnbondingDelegationsFromValidator returns all unbonding delegations from a
+// particular validator.
+func (k Keeper) GetUnbondingDepositsFromValidator(ctx sdk.Context, valAddr sdk.ValAddress) (ubds []types.UnbondingDeposit) {
+	store := ctx.KVStore(k.storeKey)
+
+	iterator := sdk.KVStorePrefixIterator(store, types.GetUBDsByValIndexKey(valAddr))
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		key := types.GetUBDKeyFromValIndexKey(iterator.Key())
+		value := store.Get(key)
+		ubd := types.MustUnmarshalUBD(k.cdc, value)
+		ubds = append(ubds, ubd)
+	}
+
+	return ubds
 }
