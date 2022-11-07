@@ -32,4 +32,4 @@ genesis:
         signed_blocks_window: 35
     staking:
       params:
-        unbonding_time: "5s"  # 5 seconds
+        unbonding_time: "60s"  # seconds

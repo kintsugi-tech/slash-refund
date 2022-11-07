@@ -12,13 +12,13 @@ func (k Keeper) BlockUnbondingDepositUpdates(ctx sdk.Context) []types.DVPair {
 	// Remove all mature unbonding delegations from the ubd queue.
 	matureUnbonds := k.DequeueAllMatureUBDQueue(ctx, ctx.BlockHeader().Time)
 	for _, dvPair := range matureUnbonds {
-		addr, err := sdk.ValAddressFromBech32(dvPair.ValidatorAddress)
+		validatorAddress, err := sdk.ValAddressFromBech32(dvPair.ValidatorAddress)
 		if err != nil {
 			panic(err)
 		}
 		depositorAddress := sdk.MustAccAddressFromBech32(dvPair.DepositorAddress)
 
-		balances, err := k.CompleteUnbonding(ctx, depositorAddress, addr)
+		balances, err := k.CompleteUnbonding(ctx, depositorAddress, validatorAddress)
 		if err != nil {
 			continue
 		}
