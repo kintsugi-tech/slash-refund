@@ -76,7 +76,7 @@ func (k Keeper) HandleRefundsFromSlash(ctx sdk.Context, slashEvent sdk.Event) (r
 
 	case infractionHeight.Int64() < ctx.BlockHeight():
 		// Iterate through unbonding deposits from slashed validator
-		unbondingDeposits := k.GetUnbondingDepositsFromValidator(ctx, valAddr)
+		unbondingDeposits := k.GetUnbondingDepositsFromValidator(ctx, validator.OperatorAddress)
 		// pool+ubds tokens
 		var availableRefundTokens sdk.Int
 
@@ -132,23 +132,23 @@ func (k Keeper) ComputeEligibleRefundFromUnbondingDeposits(ctx sdk.Context, unbo
 
 	logger := k.Logger(ctx)
 	logger.Error("        |_ Entered ComputeEligibleRefundFromUnbondingDeposits")
-	logger.Error("          |_ num of ubds:", len(unbondingDeposits))
+	logger.Error(fmt.Sprintf("          |_ num of ubds: %d", len(unbondingDeposits)))
 
 	for _, unbondingDeposit := range unbondingDeposits {
 		for _, entry := range unbondingDeposit.Entries {
 
 			// If unbonding deposit entry started before infractionHeight, this entry is not eligible for refund
 			if entry.CreationHeight < infractionHeight {
-				logger.Error("        Discarded due to CreationHeight")
+				logger.Error("            entry discarded due to CreationHeight")
 				continue
 			}
 
 			if entry.IsMature(now) {
 				// Unbonding deposit entry no longer eligible for refund, skip it
-				logger.Error("        Discarded due IsMature")
+				logger.Error("            entry discarded due IsMature")
 				continue
 			}
-			logger.Error(fmt.Sprintf("        Found and adding %s", entry.Balance.String()))
+			logger.Error(fmt.Sprintf("            entry eligible and adding %s", entry.Balance.String()))
 			totalUBDSAmount = totalUBDSAmount.Add(entry.Balance)
 		}
 	}

@@ -6,7 +6,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
-	"github.com/cosmos/cosmos-sdk/types/kv"
 )
 
 var _ binary.ByteOrder
@@ -39,29 +38,39 @@ func UnbondingDepositKey(
 	return key
 }
 
+func UnbondingDepositKeyByValIndex(
+	depositorAddress string,
+	validatorAddress string,
+) []byte {
+	var key []byte
+
+	validatorAddressBytes := []byte(validatorAddress)
+	key = append(key, validatorAddressBytes...)
+	key = append(key, []byte("/")...)
+
+	depositorAddressBytes := []byte(depositorAddress)
+	key = append(key, depositorAddressBytes...)
+	key = append(key, []byte("/")...)
+
+	return key
+}
+
 // GetUnbondingDepositTimeKey creates the prefix for all unbonding deposits from a delegator
 func GetUnbondingDepositTimeKey(timestamp time.Time) []byte {
 	bz := sdk.FormatTimeBytes(timestamp)
 	return append(UnbondingQueueKey, bz...)
 }
 
-// GetUBDKeyFromValIndexKey rearranges the ValIndexKey to get the UBDKey
-func GetUBDKeyFromValIndexKey(indexKey []byte) []byte {
-	kv.AssertKeyAtLeastLength(indexKey, 2)
-	addrs := indexKey[1:] // remove prefix bytes
-
-	valAddrLen := addrs[0]
-	kv.AssertKeyAtLeastLength(addrs, 2+int(valAddrLen))
-	valAddr := addrs[1 : 1+valAddrLen]
-	kv.AssertKeyAtLeastLength(addrs, 3+int(valAddrLen))
-	depAddr := addrs[valAddrLen+2:]
-
-	return GetUBDKey(depAddr, valAddr)
-}
-
 // GetUBDsByValIndexKey creates the prefix keyspace for the indexes of unbonding deposits for a validator
-func GetUBDsByValIndexKey(valAddr sdk.ValAddress) []byte {
-	return append(UnbondingDepositByValIndexKey, address.MustLengthPrefix(valAddr)...)
+func GetUBDsByValIndexKey(validatorAddress string) []byte {
+
+	var key []byte
+
+	validatorAddressBytes := []byte(validatorAddress)
+	key = append(key, validatorAddressBytes...)
+	key = append(key, []byte("/")...)
+
+	return key
 }
 
 // GetUBDsKey creates the prefix for all unbonding deposits from a delegator
