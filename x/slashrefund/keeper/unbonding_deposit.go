@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"time"
 
 	"cosmossdk.io/math"
@@ -18,6 +19,12 @@ func (k Keeper) SetUnbondingDeposit(ctx sdk.Context, unbondingDeposit types.Unbo
 		unbondingDeposit.DepositorAddress,
 		unbondingDeposit.ValidatorAddress,
 	), b)
+
+	//TODO: change this to match the staking module method.
+	store.Set(types.UnbondingDepositKeyByValIndex(
+		unbondingDeposit.DepositorAddress,
+		unbondingDeposit.ValidatorAddress),
+		b)
 }
 
 // GetUnbondingDeposit returns a unbondingDeposit from its index
@@ -209,18 +216,19 @@ func (k Keeper) CompleteUnbonding(ctx sdk.Context, depAddr sdk.AccAddress, valAd
 
 // GetUnbondingDelegationsFromValidator returns all unbonding delegations from a
 // particular validator.
-func (k Keeper) GetUnbondingDepositsFromValidator(ctx sdk.Context, valAddr sdk.ValAddress) (ubds []types.UnbondingDeposit) {
-	store := ctx.KVStore(k.storeKey)
+func (k Keeper) GetUnbondingDepositsFromValidator(ctx sdk.Context, validatorAddress string) (ubds []types.UnbondingDeposit) {
 
-	iterator := sdk.KVStorePrefixIterator(store, types.GetUBDsByValIndexKey(valAddr))
+	logger := k.Logger(ctx)
+
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.UnbondingDepositKeyPrefix))
+	iterator := sdk.KVStorePrefixIterator(store, types.GetUBDsByValIndexKey(validatorAddress))
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
-		key := types.GetUBDKeyFromValIndexKey(iterator.Key())
-		value := store.Get(key)
-		ubd := types.MustUnmarshalUBD(k.cdc, value)
+		var ubd types.UnbondingDeposit
+		k.cdc.MustUnmarshal(iterator.Value(), &ubd)
 		ubds = append(ubds, ubd)
 	}
-
+	logger.Error(fmt.Sprintf("GetUnbondingDepositsFromValidator: ubds length is : %d", len(ubds)))
 	return ubds
 }
