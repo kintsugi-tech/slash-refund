@@ -81,7 +81,6 @@ func (k Keeper) HandleRefundsFromSlash(ctx sdk.Context, slashEvent sdk.Event) (r
 		var availableRefundTokens sdk.Int
 
 		unbondingRefunds := k.ComputeEligibleRefundFromUnbondingDeposits(ctx, unbondingDeposits, infractionHeight.Int64())
-		logger.Error(fmt.Sprintf("          |_ unbondingRefunds %s", unbondingRefunds.String()))
 		if !isFoundDepositPool {
 			availableRefundTokens = unbondingRefunds
 		} else {
@@ -89,8 +88,11 @@ func (k Keeper) HandleRefundsFromSlash(ctx sdk.Context, slashEvent sdk.Event) (r
 		}
 		// compute percentage to draw
 		drawFactor := sdk.NewDec(0)
-		//TODO CODE STABILITY: check if there is a possibility that depPool.Tokens.Amount and unbondingRefunds are both zero
+		//TODO: check if there is a possibility that depPool.Tokens.Amount and unbondingRefunds are both zero
 		drawFactor = sdk.NewDecFromInt(burnedTokens).QuoInt(availableRefundTokens)
+		logger.Error(fmt.Sprintf("              |_ unbondingRefunds %s", unbondingRefunds.String()))
+		logger.Error(fmt.Sprintf("                 depPool %s", depPool.Tokens.Amount.String()))
+		logger.Error(fmt.Sprintf("                 drawFactor %s", drawFactor.String()))
 		// Update:
 		//  pool
 		refundFromPool := sdk.NewInt(0)
@@ -98,15 +100,18 @@ func (k Keeper) HandleRefundsFromSlash(ctx sdk.Context, slashEvent sdk.Event) (r
 			amtToDrawFromPoolDec := drawFactor.MulInt(depPool.Tokens.Amount)
 			amtToDrawFromPool := amtToDrawFromPoolDec.TruncateInt()
 			refundFromPool, err = k.UpdateValidatorDepositPool(ctx, amtToDrawFromPool, depPool, validator)
+			logger.Error(fmt.Sprintf("                     |_ DepPool updated: refundFromPool %s", refundFromPool.String()))
 		}
 		if err != nil {
 			logger.Error("        |_ ERROR RefundFromValidatorPool")
 		}
 		//  ubds
 		refundFromUbds, err := k.UpdateValidatorUnbondingDeposits(ctx, unbondingDeposits, infractionHeight.Int64(), drawFactor)
+		logger.Error(fmt.Sprintf("                     |_ Ubds updated: refundFromUbds %s", refundFromUbds.String()))
 		if err != nil {
 			logger.Error("        |_ ERROR RefundFromUnbondingDeposits")
 		}
+
 		// Compute total to refund
 		refundAmount = refundFromPool.Add(refundFromUbds)
 	}
@@ -172,6 +177,8 @@ func (k Keeper) UpdateValidatorDepositPool(ctx sdk.Context, amt sdk.Int, depPool
 
 func (k Keeper) UpdateValidatorUnbondingDeposits(ctx sdk.Context, unbondingDeposits []types.UnbondingDeposit, infractionHeight int64, drawFactor sdk.Dec,
 ) (totalRefundAmount sdk.Int, err error) {
+	logger := k.Logger(ctx)
+	logger.Error("                     |_ Entered UpdateValidatorUnbondingDeposits")
 	totalRefundAmount = sdk.NewInt(0)
 	for _, unbondingDeposit := range unbondingDeposits {
 		refundAmount, err := k.UpdateUnbondingDepositEntries(ctx, unbondingDeposit, infractionHeight, drawFactor)
@@ -184,6 +191,8 @@ func (k Keeper) UpdateValidatorUnbondingDeposits(ctx sdk.Context, unbondingDepos
 func (k Keeper) UpdateUnbondingDepositEntries(ctx sdk.Context, unbondingDeposit types.UnbondingDeposit, infractionHeight int64, drawFactor sdk.Dec,
 ) (refundAmount sdk.Int, err error) {
 
+	logger := k.Logger(ctx)
+
 	now := ctx.BlockHeader().Time
 	refundAmount = sdk.ZeroInt()
 
@@ -191,28 +200,33 @@ func (k Keeper) UpdateUnbondingDepositEntries(ctx sdk.Context, unbondingDeposit 
 	for i, entry := range unbondingDeposit.Entries {
 		// If unbonding started before this height, stake didn't contribute to infraction
 		if entry.CreationHeight < infractionHeight {
+			logger.Error("                     entry skip because CreationHeight")
 			continue
 		}
 
 		if entry.IsMature(now) {
+			logger.Error("                     entry skip because mature")
 			// Unbonding deposit no longer eligible for withdraw, skip it
 			continue
 		}
 
 		// Calculate refund amount proportional to deposit contributing to cover the infraction
-		refundAmountDec := drawFactor.MulInt(entry.InitialBalance)
-		refundAmount := refundAmountDec.TruncateInt()
+		entryRefundAmountDec := drawFactor.MulInt(entry.InitialBalance)
+		entryRefundAmount := entryRefundAmountDec.TruncateInt()
 
 		// Don't refund more tokens than held.
 		// Possible since the unbonding deposit may already
 		// have been used
-		entryRefundAmount := sdk.MinInt(refundAmount, entry.Balance)
+		entryRefundAmount = sdk.MinInt(entryRefundAmount, entry.Balance)
+		logger.Error(fmt.Sprintf("                     entry: balance:     %s", entry.Balance.String()))
+		logger.Error(fmt.Sprintf("                            amt to draw: %s", entryRefundAmount.String()))
 
 		// Update unbonding deposit entry only if necessary
 		if !entryRefundAmount.IsZero() {
 			entry.Balance = entry.Balance.Sub(entryRefundAmount)
 			unbondingDeposit.Entries[i] = entry
 			k.SetUnbondingDeposit(ctx, unbondingDeposit)
+			logger.Error(fmt.Sprintf("                            new balance: %s", entry.Balance.String()))
 		}
 		//TODO Check if entry balance is zero, and in this case remove the entry
 		refundAmount = refundAmount.Add(entryRefundAmount)

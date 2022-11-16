@@ -1,11 +1,11 @@
 accounts:
   - name: alice
     coins: ["20000token", "200000000000stake"]
-    mnemonic: "dragon shrimp eyebrow guide vendor cover find vital draw catalog coconut venture lyrics supply almost skull apple oil apology illegal apple sugar charge ring"
   - name: bob
     coins: ["10000token", "100000000000stake"]
-  - name: pippo
+  - name: carl
     coins: ["20000token", "200000000stake"]
+    mnemonic: "dragon shrimp eyebrow guide vendor cover find vital draw catalog coconut venture lyrics supply almost skull apple oil apology illegal apple sugar charge ring"
 validator:
   name: alice
   staked: "20000000000stake"
@@ -25,11 +25,18 @@ init:
     log_level: error
     p2p:
       allow_duplicate_ip: true
+    consensus: #set the block time:
+      timeout_commit: "2s" 
+  client:
+    broadcast-mode: "sync"
 genesis: 
+  consensus_params:
+    block:
+      time_iota_ms: "1000" #milliseconds
   app_state:
     slashing:
       params:
         signed_blocks_window: 35
     staking:
       params:
-        unbonding_time: "60s"  # seconds
+        unbonding_time: "600s"  # seconds
