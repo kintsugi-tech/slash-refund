@@ -1,5 +1,10 @@
 #!/bin/bash
 
+echo "--------------------------------------------------------------------------------"
+echo "                                    WARNING                                     "
+echo "          check that slash-refundd home is set to \$HOME/.slash-refund          "
+echo "--------------------------------------------------------------------------------"
+
 # INITIALIZE
 SR_ROOT=$HOME
 MAINFOLDER=$SR_ROOT/.slash-refund
@@ -12,13 +17,13 @@ rm -rf $FLDVAL2
 rm -rf $FLDVAL3
 
 
-# BLOCK: CREATE VALIDATOR 2
+# CREATE VALIDATOR 2
 #===================================================================
-echo "RUN VALIDATOR 2"
-echo CREATE VAL-2: ------------------------------------------
-./init-val-2.sh 
+# Init and run node 2
+./init-val-2.sh
+echo "Done init val-2."
 sleep 2
-screen -dmS "val2" slash-refundd start --home $FLDVAL2
+screen -d -m -S "val2" slash-refundd start --home $FLDVAL2
 sleep 2
 
 # Create validator tx
@@ -28,47 +33,62 @@ slash-refundd tx staking create-validator -y --from carl --amount 10000000stake 
     --moniker "validator-2" --home $FLDVAL2 --pubkey ''"$PUBKEY"'' --min-self-delegation 1 \
     --broadcast-mode block \
     | grep raw_log
-echo DONE --------------------------------------------------
+
+# Check node 2 is active
 screen -ls
+#===================================================================
+
 
 
 VALKEY1="alice"
 VALKEY2="carl"
 valaddr1=$(slash-refundd keys show $VALKEY1 -a --bech val)
 valaddr2=$(slash-refundd keys show $VALKEY2 -a --bech val)
+
+
+
 # DELEGATE
-echo
-echo DELEGATE 90Mstake FOR VAL-2 FROM BOB: ----------------------------------------
+#===================================================================
 slash-refundd tx staking delegate $valaddr2 90000000stake --from bob --home $FLDVAL2 -y \
     --broadcast-mode block \
     | grep raw_log
-echo DONE --------------------------------------------------
 #===================================================================
 
+slash-refundd q bank balances $(slash-refundd keys show bob -a)
 
-# DEPOSITS
+# DEPOSIT 
 #===================================================================
-# MAKE DEPOSIT
-echo DEPOSIT 10Mstake FOR VAL-2 FROM ALICE: ----------------------------------------
 slash-refundd tx slashrefund deposit $valaddr2 10000000stake --from alice -y \
     --broadcast-mode block \
     | grep raw_log
-echo DONE --------------------------------------------------
 #===================================================================
 
 
+
+# INIT AND RUN VAL-3 FOR DOUBLESIGN
+#===================================================================
 ./init-val-3-doublesign.sh
 sleep 2
-screen -dmS "val3" slash-refundd start --home $FLDVAL3
+screen -d -m -S "val3" slash-refundd start --home $FLDVAL3
 sleep 1
-
-
-# REPEAT THIS TO MAKE WITHDRAW BEETWEEN DOUBLESIGN AND EVIDENCE
-for j in {0..9}
-do
 #===================================================================
-    slash-refundd tx slashrefund withdraw $valaddr2 1000000stake --from alice -y \
+
+
+
+# REPEAT UNDELEGATE 
+#===================================================================
+# Undelegate are repeated to make at least one undelegate between
+# slashing and evidence
+for j in {0..6}
+do
+    slash-refundd tx staking unbond $valaddr2 100000stake --from bob -y \
         --broadcast-mode block \
         | grep raw_log
-#===================================================================
 done
+#===================================================================
+
+
+VALKEY2="carl"
+valaddr2=$(slash-refundd keys show $VALKEY2 -a --bech val)
+slash-refundd q staking unbonding-delegations-from $valaddr2
+slash-refundd q bank balances $(slash-refundd keys show bob -a)

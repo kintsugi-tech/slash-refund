@@ -36,7 +36,7 @@ genesis:
   app_state:
     slashing:
       params:
-        signed_blocks_window: 35
+        signed_blocks_window: 10
     staking:
       params:
-        unbonding_time: "600s"  # seconds
+        unbonding_time: "60s"  # seconds

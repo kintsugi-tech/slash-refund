@@ -1,10 +1,10 @@
 #/bin/bash
 
-# Init new chain
-echo "--------------------------------------------------------------------------------"
-echo "                                    WARNING                                     "
-echo "       check that slash-refundd home must be set to \$HOME/.slash-refund        "
-echo "--------------------------------------------------------------------------------"
+## "--------------------------------------------------------------------------------"
+## "                                    WARNING                                     "
+## "          check that slash-refundd home is set to \$HOME/.slash-refund          "
+## "--------------------------------------------------------------------------------"
+
 SR_ROOT=$HOME
 MAINFOLDER=$SR_ROOT/.slash-refund
 FLDVAL2=$SR_ROOT/.sr-node2
