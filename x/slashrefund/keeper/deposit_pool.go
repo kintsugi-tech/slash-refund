@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"fmt"
-
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
@@ -103,14 +101,7 @@ func (k Keeper) RemovePoolTokensAndShares(
 
 	var issuedTokensAmt sdk.Int
 
-	logger := k.Logger(ctx)
-	logger.Error(fmt.Sprintf("entered: RemovePoolTokensAndShares"))
-	logger.Error(fmt.Sprintf("    depositPool.Shares: %s", depositPool.Shares.String()))
-	logger.Error(fmt.Sprintf("    sharesToRemove: %s", sharesToRemove.String()))
-
 	remainingShares := depositPool.Shares.Sub(sharesToRemove)
-
-	logger.Error(fmt.Sprintf("    remainingShares: %s", remainingShares.String()))
 
 	if remainingShares.IsZero() {
 		// last delegation share gets any trimmings
@@ -127,12 +118,8 @@ func (k Keeper) RemovePoolTokensAndShares(
 		}
 	}
 
-	logger.Error(fmt.Sprintf("    call k.SetDepositPool"))
-
 	depositPool.Shares = remainingShares
 	k.SetDepositPool(ctx, depositPool)
-
-	logger.Error(fmt.Sprintf("    depositPool.Shares: %s", depositPool.Shares.String()))
 
 	return depositPool, issuedTokensAmt
 }

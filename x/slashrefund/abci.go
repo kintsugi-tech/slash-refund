@@ -45,5 +45,14 @@ func EndBlocker(ctx sdk.Context, req abci.RequestEndBlock, k keeper.Keeper) []ty
 		logger.Error("    |_ found and processed mature unbonds")
 	}
 
+	// TODO: Handle removed validator's deposit
+	/*
+		// get validator
+		_, found = k.stakingKeeper.GetValidator(ctx, valAddr)
+		if !found {
+			return issuedTokensAmt, stakingtypes.ErrNoValidatorFound
+		}
+	*/
+
 	return matureUnbonds
 }

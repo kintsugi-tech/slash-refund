@@ -12,9 +12,6 @@ import (
 func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types.MsgDepositResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// logger := k.Logger(ctx)
-	// logger.Error("Entrati nel Msg Server Deposit")
-
 	// === VALIDATION CHECKS ===
 	//Check if valid validator address
 	valAddr, valErr := sdk.ValAddressFromBech32(msg.ValidatorAddress)
