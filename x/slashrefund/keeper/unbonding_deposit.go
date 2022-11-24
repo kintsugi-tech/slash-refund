@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"fmt"
 	"time"
 
 	"cosmossdk.io/math"
@@ -100,10 +99,13 @@ func (k Keeper) SetUnbondingDepositEntry(
 // in the unbonding queue.
 func (k Keeper) InsertUBDQueue(ctx sdk.Context, ubd types.UnbondingDeposit, completionTime time.Time) {
 
+	// dvPair indicates the pair of delegator and validator
 	dvPair := types.DVPair{DepositorAddress: ubd.DepositorAddress, ValidatorAddress: ubd.ValidatorAddress}
 
+	// timeSlice is a slice of dvPair elements, linked to a given unbonding completionTime
 	timeSlice := k.GetUBDQueueTimeSlice(ctx, completionTime)
-	// append dvPair to timeSlice and SetUBDQueueTimeSlice
+
+	// append the new dvPair to the timeSlice and set the udated timeSlice in the unbonding queue
 	if len(timeSlice) == 0 {
 		k.SetUBDQueueTimeSlice(ctx, completionTime, []types.DVPair{dvPair})
 	} else {
@@ -127,9 +129,9 @@ func (k Keeper) GetUBDQueueTimeSlice(ctx sdk.Context, timestamp time.Time) (dvPa
 }
 
 // SetUBDQueueTimeSlice sets a specific unbonding queue timeslice.
-func (k Keeper) SetUBDQueueTimeSlice(ctx sdk.Context, timestamp time.Time, keys []types.DVPair) {
+func (k Keeper) SetUBDQueueTimeSlice(ctx sdk.Context, timestamp time.Time, dvpairs []types.DVPair) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshal(&types.DVPairs{Pairs: keys})
+	bz := k.cdc.MustMarshal(&types.DVPairs{Pairs: dvpairs})
 	store.Set(types.GetUnbondingDepositTimeKey(timestamp), bz)
 }
 
@@ -171,7 +173,8 @@ func (k Keeper) CompleteUnbonding(ctx sdk.Context, depAddr sdk.AccAddress, valAd
 		return nil, types.ErrNoUnbondingDeposit
 	}
 
-	refundDenom := k.AllowedTokensList(ctx)[0] //TODO: generalize refundDenom with all the AllowedTokens
+	//TODO: generalize refundDenom with all the AllowedTokens
+	refundDenom := k.AllowedTokensList(ctx)[0]
 	balances := sdk.NewCoins()
 	ctxTime := ctx.BlockHeader().Time
 
@@ -190,9 +193,6 @@ func (k Keeper) CompleteUnbonding(ctx sdk.Context, depAddr sdk.AccAddress, valAd
 			// track withdraw only when remaining or truncated shares are non-zero
 			if !entry.Balance.IsZero() {
 				amt := sdk.NewCoin(refundDenom, entry.Balance)
-
-				//TODO: handle different denoms from governance ones
-
 				if err := k.bankKeeper.SendCoinsFromModuleToAccount(
 					ctx, types.ModuleName, depositorAddress, sdk.NewCoins(amt),
 				); err != nil {
@@ -218,8 +218,6 @@ func (k Keeper) CompleteUnbonding(ctx sdk.Context, depAddr sdk.AccAddress, valAd
 // particular validator.
 func (k Keeper) GetUnbondingDepositsFromValidator(ctx sdk.Context, validatorAddress string) (ubds []types.UnbondingDeposit) {
 
-	logger := k.Logger(ctx)
-
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.UnbondingDepositKeyPrefix))
 	iterator := sdk.KVStorePrefixIterator(store, types.GetUBDsByValIndexKey(validatorAddress))
 	defer iterator.Close()
@@ -229,6 +227,6 @@ func (k Keeper) GetUnbondingDepositsFromValidator(ctx sdk.Context, validatorAddr
 		k.cdc.MustUnmarshal(iterator.Value(), &ubd)
 		ubds = append(ubds, ubd)
 	}
-	logger.Error(fmt.Sprintf("GetUnbondingDepositsFromValidator: ubds length is : %d", len(ubds)))
+
 	return ubds
 }

@@ -1,12 +1,10 @@
 package keeper
 
 import (
-	"fmt"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 )
 
@@ -16,11 +14,11 @@ func (k Keeper) Withdraw(
 	valAddr sdk.ValAddress,
 	witShares sdk.Dec,
 ) (sdk.Coin, time.Time, error) {
-	//logger := k.Logger(ctx)
 
 	witAmt, err := k.Unbond(ctx, depAddr, valAddr, witShares)
 	if err != nil {
-		return sdk.NewCoin("", sdk.NewInt(0)), time.Time{}, err
+		// TODO: change "stake"
+		return sdk.NewCoin("stake", sdk.NewInt(0)), time.Time{}, err
 	}
 
 	completionTime := ctx.BlockHeader().Time.Add(k.stakingKeeper.UnbondingTime(ctx))
@@ -29,7 +27,6 @@ func (k Keeper) Withdraw(
 
 	k.InsertUBDQueue(ctx, ubd, completionTime)
 
-	// TODO: change "stake"
 	return sdk.NewCoin("stake", witAmt), completionTime, nil
 }
 
@@ -92,33 +89,21 @@ func (k Keeper) Unbond(
 	shares sdk.Dec,
 ) (issuedTokensAmt sdk.Int, err error) {
 
-	logger := k.Logger(ctx)
-	logger.Error(fmt.Sprintf("entered: Unbond"))
-
-	// check if a deposit object exists in the store
+	// check if the deposit exists in the store
 	deposit, found := k.GetDeposit(ctx, delAddr, valAddr)
 	if !found {
 		return issuedTokensAmt, types.ErrNoDepositForAddress
 	}
 
+	// check if deposit pool exists in the store
 	depPool, found := k.GetDepositPool(ctx, valAddr)
 	if !found {
 		return issuedTokensAmt, types.ErrNoDepositPoolForValidator
 	}
 
-	logger.Error(fmt.Sprintf("    depPool.Shares: %s", depPool.Shares.String()))
-
 	// ensure that we have enough shares to remove
 	if deposit.Shares.LT(shares) {
 		return issuedTokensAmt, sdkerrors.Wrap(types.ErrNotEnoughDepositShares, deposit.Shares.String())
-	}
-
-	// get validator
-	// TODO: if a validator is no more active we have to send back tokens
-	// TODO: remove validator if not used
-	_, found = k.stakingKeeper.GetValidator(ctx, valAddr)
-	if !found {
-		return issuedTokensAmt, stakingtypes.ErrNoValidatorFound
 	}
 
 	// subtract shares from deposit
@@ -131,12 +116,7 @@ func (k Keeper) Unbond(
 		k.SetDeposit(ctx, deposit)
 	}
 
-	logger.Error(fmt.Sprintf("    call k.RemovePoolTokensAndShares:"))
-
 	depPool, issuedTokensAmt = k.RemovePoolTokensAndShares(ctx, depPool, shares)
-
-	logger.Error(fmt.Sprintf("returned to: Unbond"))
-	logger.Error(fmt.Sprintf("    depPool.Shares: %s", depPool.Shares.String()))
 
 	if depPool.Shares.IsZero() {
 		//TODO: if not unbonded, we must instead remove validator in EndBlocker once it finishes its unbonding period
