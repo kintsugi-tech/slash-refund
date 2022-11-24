@@ -1,8 +1,9 @@
 package types
 
 const (
-	EventTypeDeposit  = "deposit"
-	EventTypeWithdraw = "withdraw"
+	EventTypeDeposit        = "deposit"
+	EventTypeWithdraw       = "withdraw"
+	EventTypeCompleteUnbond = "complete_unbond"
 
 	AttributeKeyValidator      = "validator"
 	AttributeKeyDepositor      = "depositor"
@@ -10,6 +11,4 @@ const (
 	AttributeKeyNewShares      = "new_shares"
 	AttributeKeyCompletionTime = "completion_time"
 	AttributeValueCategory     = ModuleName
-
-	EventTypeCompleteUnbond = "complete_unbond"
 )

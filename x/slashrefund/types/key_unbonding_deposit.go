@@ -10,7 +10,6 @@ import (
 
 var _ binary.ByteOrder
 
-// UnbondingQueueKey defined as staking module does: empty byte slice
 var UnbondingDepositsKey = []byte{0x32}
 var UnbondingDepositByValIndexKey = []byte{0x33} // prefix for each key for an unbonding-deposit, by validator operator
 var UnbondingQueueKey = []byte{0x41}             // prefix for the timestamps in unbonding queue
