@@ -74,6 +74,11 @@ sleep 1
 #===================================================================
 
 
+VALKEY2="carl"
+valaddr2=$(slash-refundd keys show $VALKEY2 -a --bech val)
+slash-refundd q bank balances $(slash-refundd keys show bob -a)
+slash-refundd q staking unbonding-delegations-from $valaddr2
+
 
 # REPEAT UNDELEGATE 
 #===================================================================
@@ -81,14 +86,36 @@ sleep 1
 # slashing and evidence
 for j in {0..6}
 do
+    echo -----------------------------------------------------
+    echo ========
+    echo BLOCK:
+    echo $(expr 1 + $(slash-refundd q block | jq '.block.header.height | tonumber'))
+    echo ========
     slash-refundd tx staking unbond $valaddr2 100000stake --from bob -y \
         --broadcast-mode block \
         | grep raw_log
+    slash-refundd q staking unbonding-delegations-from $valaddr2
+    echo -----------------------------------------------------
 done
 #===================================================================
 
 
-VALKEY2="carl"
-valaddr2=$(slash-refundd keys show $VALKEY2 -a --bech val)
-slash-refundd q staking unbonding-delegations-from $valaddr2
-slash-refundd q bank balances $(slash-refundd keys show bob -a)
+# CONTINUE QUERYING
+#===================================================================
+for j in {0..19}
+do
+    echo -----------------------------------------------------
+    echo ========
+    echo BLOCK:
+    echo $(expr 1 + $(slash-refundd q block | jq '.block.header.height | tonumber'))
+    echo ========
+    slash-refundd q staking unbonding-delegations-from $valaddr2
+    # wrong tx just to sync to wait for block to be committed
+    slash-refundd tx staking unbond $valaddr2 1token --from carl -y \
+        --broadcast-mode block \
+        | grep raw_log
+    echo -----------------------------------------------------
+done
+#===================================================================
+
+
