@@ -29,6 +29,12 @@ type StakingKeeper interface {
 	UnbondingTime(ctx sdk.Context) (res time.Duration)
 	GetUnbondingDelegationsFromValidator(ctx sdk.Context, valAddr sdk.ValAddress) (ubds []stakingtypes.UnbondingDelegation)
 	GetRedelegationsFromSrcValidator(ctx sdk.Context, valAddr sdk.ValAddress) (reds []stakingtypes.Redelegation)
+	//
+	SetValidator(ctx sdk.Context, validator stakingtypes.Validator)
+	SetValidatorByPowerIndex(ctx sdk.Context, validator stakingtypes.Validator)
+	DeleteValidatorByPowerIndex(ctx sdk.Context, validator stakingtypes.Validator)
+	//
+	SetUnbondingDelegation(ctx sdk.Context, ubd stakingtypes.UnbondingDelegation)
 }
 
 type SlashingKeeper interface {

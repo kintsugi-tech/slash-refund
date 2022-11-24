@@ -93,7 +93,10 @@ func (k Keeper) HandleRefundsFromSlash(ctx sdk.Context, slashEvent sdk.Event) (r
 			logger.Error("        |_ ERROR RefundFromValidatorPool")
 			return sdk.NewInt(0)
 		}
-		k.stakingKeeper.AddValidatorTokens(ctx, validator, refundAmount)
+		////////////////////////////////////////////////////////////////////////////
+		// k.stakingKeeper.AddValidatorTokens(ctx, validator, refundAmount)
+		////////////////////////////////////////////////////////////////////////////
+		k.AddValidatorTokens_SR(ctx, validator, refundAmount)
 		logger.Error(fmt.Sprintf("        |_ Refunded %s to validator %s", refundAmount.String(), valAddr.String()))
 
 	// must check for unbondings between slash and evidence
@@ -311,7 +314,14 @@ func (k Keeper) RefundSlashedUnbondingDelegations(
 	for _, ubd := range unbondingDelegations {
 
 		// perform refund on all slashed entries within the unbonding delegation
-		for _, entry := range ubd.Entries {
+		for i, entry := range ubd.Entries {
+
+			// get delegator address (used only in logger)
+			delegator, err := sdk.AccAddressFromBech32(ubd.DelegatorAddress)
+			if err != nil {
+				return sdk.ZeroInt(), err
+			}
+
 			// If unbonding started before this height, stake didn't contribute to infraction
 			if entry.CreationHeight < infractionHeight {
 				continue
@@ -323,19 +333,23 @@ func (k Keeper) RefundSlashedUnbondingDelegations(
 
 			refundAmtDec := refFactor.Mul(slashFactor).MulInt(entry.InitialBalance)
 			refundAmt := refundAmtDec.TruncateInt()
-			//TODO: generalize refundDenom with all the AllowedTokens
-			refundDenom := k.AllowedTokensList(ctx)[0]
 
-			coins := sdk.NewCoins(sdk.NewCoin(refundDenom, refundAmt))
-			delegator, err := sdk.AccAddressFromBech32(ubd.DelegatorAddress)
-			if err != nil {
-				return sdk.ZeroInt(), err
-			}
+			entry.Balance = entry.Balance.Add(refundAmt)
+			ubd.Entries[i] = entry
+			k.stakingKeeper.SetUnbondingDelegation(ctx, ubd)
 
-			k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, delegator, coins)
+			/*	OLD VERSION: send coins directly to depositor account:
+
+				//TODO: generalize refundDenom with all the AllowedTokens
+				refundDenom := k.AllowedTokensList(ctx)[0]
+				coins := sdk.NewCoins(sdk.NewCoin(refundDenom, refundAmt))
+
+				k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, delegator, coins)
+			*/
+
 			totalRefundedAmt = totalRefundedAmt.Add(refundAmt)
 
-			logger.Error(fmt.Sprintf("        |_ Undelegation: Refunded %s to delegator %s", refundAmt.String(), delegator.String()))
+			logger.Error(fmt.Sprintf("        |_ Undelegation: Refunded %s to delegator %s, entry.CreationHeight=%d", refundAmt.String(), delegator.String(), entry.CreationHeight))
 		}
 	}
 	return totalRefundedAmt, err

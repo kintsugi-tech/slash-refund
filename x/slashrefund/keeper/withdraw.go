@@ -46,36 +46,40 @@ func (k Keeper) ValidateWithdrawAmount(
 	}
 
 	if tokens.Amount.IsZero() {
-		return shares, types.ErrZeroWithdraw
+		return sdk.NewDec(0), types.ErrZeroWithdraw
 	}
 
-	dep, found := k.GetDeposit(ctx, depAddr, valAddr)
+	deposit, found := k.GetDeposit(ctx, depAddr, valAddr)
 	if !found {
-		return shares, types.ErrNoDepositForAddress
+		return sdk.NewDec(0), types.ErrNoDepositForAddress
 	}
 
 	depPool, found := k.GetDepositPool(ctx, valAddr)
 	if !found {
-		return shares, types.ErrNoDepositPoolForValidator
+		return sdk.NewDec(0), types.ErrNoDepositPoolForValidator
 	}
 
+	// compute shares from wanted withdraw tokens
 	shares, err = depPool.SharesFromTokens(tokens)
 	if err != nil {
-		return shares, err
+		return sdk.NewDec(0), err
 	}
 
+	// compute shares from wanted withdraw tokens, rounded down
 	sharesTruncated, err := depPool.SharesFromTokensTruncated(tokens)
 	if err != nil {
-		return shares, err
+		return sdk.NewDec(0), err
 	}
 
-	depShares := dep.GetShares()
-	if sharesTruncated.GT(depShares) {
-		return shares, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid token amount")
+	// check if wanted tokens converted to truncated shares are greater than actual total of depositor shares
+	depositorShares := deposit.GetShares()
+	if sharesTruncated.GT(depositorShares) {
+		return sdk.NewDec(0), sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid token amount")
 	}
 
-	if shares.GT(depShares) {
-		shares = depShares
+	// cap shares (not-truncated) at total depositor shares
+	if shares.GT(depositorShares) {
+		shares = depositorShares
 	}
 
 	return shares, nil
