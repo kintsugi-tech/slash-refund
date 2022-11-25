@@ -73,7 +73,11 @@ func (gs GenesisState) Validate() error {
 	refundPoolIndexMap := make(map[string]struct{})
 
 	for _, elem := range gs.RefundPoolList {
-		index := string(RefundPoolKey(elem.OperatorAddress))
+		valOperAddr, err := sdk.ValAddressFromBech32(elem.OperatorAddress)
+		if err != nil {
+			panic(err)
+		}
+		index := string(RefundPoolKey(valOperAddr))
 		if _, ok := refundPoolIndexMap[index]; ok {
 			return fmt.Errorf("duplicated index for refundPool")
 		}

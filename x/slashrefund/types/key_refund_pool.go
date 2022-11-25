@@ -1,6 +1,10 @@
 package types
 
-import "encoding/binary"
+import (
+	"encoding/binary"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+)
 
 var _ binary.ByteOrder
 
@@ -11,7 +15,7 @@ const (
 
 // RefundPoolKey returns the store key to retrieve a RefundPool from the index fields
 func RefundPoolKey(
-	operatorAddress string,
+	operatorAddress sdk.ValAddress,
 ) []byte {
 	var key []byte
 

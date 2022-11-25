@@ -8,17 +8,22 @@ import (
 
 // SetRefundPool set a specific refundPool in the store from its index
 func (k Keeper) SetRefundPool(ctx sdk.Context, refundPool types.RefundPool) {
+
+	valOperAddr, err := sdk.ValAddressFromBech32(refundPool.OperatorAddress)
+	if err != nil {
+		panic(err)
+	}
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RefundPoolKeyPrefix))
 	b := k.cdc.MustMarshal(&refundPool)
 	store.Set(types.RefundPoolKey(
-		refundPool.OperatorAddress,
+		valOperAddr,
 	), b)
 }
 
 // GetRefundPool returns a refundPool from its index
 func (k Keeper) GetRefundPool(
 	ctx sdk.Context,
-	operatorAddress string,
+	operatorAddress sdk.ValAddress,
 
 ) (val types.RefundPool, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RefundPoolKeyPrefix))
@@ -37,7 +42,7 @@ func (k Keeper) GetRefundPool(
 // RemoveRefundPool removes a refundPool from the store
 func (k Keeper) RemoveRefundPool(
 	ctx sdk.Context,
-	operatorAddress string,
+	operatorAddress sdk.ValAddress,
 
 ) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RefundPoolKeyPrefix))
