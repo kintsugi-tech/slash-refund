@@ -199,6 +199,21 @@ export interface SlashrefundQueryAllDepositResponse {
   pagination?: V1Beta1PageResponse;
 }
 
+export interface SlashrefundQueryAllRefundPoolResponse {
+  refundPool?: SlashrefundRefundPool[];
+
+  /**
+   * PageResponse is to be embedded in gRPC response messages where the
+   * corresponding request message has used PageRequest.
+   *
+   *  message SomeResponse {
+   *          repeated Bar results = 1;
+   *          PageResponse page = 2;
+   *  }
+   */
+  pagination?: V1Beta1PageResponse;
+}
+
 export interface SlashrefundQueryAllUnbondingDepositResponse {
   unbondingDeposit?: SlashrefundUnbondingDeposit[];
 
@@ -223,6 +238,10 @@ export interface SlashrefundQueryGetDepositResponse {
   deposit?: SlashrefundDeposit;
 }
 
+export interface SlashrefundQueryGetRefundPoolResponse {
+  refundPool?: SlashrefundRefundPool;
+}
+
 export interface SlashrefundQueryGetUnbondingDepositResponse {
   unbondingDeposit?: SlashrefundUnbondingDeposit;
 }
@@ -233,6 +252,12 @@ export interface SlashrefundQueryGetUnbondingDepositResponse {
 export interface SlashrefundQueryParamsResponse {
   /** params holds all the parameters of this module. */
   params?: SlashrefundParams;
+}
+
+export interface SlashrefundRefundPool {
+  operatorAddress?: string;
+  tokens?: string;
+  shares?: string;
 }
 
 export interface SlashrefundUnbondingDeposit {
@@ -621,6 +646,48 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
   queryParams = (params: RequestParams = {}) =>
     this.request<SlashrefundQueryParamsResponse, RpcStatus>({
       path: `/made-in-block/slash-refund/slashrefund/params`,
+      method: "GET",
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags Query
+   * @name QueryRefundPoolAll
+   * @summary Queries a list of RefundPool items.
+   * @request GET:/made-in-block/slash-refund/slashrefund/refund_pool
+   */
+  queryRefundPoolAll = (
+    query?: {
+      "pagination.key"?: string;
+      "pagination.offset"?: string;
+      "pagination.limit"?: string;
+      "pagination.count_total"?: boolean;
+      "pagination.reverse"?: boolean;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<SlashrefundQueryAllRefundPoolResponse, RpcStatus>({
+      path: `/made-in-block/slash-refund/slashrefund/refund_pool`,
+      method: "GET",
+      query: query,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags Query
+   * @name QueryRefundPool
+   * @summary Queries a RefundPool by index.
+   * @request GET:/made-in-block/slash-refund/slashrefund/refund_pool/{operatorAddress}
+   */
+  queryRefundPool = (operatorAddress: string, params: RequestParams = {}) =>
+    this.request<SlashrefundQueryGetRefundPoolResponse, RpcStatus>({
+      path: `/made-in-block/slash-refund/slashrefund/refund_pool/${operatorAddress}`,
       method: "GET",
       format: "json",
       ...params,

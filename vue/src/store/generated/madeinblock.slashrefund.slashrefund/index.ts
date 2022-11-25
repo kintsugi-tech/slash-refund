@@ -5,12 +5,13 @@ import { DepositPool } from "made-in-block-slash-refund-client-ts/madeinblock.sl
 import { DVPair } from "made-in-block-slash-refund-client-ts/madeinblock.slashrefund.slashrefund/types"
 import { DVPairs } from "made-in-block-slash-refund-client-ts/madeinblock.slashrefund.slashrefund/types"
 import { Params } from "made-in-block-slash-refund-client-ts/madeinblock.slashrefund.slashrefund/types"
+import { RefundPool } from "made-in-block-slash-refund-client-ts/madeinblock.slashrefund.slashrefund/types"
 import { UnbondingDeposit } from "made-in-block-slash-refund-client-ts/madeinblock.slashrefund.slashrefund/types"
 import { UnbondingDepositEntry } from "made-in-block-slash-refund-client-ts/madeinblock.slashrefund.slashrefund/types"
 import { Validator } from "made-in-block-slash-refund-client-ts/madeinblock.slashrefund.slashrefund/types"
 
 
-export { Deposit, DepositPool, DVPair, DVPairs, Params, UnbondingDeposit, UnbondingDepositEntry, Validator };
+export { Deposit, DepositPool, DVPair, DVPairs, Params, RefundPool, UnbondingDeposit, UnbondingDepositEntry, Validator };
 
 function initClient(vuexGetters) {
 	return new Client(vuexGetters['common/env/getEnv'], vuexGetters['common/wallet/signer'])
@@ -48,6 +49,8 @@ const getDefaultState = () => {
 				DepositPoolAll: {},
 				UnbondingDeposit: {},
 				UnbondingDepositAll: {},
+				RefundPool: {},
+				RefundPoolAll: {},
 				
 				_Structure: {
 						Deposit: getStructure(Deposit.fromPartial({})),
@@ -55,6 +58,7 @@ const getDefaultState = () => {
 						DVPair: getStructure(DVPair.fromPartial({})),
 						DVPairs: getStructure(DVPairs.fromPartial({})),
 						Params: getStructure(Params.fromPartial({})),
+						RefundPool: getStructure(RefundPool.fromPartial({})),
 						UnbondingDeposit: getStructure(UnbondingDeposit.fromPartial({})),
 						UnbondingDepositEntry: getStructure(UnbondingDepositEntry.fromPartial({})),
 						Validator: getStructure(Validator.fromPartial({})),
@@ -127,6 +131,18 @@ export default {
 						(<any> params).query=null
 					}
 			return state.UnbondingDepositAll[JSON.stringify(params)] ?? {}
+		},
+				getRefundPool: (state) => (params = { params: {}}) => {
+					if (!(<any> params).query) {
+						(<any> params).query=null
+					}
+			return state.RefundPool[JSON.stringify(params)] ?? {}
+		},
+				getRefundPoolAll: (state) => (params = { params: {}}) => {
+					if (!(<any> params).query) {
+						(<any> params).query=null
+					}
+			return state.RefundPoolAll[JSON.stringify(params)] ?? {}
 		},
 				
 		getTypeStructure: (state) => (type) => {
@@ -323,6 +339,54 @@ export default {
 				return getters['getUnbondingDepositAll']( { params: {...key}, query}) ?? {}
 			} catch (e) {
 				throw new Error('QueryClient:QueryUnbondingDepositAll API Node Unavailable. Could not perform query: ' + e.message)
+				
+			}
+		},
+		
+		
+		
+		
+		 		
+		
+		
+		async QueryRefundPool({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
+			try {
+				const key = params ?? {};
+				const client = initClient(rootGetters);
+				let value= (await client.MadeinblockSlashrefundSlashrefund.query.queryRefundPool( key.operatorAddress)).data
+				
+					
+				commit('QUERY', { query: 'RefundPool', key: { params: {...key}, query}, value })
+				if (subscribe) commit('SUBSCRIBE', { action: 'QueryRefundPool', payload: { options: { all }, params: {...key},query }})
+				return getters['getRefundPool']( { params: {...key}, query}) ?? {}
+			} catch (e) {
+				throw new Error('QueryClient:QueryRefundPool API Node Unavailable. Could not perform query: ' + e.message)
+				
+			}
+		},
+		
+		
+		
+		
+		 		
+		
+		
+		async QueryRefundPoolAll({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
+			try {
+				const key = params ?? {};
+				const client = initClient(rootGetters);
+				let value= (await client.MadeinblockSlashrefundSlashrefund.query.queryRefundPoolAll(query ?? undefined)).data
+				
+					
+				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
+					let next_values=(await client.MadeinblockSlashrefundSlashrefund.query.queryRefundPoolAll({...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
+					value = mergeResults(value, next_values);
+				}
+				commit('QUERY', { query: 'RefundPoolAll', key: { params: {...key}, query}, value })
+				if (subscribe) commit('SUBSCRIBE', { action: 'QueryRefundPoolAll', payload: { options: { all }, params: {...key},query }})
+				return getters['getRefundPoolAll']( { params: {...key}, query}) ?? {}
+			} catch (e) {
+				throw new Error('QueryClient:QueryRefundPoolAll API Node Unavailable. Could not perform query: ' + e.message)
 				
 			}
 		},
