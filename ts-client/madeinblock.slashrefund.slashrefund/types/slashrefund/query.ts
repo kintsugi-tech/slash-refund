@@ -8,6 +8,7 @@ import {
 } from "../cosmos/base/query/v1beta1/pagination";
 import { DepositPool } from "../slashrefund/deposit_pool";
 import { UnbondingDeposit } from "../slashrefund/unbonding_deposit";
+import { RefundPool } from "../slashrefund/refund_pool";
 
 export const protobufPackage = "madeinblock.slashrefund.slashrefund";
 
@@ -70,6 +71,23 @@ export interface QueryAllUnbondingDepositRequest {
 
 export interface QueryAllUnbondingDepositResponse {
   unbondingDeposit: UnbondingDeposit[];
+  pagination: PageResponse | undefined;
+}
+
+export interface QueryGetRefundPoolRequest {
+  operatorAddress: string;
+}
+
+export interface QueryGetRefundPoolResponse {
+  refundPool: RefundPool | undefined;
+}
+
+export interface QueryAllRefundPoolRequest {
+  pagination: PageRequest | undefined;
+}
+
+export interface QueryAllRefundPoolResponse {
+  refundPool: RefundPool[];
   pagination: PageResponse | undefined;
 }
 
@@ -1190,6 +1208,327 @@ export const QueryAllUnbondingDepositResponse = {
   },
 };
 
+const baseQueryGetRefundPoolRequest: object = { operatorAddress: "" };
+
+export const QueryGetRefundPoolRequest = {
+  encode(
+    message: QueryGetRefundPoolRequest,
+    writer: Writer = Writer.create()
+  ): Writer {
+    if (message.operatorAddress !== "") {
+      writer.uint32(10).string(message.operatorAddress);
+    }
+    return writer;
+  },
+
+  decode(
+    input: Reader | Uint8Array,
+    length?: number
+  ): QueryGetRefundPoolRequest {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = {
+      ...baseQueryGetRefundPoolRequest,
+    } as QueryGetRefundPoolRequest;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.operatorAddress = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryGetRefundPoolRequest {
+    const message = {
+      ...baseQueryGetRefundPoolRequest,
+    } as QueryGetRefundPoolRequest;
+    if (
+      object.operatorAddress !== undefined &&
+      object.operatorAddress !== null
+    ) {
+      message.operatorAddress = String(object.operatorAddress);
+    } else {
+      message.operatorAddress = "";
+    }
+    return message;
+  },
+
+  toJSON(message: QueryGetRefundPoolRequest): unknown {
+    const obj: any = {};
+    message.operatorAddress !== undefined &&
+      (obj.operatorAddress = message.operatorAddress);
+    return obj;
+  },
+
+  fromPartial(
+    object: DeepPartial<QueryGetRefundPoolRequest>
+  ): QueryGetRefundPoolRequest {
+    const message = {
+      ...baseQueryGetRefundPoolRequest,
+    } as QueryGetRefundPoolRequest;
+    if (
+      object.operatorAddress !== undefined &&
+      object.operatorAddress !== null
+    ) {
+      message.operatorAddress = object.operatorAddress;
+    } else {
+      message.operatorAddress = "";
+    }
+    return message;
+  },
+};
+
+const baseQueryGetRefundPoolResponse: object = {};
+
+export const QueryGetRefundPoolResponse = {
+  encode(
+    message: QueryGetRefundPoolResponse,
+    writer: Writer = Writer.create()
+  ): Writer {
+    if (message.refundPool !== undefined) {
+      RefundPool.encode(message.refundPool, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(
+    input: Reader | Uint8Array,
+    length?: number
+  ): QueryGetRefundPoolResponse {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = {
+      ...baseQueryGetRefundPoolResponse,
+    } as QueryGetRefundPoolResponse;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.refundPool = RefundPool.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryGetRefundPoolResponse {
+    const message = {
+      ...baseQueryGetRefundPoolResponse,
+    } as QueryGetRefundPoolResponse;
+    if (object.refundPool !== undefined && object.refundPool !== null) {
+      message.refundPool = RefundPool.fromJSON(object.refundPool);
+    } else {
+      message.refundPool = undefined;
+    }
+    return message;
+  },
+
+  toJSON(message: QueryGetRefundPoolResponse): unknown {
+    const obj: any = {};
+    message.refundPool !== undefined &&
+      (obj.refundPool = message.refundPool
+        ? RefundPool.toJSON(message.refundPool)
+        : undefined);
+    return obj;
+  },
+
+  fromPartial(
+    object: DeepPartial<QueryGetRefundPoolResponse>
+  ): QueryGetRefundPoolResponse {
+    const message = {
+      ...baseQueryGetRefundPoolResponse,
+    } as QueryGetRefundPoolResponse;
+    if (object.refundPool !== undefined && object.refundPool !== null) {
+      message.refundPool = RefundPool.fromPartial(object.refundPool);
+    } else {
+      message.refundPool = undefined;
+    }
+    return message;
+  },
+};
+
+const baseQueryAllRefundPoolRequest: object = {};
+
+export const QueryAllRefundPoolRequest = {
+  encode(
+    message: QueryAllRefundPoolRequest,
+    writer: Writer = Writer.create()
+  ): Writer {
+    if (message.pagination !== undefined) {
+      PageRequest.encode(message.pagination, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(
+    input: Reader | Uint8Array,
+    length?: number
+  ): QueryAllRefundPoolRequest {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = {
+      ...baseQueryAllRefundPoolRequest,
+    } as QueryAllRefundPoolRequest;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.pagination = PageRequest.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryAllRefundPoolRequest {
+    const message = {
+      ...baseQueryAllRefundPoolRequest,
+    } as QueryAllRefundPoolRequest;
+    if (object.pagination !== undefined && object.pagination !== null) {
+      message.pagination = PageRequest.fromJSON(object.pagination);
+    } else {
+      message.pagination = undefined;
+    }
+    return message;
+  },
+
+  toJSON(message: QueryAllRefundPoolRequest): unknown {
+    const obj: any = {};
+    message.pagination !== undefined &&
+      (obj.pagination = message.pagination
+        ? PageRequest.toJSON(message.pagination)
+        : undefined);
+    return obj;
+  },
+
+  fromPartial(
+    object: DeepPartial<QueryAllRefundPoolRequest>
+  ): QueryAllRefundPoolRequest {
+    const message = {
+      ...baseQueryAllRefundPoolRequest,
+    } as QueryAllRefundPoolRequest;
+    if (object.pagination !== undefined && object.pagination !== null) {
+      message.pagination = PageRequest.fromPartial(object.pagination);
+    } else {
+      message.pagination = undefined;
+    }
+    return message;
+  },
+};
+
+const baseQueryAllRefundPoolResponse: object = {};
+
+export const QueryAllRefundPoolResponse = {
+  encode(
+    message: QueryAllRefundPoolResponse,
+    writer: Writer = Writer.create()
+  ): Writer {
+    for (const v of message.refundPool) {
+      RefundPool.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.pagination !== undefined) {
+      PageResponse.encode(
+        message.pagination,
+        writer.uint32(18).fork()
+      ).ldelim();
+    }
+    return writer;
+  },
+
+  decode(
+    input: Reader | Uint8Array,
+    length?: number
+  ): QueryAllRefundPoolResponse {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = {
+      ...baseQueryAllRefundPoolResponse,
+    } as QueryAllRefundPoolResponse;
+    message.refundPool = [];
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.refundPool.push(RefundPool.decode(reader, reader.uint32()));
+          break;
+        case 2:
+          message.pagination = PageResponse.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryAllRefundPoolResponse {
+    const message = {
+      ...baseQueryAllRefundPoolResponse,
+    } as QueryAllRefundPoolResponse;
+    message.refundPool = [];
+    if (object.refundPool !== undefined && object.refundPool !== null) {
+      for (const e of object.refundPool) {
+        message.refundPool.push(RefundPool.fromJSON(e));
+      }
+    }
+    if (object.pagination !== undefined && object.pagination !== null) {
+      message.pagination = PageResponse.fromJSON(object.pagination);
+    } else {
+      message.pagination = undefined;
+    }
+    return message;
+  },
+
+  toJSON(message: QueryAllRefundPoolResponse): unknown {
+    const obj: any = {};
+    if (message.refundPool) {
+      obj.refundPool = message.refundPool.map((e) =>
+        e ? RefundPool.toJSON(e) : undefined
+      );
+    } else {
+      obj.refundPool = [];
+    }
+    message.pagination !== undefined &&
+      (obj.pagination = message.pagination
+        ? PageResponse.toJSON(message.pagination)
+        : undefined);
+    return obj;
+  },
+
+  fromPartial(
+    object: DeepPartial<QueryAllRefundPoolResponse>
+  ): QueryAllRefundPoolResponse {
+    const message = {
+      ...baseQueryAllRefundPoolResponse,
+    } as QueryAllRefundPoolResponse;
+    message.refundPool = [];
+    if (object.refundPool !== undefined && object.refundPool !== null) {
+      for (const e of object.refundPool) {
+        message.refundPool.push(RefundPool.fromPartial(e));
+      }
+    }
+    if (object.pagination !== undefined && object.pagination !== null) {
+      message.pagination = PageResponse.fromPartial(object.pagination);
+    } else {
+      message.pagination = undefined;
+    }
+    return message;
+  },
+};
+
 /** Query defines the gRPC querier service. */
 export interface Query {
   /** Parameters queries the parameters of the module. */
@@ -1214,6 +1553,14 @@ export interface Query {
   UnbondingDepositAll(
     request: QueryAllUnbondingDepositRequest
   ): Promise<QueryAllUnbondingDepositResponse>;
+  /** Queries a RefundPool by index. */
+  RefundPool(
+    request: QueryGetRefundPoolRequest
+  ): Promise<QueryGetRefundPoolResponse>;
+  /** Queries a list of RefundPool items. */
+  RefundPoolAll(
+    request: QueryAllRefundPoolRequest
+  ): Promise<QueryAllRefundPoolResponse>;
 }
 
 export class QueryClientImpl implements Query {
@@ -1310,6 +1657,34 @@ export class QueryClientImpl implements Query {
     );
     return promise.then((data) =>
       QueryAllUnbondingDepositResponse.decode(new Reader(data))
+    );
+  }
+
+  RefundPool(
+    request: QueryGetRefundPoolRequest
+  ): Promise<QueryGetRefundPoolResponse> {
+    const data = QueryGetRefundPoolRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "madeinblock.slashrefund.slashrefund.Query",
+      "RefundPool",
+      data
+    );
+    return promise.then((data) =>
+      QueryGetRefundPoolResponse.decode(new Reader(data))
+    );
+  }
+
+  RefundPoolAll(
+    request: QueryAllRefundPoolRequest
+  ): Promise<QueryAllRefundPoolResponse> {
+    const data = QueryAllRefundPoolRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "madeinblock.slashrefund.slashrefund.Query",
+      "RefundPoolAll",
+      data
+    );
+    return promise.then((data) =>
+      QueryAllRefundPoolResponse.decode(new Reader(data))
     );
   }
 }

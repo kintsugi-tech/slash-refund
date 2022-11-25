@@ -20,6 +20,10 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 	for _, elem := range genState.UnbondingDepositList {
 		k.SetUnbondingDeposit(ctx, elem)
 	}
+	// Set all the refundPool
+	for _, elem := range genState.RefundPoolList {
+		k.SetRefundPool(ctx, elem)
+	}
 	// this line is used by starport scaffolding # genesis/module/init
 	k.SetParams(ctx, genState.Params)
 }
@@ -32,6 +36,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	genesis.DepositList = k.GetAllDeposit(ctx)
 	genesis.DepositPoolList = k.GetAllDepositPool(ctx)
 	genesis.UnbondingDepositList = k.GetAllUnbondingDeposit(ctx)
+	genesis.RefundPoolList = k.GetAllRefundPool(ctx)
 	// this line is used by starport scaffolding # genesis/module/export
 
 	return genesis

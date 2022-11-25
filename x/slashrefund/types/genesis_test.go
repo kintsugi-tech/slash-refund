@@ -59,6 +59,14 @@ func TestGenesisState_Validate(t *testing.T) {
 						ValidatorAddress: "1",
 					},
 				},
+				RefundPoolList: []types.RefundPool{
+					{
+						OperatorAddress: "0",
+					},
+					{
+						OperatorAddress: "1",
+					},
+				},
 				// this line is used by starport scaffolding # types/genesis/validField
 			},
 			valid: true,
@@ -130,6 +138,20 @@ func TestGenesisState_Validate(t *testing.T) {
 					{
 						DepositorAddress: "0",
 						ValidatorAddress: "0",
+					},
+				},
+			},
+			valid: false,
+		},
+		{
+			desc: "duplicated refundPool",
+			genState: &types.GenesisState{
+				RefundPoolList: []types.RefundPool{
+					{
+						OperatorAddress: "0",
+					},
+					{
+						OperatorAddress: "0",
 					},
 				},
 			},
