@@ -116,7 +116,7 @@ func (k Keeper) Unbond(
 		k.SetDeposit(ctx, deposit)
 	}
 
-	depPool, issuedTokensAmt = k.RemovePoolTokensAndShares(ctx, depPool, shares)
+	depPool, issuedTokensAmt = k.RemoveDepPoolTokensAndShares(ctx, depPool, shares)
 
 	if depPool.Shares.IsZero() {
 		//TODO: if not unbonded, we must instead remove validator in EndBlocker once it finishes its unbonding period

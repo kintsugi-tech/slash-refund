@@ -183,8 +183,8 @@ func (k Keeper) ComputeEligibleRefundFromUnbondingDeposits(ctx sdk.Context, unbo
 				continue
 			}
 
+			// If mature the unbonding deposit entry is no longer eligible for refund
 			if entry.IsMature(now) {
-				// Unbonding deposit entry no longer eligible for refund, skip it
 				continue
 			}
 

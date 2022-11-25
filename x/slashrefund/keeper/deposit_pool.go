@@ -66,7 +66,7 @@ func (k Keeper) GetAllDepositPool(ctx sdk.Context) (list []types.DepositPool) {
 	return
 }
 
-func (k Keeper) AddPoolTokensAndShares(
+func (k Keeper) AddDepPoolTokensAndShares(
 	ctx sdk.Context,
 	depositPool types.DepositPool,
 	tokensToAdd sdk.Coin,
@@ -93,7 +93,7 @@ func (k Keeper) AddPoolTokensAndShares(
 	return issuedShares
 }
 
-func (k Keeper) RemovePoolTokensAndShares(
+func (k Keeper) RemoveDepPoolTokensAndShares(
 	ctx sdk.Context,
 	depositPool types.DepositPool,
 	sharesToRemove sdk.Dec,

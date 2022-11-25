@@ -131,7 +131,7 @@ func (k Keeper) Deposit(
 	}
 
 	// Deposited tokens are treated as pool shares, similarly to the staking module.
-	newShares = k.AddPoolTokensAndShares(ctx, depPool, depCoin)
+	newShares = k.AddDepPoolTokensAndShares(ctx, depPool, depCoin)
 
 	deposit.Shares = deposit.Shares.Add(newShares)
 	k.SetDeposit(ctx, deposit)
