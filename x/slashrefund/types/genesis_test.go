@@ -67,6 +67,16 @@ func TestGenesisState_Validate(t *testing.T) {
 						OperatorAddress: "1",
 					},
 				},
+				RefundList: []types.Refund{
+					{
+						Delegator: "0",
+						Validator: "0",
+					},
+					{
+						Delegator: "1",
+						Validator: "1",
+					},
+				},
 				// this line is used by starport scaffolding # types/genesis/validField
 			},
 			valid: true,
@@ -152,6 +162,22 @@ func TestGenesisState_Validate(t *testing.T) {
 					},
 					{
 						OperatorAddress: "0",
+					},
+				},
+			},
+			valid: false,
+		},
+		{
+			desc: "duplicated refund",
+			genState: &types.GenesisState{
+				RefundList: []types.Refund{
+					{
+						Delegator: "0",
+						Validator: "0",
+					},
+					{
+						Delegator: "0",
+						Validator: "0",
 					},
 				},
 			},

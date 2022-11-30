@@ -39,7 +39,6 @@ func (k Querier) DepositAll(c context.Context, req *types.QueryAllDepositRequest
 	return &types.QueryAllDepositResponse{Deposit: deposits, Pagination: pageRes}, nil
 }
 
-// TODO: aggiunta q a caso di query
 func (k Querier) Deposit(c context.Context, req *types.QueryGetDepositRequest) (*types.QueryGetDepositResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")

@@ -5,13 +5,14 @@ import { DepositPool } from "made-in-block-slash-refund-client-ts/madeinblock.sl
 import { DVPair } from "made-in-block-slash-refund-client-ts/madeinblock.slashrefund.slashrefund/types"
 import { DVPairs } from "made-in-block-slash-refund-client-ts/madeinblock.slashrefund.slashrefund/types"
 import { Params } from "made-in-block-slash-refund-client-ts/madeinblock.slashrefund.slashrefund/types"
+import { Refund } from "made-in-block-slash-refund-client-ts/madeinblock.slashrefund.slashrefund/types"
 import { RefundPool } from "made-in-block-slash-refund-client-ts/madeinblock.slashrefund.slashrefund/types"
 import { UnbondingDeposit } from "made-in-block-slash-refund-client-ts/madeinblock.slashrefund.slashrefund/types"
 import { UnbondingDepositEntry } from "made-in-block-slash-refund-client-ts/madeinblock.slashrefund.slashrefund/types"
 import { Validator } from "made-in-block-slash-refund-client-ts/madeinblock.slashrefund.slashrefund/types"
 
 
-export { Deposit, DepositPool, DVPair, DVPairs, Params, RefundPool, UnbondingDeposit, UnbondingDepositEntry, Validator };
+export { Deposit, DepositPool, DVPair, DVPairs, Params, Refund, RefundPool, UnbondingDeposit, UnbondingDepositEntry, Validator };
 
 function initClient(vuexGetters) {
 	return new Client(vuexGetters['common/env/getEnv'], vuexGetters['common/wallet/signer'])
@@ -51,6 +52,8 @@ const getDefaultState = () => {
 				UnbondingDepositAll: {},
 				RefundPool: {},
 				RefundPoolAll: {},
+				Refund: {},
+				RefundAll: {},
 				
 				_Structure: {
 						Deposit: getStructure(Deposit.fromPartial({})),
@@ -58,6 +61,7 @@ const getDefaultState = () => {
 						DVPair: getStructure(DVPair.fromPartial({})),
 						DVPairs: getStructure(DVPairs.fromPartial({})),
 						Params: getStructure(Params.fromPartial({})),
+						Refund: getStructure(Refund.fromPartial({})),
 						RefundPool: getStructure(RefundPool.fromPartial({})),
 						UnbondingDeposit: getStructure(UnbondingDeposit.fromPartial({})),
 						UnbondingDepositEntry: getStructure(UnbondingDepositEntry.fromPartial({})),
@@ -143,6 +147,18 @@ export default {
 						(<any> params).query=null
 					}
 			return state.RefundPoolAll[JSON.stringify(params)] ?? {}
+		},
+				getRefund: (state) => (params = { params: {}}) => {
+					if (!(<any> params).query) {
+						(<any> params).query=null
+					}
+			return state.Refund[JSON.stringify(params)] ?? {}
+		},
+				getRefundAll: (state) => (params = { params: {}}) => {
+					if (!(<any> params).query) {
+						(<any> params).query=null
+					}
+			return state.RefundAll[JSON.stringify(params)] ?? {}
 		},
 				
 		getTypeStructure: (state) => (type) => {
@@ -392,19 +408,54 @@ export default {
 		},
 		
 		
-		async sendMsgWithdraw({ rootGetters }, { value, fee = [], memo = '' }) {
+		
+		
+		 		
+		
+		
+		async QueryRefund({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
-				const client=await initClient(rootGetters)
-				const result = await client.MadeinblockSlashrefundSlashrefund.tx.sendMsgWithdraw({ value, fee: {amount: fee, gas: "200000"}, memo })
-				return result
+				const key = params ?? {};
+				const client = initClient(rootGetters);
+				let value= (await client.MadeinblockSlashrefundSlashrefund.query.queryRefund( key.delegator,  key.validator)).data
+				
+					
+				commit('QUERY', { query: 'Refund', key: { params: {...key}, query}, value })
+				if (subscribe) commit('SUBSCRIBE', { action: 'QueryRefund', payload: { options: { all }, params: {...key},query }})
+				return getters['getRefund']( { params: {...key}, query}) ?? {}
 			} catch (e) {
-				if (e == MissingWalletError) {
-					throw new Error('TxClient:MsgWithdraw:Init Could not initialize signing client. Wallet is required.')
-				}else{
-					throw new Error('TxClient:MsgWithdraw:Send Could not broadcast Tx: '+ e.message)
-				}
+				throw new Error('QueryClient:QueryRefund API Node Unavailable. Could not perform query: ' + e.message)
+				
 			}
 		},
+		
+		
+		
+		
+		 		
+		
+		
+		async QueryRefundAll({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
+			try {
+				const key = params ?? {};
+				const client = initClient(rootGetters);
+				let value= (await client.MadeinblockSlashrefundSlashrefund.query.queryRefundAll(query ?? undefined)).data
+				
+					
+				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
+					let next_values=(await client.MadeinblockSlashrefundSlashrefund.query.queryRefundAll({...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
+					value = mergeResults(value, next_values);
+				}
+				commit('QUERY', { query: 'RefundAll', key: { params: {...key}, query}, value })
+				if (subscribe) commit('SUBSCRIBE', { action: 'QueryRefundAll', payload: { options: { all }, params: {...key},query }})
+				return getters['getRefundAll']( { params: {...key}, query}) ?? {}
+			} catch (e) {
+				throw new Error('QueryClient:QueryRefundAll API Node Unavailable. Could not perform query: ' + e.message)
+				
+			}
+		},
+		
+		
 		async sendMsgDeposit({ rootGetters }, { value, fee = [], memo = '' }) {
 			try {
 				const client=await initClient(rootGetters)
@@ -418,20 +469,20 @@ export default {
 				}
 			}
 		},
-		
-		async MsgWithdraw({ rootGetters }, { value }) {
+		async sendMsgWithdraw({ rootGetters }, { value, fee = [], memo = '' }) {
 			try {
-				const client=initClient(rootGetters)
-				const msg = await client.MadeinblockSlashrefundSlashrefund.tx.msgWithdraw({value})
-				return msg
+				const client=await initClient(rootGetters)
+				const result = await client.MadeinblockSlashrefundSlashrefund.tx.sendMsgWithdraw({ value, fee: {amount: fee, gas: "200000"}, memo })
+				return result
 			} catch (e) {
 				if (e == MissingWalletError) {
 					throw new Error('TxClient:MsgWithdraw:Init Could not initialize signing client. Wallet is required.')
-				} else{
-					throw new Error('TxClient:MsgWithdraw:Create Could not create message: ' + e.message)
+				}else{
+					throw new Error('TxClient:MsgWithdraw:Send Could not broadcast Tx: '+ e.message)
 				}
 			}
 		},
+		
 		async MsgDeposit({ rootGetters }, { value }) {
 			try {
 				const client=initClient(rootGetters)
@@ -442,6 +493,19 @@ export default {
 					throw new Error('TxClient:MsgDeposit:Init Could not initialize signing client. Wallet is required.')
 				} else{
 					throw new Error('TxClient:MsgDeposit:Create Could not create message: ' + e.message)
+				}
+			}
+		},
+		async MsgWithdraw({ rootGetters }, { value }) {
+			try {
+				const client=initClient(rootGetters)
+				const msg = await client.MadeinblockSlashrefundSlashrefund.tx.msgWithdraw({value})
+				return msg
+			} catch (e) {
+				if (e == MissingWalletError) {
+					throw new Error('TxClient:MsgWithdraw:Init Could not initialize signing client. Wallet is required.')
+				} else{
+					throw new Error('TxClient:MsgWithdraw:Create Could not create message: ' + e.message)
 				}
 			}
 		},

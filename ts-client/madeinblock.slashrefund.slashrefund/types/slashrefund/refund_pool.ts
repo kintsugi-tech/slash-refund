@@ -1,23 +1,25 @@
 /* eslint-disable */
+import { Coin } from "../cosmos/base/v1beta1/coin";
 import { Writer, Reader } from "protobufjs/minimal";
 
 export const protobufPackage = "madeinblock.slashrefund.slashrefund";
 
+/** TODO: to account for more than one token, Tokens and Shares must be a struct. */
 export interface RefundPool {
   operatorAddress: string;
-  tokens: string;
+  tokens: Coin | undefined;
   shares: string;
 }
 
-const baseRefundPool: object = { operatorAddress: "", tokens: "", shares: "" };
+const baseRefundPool: object = { operatorAddress: "", shares: "" };
 
 export const RefundPool = {
   encode(message: RefundPool, writer: Writer = Writer.create()): Writer {
     if (message.operatorAddress !== "") {
       writer.uint32(10).string(message.operatorAddress);
     }
-    if (message.tokens !== "") {
-      writer.uint32(18).string(message.tokens);
+    if (message.tokens !== undefined) {
+      Coin.encode(message.tokens, writer.uint32(18).fork()).ldelim();
     }
     if (message.shares !== "") {
       writer.uint32(26).string(message.shares);
@@ -36,7 +38,7 @@ export const RefundPool = {
           message.operatorAddress = reader.string();
           break;
         case 2:
-          message.tokens = reader.string();
+          message.tokens = Coin.decode(reader, reader.uint32());
           break;
         case 3:
           message.shares = reader.string();
@@ -60,9 +62,9 @@ export const RefundPool = {
       message.operatorAddress = "";
     }
     if (object.tokens !== undefined && object.tokens !== null) {
-      message.tokens = String(object.tokens);
+      message.tokens = Coin.fromJSON(object.tokens);
     } else {
-      message.tokens = "";
+      message.tokens = undefined;
     }
     if (object.shares !== undefined && object.shares !== null) {
       message.shares = String(object.shares);
@@ -76,7 +78,8 @@ export const RefundPool = {
     const obj: any = {};
     message.operatorAddress !== undefined &&
       (obj.operatorAddress = message.operatorAddress);
-    message.tokens !== undefined && (obj.tokens = message.tokens);
+    message.tokens !== undefined &&
+      (obj.tokens = message.tokens ? Coin.toJSON(message.tokens) : undefined);
     message.shares !== undefined && (obj.shares = message.shares);
     return obj;
   },
@@ -92,9 +95,9 @@ export const RefundPool = {
       message.operatorAddress = "";
     }
     if (object.tokens !== undefined && object.tokens !== null) {
-      message.tokens = object.tokens;
+      message.tokens = Coin.fromPartial(object.tokens);
     } else {
-      message.tokens = "";
+      message.tokens = undefined;
     }
     if (object.shares !== undefined && object.shares !== null) {
       message.shares = object.shares;

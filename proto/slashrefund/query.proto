@@ -9,6 +9,7 @@ import "slashrefund/deposit.proto";
 import "slashrefund/deposit_pool.proto";
 import "slashrefund/unbonding_deposit.proto";
 import "slashrefund/refund_pool.proto";
+import "slashrefund/refund.proto";
 // this line is used by starport scaffolding # 1
 
 option go_package = "github.com/made-in-block/slash-refund/x/slashrefund/types";
@@ -57,6 +58,16 @@ service Query {
 	// Queries a list of RefundPool items.
 	rpc RefundPoolAll(QueryAllRefundPoolRequest) returns (QueryAllRefundPoolResponse) {
 		option (google.api.http).get = "/made-in-block/slash-refund/slashrefund/refund_pool";
+	}
+
+// Queries a Refund by index.
+	rpc Refund(QueryGetRefundRequest) returns (QueryGetRefundResponse) {
+		option (google.api.http).get = "/made-in-block/slash-refund/slashrefund/refund/{delegator}/{validator}";
+	}
+
+	// Queries a list of Refund items.
+	rpc RefundAll(QueryAllRefundRequest) returns (QueryAllRefundResponse) {
+		option (google.api.http).get = "/made-in-block/slash-refund/slashrefund/refund";
 	}
 
 // this line is used by starport scaffolding # 2
@@ -142,6 +153,25 @@ message QueryAllRefundPoolRequest {
 
 message QueryAllRefundPoolResponse {
 	repeated RefundPool refundPool = 1 [(gogoproto.nullable) = false];
+	cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message QueryGetRefundRequest {
+	string delegator = 1;
+  	string validator = 2;
+
+}
+
+message QueryGetRefundResponse {
+	Refund refund = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryAllRefundRequest {
+	cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+message QueryAllRefundResponse {
+	repeated Refund refund = 1 [(gogoproto.nullable) = false];
 	cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 

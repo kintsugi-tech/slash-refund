@@ -7,6 +7,7 @@ import "slashrefund/deposit.proto";
 import "slashrefund/deposit_pool.proto";
 import "slashrefund/unbonding_deposit.proto";
 import "slashrefund/refund_pool.proto";
+import "slashrefund/refund.proto";
 // this line is used by starport scaffolding # genesis/proto/import
 
 option go_package = "github.com/made-in-block/slash-refund/x/slashrefund/types";
@@ -18,5 +19,6 @@ message GenesisState {
   repeated DepositPool depositPoolList = 5 [(gogoproto.nullable) = false];
   repeated UnbondingDeposit unbondingDepositList = 6 [(gogoproto.nullable) = false];
   repeated RefundPool refundPoolList = 7 [(gogoproto.nullable) = false];
+  repeated Refund refundList = 8 [(gogoproto.nullable) = false];
   // this line is used by starport scaffolding # genesis/proto/state
 }

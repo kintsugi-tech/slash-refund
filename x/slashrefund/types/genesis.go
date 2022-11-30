@@ -16,6 +16,7 @@ func DefaultGenesis() *GenesisState {
 		DepositPoolList:      []DepositPool{},
 		UnbondingDepositList: []UnbondingDeposit{},
 		RefundPoolList:       []RefundPool{},
+		RefundList:           []Refund{},
 		// this line is used by starport scaffolding # genesis/types/default
 		Params: DefaultParams(),
 	}
@@ -82,6 +83,27 @@ func (gs GenesisState) Validate() error {
 			return fmt.Errorf("duplicated index for refundPool")
 		}
 		refundPoolIndexMap[index] = struct{}{}
+	}
+	// Check for duplicated index in refund
+	refundIndexMap := make(map[string]struct{})
+
+	for _, elem := range gs.RefundList {
+
+		delegator, err := sdk.AccAddressFromBech32(elem.DelegatorAddress)
+		if err != nil {
+			return err
+		}
+
+		validator, err := sdk.ValAddressFromBech32(elem.ValidatorAddress)
+		if err != nil {
+			return err
+		}
+
+		index := string(RefundKey(delegator, validator))
+		if _, ok := refundIndexMap[index]; ok {
+			return fmt.Errorf("duplicated index for refund")
+		}
+		refundIndexMap[index] = struct{}{}
 	}
 	// this line is used by starport scaffolding # genesis/types/validate
 
