@@ -4,20 +4,24 @@ import { Writer, Reader } from "protobufjs/minimal";
 export const protobufPackage = "madeinblock.slashrefund.slashrefund";
 
 export interface Refund {
-  delegator: string;
-  validator: string;
+  delegatorAddress: string;
+  validatorAddress: string;
   shares: string;
 }
 
-const baseRefund: object = { delegator: "", validator: "", shares: "" };
+const baseRefund: object = {
+  delegatorAddress: "",
+  validatorAddress: "",
+  shares: "",
+};
 
 export const Refund = {
   encode(message: Refund, writer: Writer = Writer.create()): Writer {
-    if (message.delegator !== "") {
-      writer.uint32(10).string(message.delegator);
+    if (message.delegatorAddress !== "") {
+      writer.uint32(10).string(message.delegatorAddress);
     }
-    if (message.validator !== "") {
-      writer.uint32(18).string(message.validator);
+    if (message.validatorAddress !== "") {
+      writer.uint32(18).string(message.validatorAddress);
     }
     if (message.shares !== "") {
       writer.uint32(26).string(message.shares);
@@ -33,10 +37,10 @@ export const Refund = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.delegator = reader.string();
+          message.delegatorAddress = reader.string();
           break;
         case 2:
-          message.validator = reader.string();
+          message.validatorAddress = reader.string();
           break;
         case 3:
           message.shares = reader.string();
@@ -51,15 +55,21 @@ export const Refund = {
 
   fromJSON(object: any): Refund {
     const message = { ...baseRefund } as Refund;
-    if (object.delegator !== undefined && object.delegator !== null) {
-      message.delegator = String(object.delegator);
+    if (
+      object.delegatorAddress !== undefined &&
+      object.delegatorAddress !== null
+    ) {
+      message.delegatorAddress = String(object.delegatorAddress);
     } else {
-      message.delegator = "";
+      message.delegatorAddress = "";
     }
-    if (object.validator !== undefined && object.validator !== null) {
-      message.validator = String(object.validator);
+    if (
+      object.validatorAddress !== undefined &&
+      object.validatorAddress !== null
+    ) {
+      message.validatorAddress = String(object.validatorAddress);
     } else {
-      message.validator = "";
+      message.validatorAddress = "";
     }
     if (object.shares !== undefined && object.shares !== null) {
       message.shares = String(object.shares);
@@ -71,23 +81,31 @@ export const Refund = {
 
   toJSON(message: Refund): unknown {
     const obj: any = {};
-    message.delegator !== undefined && (obj.delegator = message.delegator);
-    message.validator !== undefined && (obj.validator = message.validator);
+    message.delegatorAddress !== undefined &&
+      (obj.delegatorAddress = message.delegatorAddress);
+    message.validatorAddress !== undefined &&
+      (obj.validatorAddress = message.validatorAddress);
     message.shares !== undefined && (obj.shares = message.shares);
     return obj;
   },
 
   fromPartial(object: DeepPartial<Refund>): Refund {
     const message = { ...baseRefund } as Refund;
-    if (object.delegator !== undefined && object.delegator !== null) {
-      message.delegator = object.delegator;
+    if (
+      object.delegatorAddress !== undefined &&
+      object.delegatorAddress !== null
+    ) {
+      message.delegatorAddress = object.delegatorAddress;
     } else {
-      message.delegator = "";
+      message.delegatorAddress = "";
     }
-    if (object.validator !== undefined && object.validator !== null) {
-      message.validator = object.validator;
+    if (
+      object.validatorAddress !== undefined &&
+      object.validatorAddress !== null
+    ) {
+      message.validatorAddress = object.validatorAddress;
     } else {
-      message.validator = "";
+      message.validatorAddress = "";
     }
     if (object.shares !== undefined && object.shares !== null) {
       message.shares = object.shares;

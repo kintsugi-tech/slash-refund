@@ -45386,9 +45386,9 @@ paths:
                 items:
                   type: object
                   properties:
-                    delegator:
+                    delegator_address:
                       type: string
-                    validator:
+                    validator_address:
                       type: string
                     shares:
                       type: string
@@ -45677,9 +45677,9 @@ paths:
               refund:
                 type: object
                 properties:
-                  delegator:
+                  delegator_address:
                     type: string
-                  validator:
+                  validator_address:
                     type: string
                   shares:
                     type: string
@@ -76241,9 +76241,9 @@ definitions:
         items:
           type: object
           properties:
-            delegator:
+            delegator_address:
               type: string
-            validator:
+            validator_address:
               type: string
             shares:
               type: string
@@ -76404,9 +76404,9 @@ definitions:
       refund:
         type: object
         properties:
-          delegator:
+          delegator_address:
             type: string
-          validator:
+          validator_address:
             type: string
           shares:
             type: string
@@ -76452,9 +76452,9 @@ definitions:
   madeinblock.slashrefund.slashrefund.Refund:
     type: object
     properties:
-      delegator:
+      delegator_address:
         type: string
-      validator:
+      validator_address:
         type: string
       shares:
         type: string
