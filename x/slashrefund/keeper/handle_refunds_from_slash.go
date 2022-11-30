@@ -99,17 +99,33 @@ func (k Keeper) HandleRefundsFromSlash(ctx sdk.Context, slashEvent sdk.Event) (r
 			return sdk.NewInt(0)
 		}
 
-		// refund
-		refundTokens := sdk.NewCoin(k.AllowedTokensList(ctx)[0], refundAmount)
-		k.AddRefPoolTokensAndShares(ctx, refPool, refundTokens)
+		// compute refund factor
+		refFactor := sdk.NewDecFromInt(refundAmount).QuoInt(burnedTokens)
 
-		// distribute shares
-		delegations := k.stakingKeeper.GetValidatorDelegations(ctx, valAddr)
-		for _, del := range delegations {
-			delAddr := del.GetDelegatorAddr()
-			_ = delAddr
-			// TODO: check if refund exists for (delegator,validator), if not create it
-			// TODO: update shares of refund
+		// get refund pool shares-token ratio
+		poolShTkRatio, err := refPool.GetSharesOverTokensRatio()
+		if err != nil {
+			// zero tokens in pool means issued shares are 1 to 1 with added tokens
+			poolShTkRatio = sdk.NewDec(1)
+		}
+
+		// refund delegations
+		amtRefundedDel, sharesRefundDel, err := k.RefundSlashedDelegations(ctx, valAddr, infractionHeight.Int64(), slashFactor, refFactor, poolShTkRatio)
+		if err != nil {
+			//ERROR in RefundSlashedDelegations
+		}
+
+		// compute total refund shares issued
+		refundDiff := refundAmount.Sub(amtRefundedDel)
+		_ = refundDiff
+		// TODO: check refundDiff
+
+		// update refund pool
+		if !refundAmount.IsZero() && !sharesRefundDel.IsZero() {
+			refundTokens := sdk.NewCoin(k.AllowedTokensList(ctx)[0], refundAmount)
+			refPool.Tokens.Add(refundTokens)
+			refPool.Shares.Add(sharesRefundDel)
+			k.SetRefundPool(ctx, refPool)
 		}
 
 	// ---- standard case: ----
@@ -319,14 +335,14 @@ func (k Keeper) UpdateUnbondingDepositEntries(ctx sdk.Context, unbondingDeposit 
 // TODO: handle output of different denoms (return skd.Coins)
 func (k Keeper) RefundSlashedUnbondingDelegations(
 	ctx sdk.Context,
-	validator sdk.ValAddress,
+	valAddr sdk.ValAddress,
 	infractionHeight int64,
 	slashFactor sdk.Dec,
 	refFactor sdk.Dec,
 	poolShTkRatio sdk.Dec,
 ) (totalRefundedAmt sdk.Int, totalRefundShares sdk.Dec, err error) {
 
-	unbondingDelegations := k.stakingKeeper.GetUnbondingDelegationsFromValidator(ctx, validator)
+	unbondingDelegations := k.stakingKeeper.GetUnbondingDelegationsFromValidator(ctx, valAddr)
 
 	now := ctx.BlockHeader().Time
 	totalRefundedAmt = sdk.ZeroInt()
@@ -334,8 +350,10 @@ func (k Keeper) RefundSlashedUnbondingDelegations(
 
 	for _, ubd := range unbondingDelegations {
 
-		delegator := ubd.DelegatorAddress
-		_ = delegator
+		delAddr, err := sdk.AccAddressFromBech32(ubd.DelegatorAddress)
+		if err != nil {
+			return sdk.NewInt(0), sdk.NewDec(0), err
+		}
 		delegatorShares := sdk.ZeroDec()
 
 		// process slashed entries
@@ -359,9 +377,14 @@ func (k Keeper) RefundSlashedUnbondingDelegations(
 			totalRefundedAmt = totalRefundedAmt.Add(refundAmt)
 		}
 
-		// distribute shares
-		// TODO: check if refund exists for (delegator,validator), if not create it
-		// TODO: update refund shares of delegator
+		// issue shares
+		refund, found := k.GetRefund(ctx, delAddr, valAddr)
+		if !found {
+			refund = types.NewRefund(delAddr, valAddr, sdk.ZeroDec())
+		}
+		refund.Shares = refund.Shares.Add(delegatorShares)
+		k.SetRefund(ctx, refund)
+
 		totalRefundShares = totalRefundShares.Add(delegatorShares)
 	}
 
@@ -371,14 +394,14 @@ func (k Keeper) RefundSlashedUnbondingDelegations(
 // TODO: handle output of different denoms (return skd.Coins)
 func (k Keeper) RefundSlashedRedelegations(
 	ctx sdk.Context,
-	validator sdk.ValAddress,
+	valAddr sdk.ValAddress,
 	infractionHeight int64,
 	slashFactor sdk.Dec,
 	refFactor sdk.Dec,
 	poolShTkRatio sdk.Dec,
 ) (totalRefundedAmt sdk.Int, totalRefundShares sdk.Dec, err error) {
 
-	redelegations := k.stakingKeeper.GetRedelegationsFromSrcValidator(ctx, validator)
+	redelegations := k.stakingKeeper.GetRedelegationsFromSrcValidator(ctx, valAddr)
 
 	now := ctx.BlockHeader().Time
 	totalRefundedAmt = sdk.ZeroInt()
@@ -386,8 +409,11 @@ func (k Keeper) RefundSlashedRedelegations(
 
 	for _, red := range redelegations {
 
-		delegator := red.DelegatorAddress
-		_ = delegator
+		delAddr, err := sdk.AccAddressFromBech32(red.DelegatorAddress)
+		if err != nil {
+			return sdk.NewInt(0), sdk.NewDec(0), err
+		}
+
 		delegatorShares := sdk.NewDec(0)
 
 		// process slashed entries
@@ -411,9 +437,14 @@ func (k Keeper) RefundSlashedRedelegations(
 			totalRefundedAmt = totalRefundedAmt.Add(refundAmt)
 		}
 
-		// distribute shares
-		// TODO: check if refund exists for (delegator,validator), if not create it
-		// TODO: update refund shares of delegator
+		// issue shares
+		refund, found := k.GetRefund(ctx, delAddr, valAddr)
+		if !found {
+			refund = types.NewRefund(delAddr, valAddr, sdk.ZeroDec())
+		}
+		refund.Shares = refund.Shares.Add(delegatorShares)
+		k.SetRefund(ctx, refund)
+
 		totalRefundShares = totalRefundShares.Add(delegatorShares)
 	}
 
@@ -442,8 +473,10 @@ func (k Keeper) RefundSlashedDelegations(
 
 	for _, del := range delegations {
 
-		delegator := del.DelegatorAddress
-		_ = delegator
+		delAddr, err := sdk.AccAddressFromBech32(del.DelegatorAddress)
+		if err != nil {
+			return sdk.NewInt(0), sdk.NewDec(0), err
+		}
 
 		balanceDec := validator.TokensFromShares(del.Shares)
 		balance := balanceDec.TruncateInt()
@@ -458,17 +491,23 @@ func (k Keeper) RefundSlashedDelegations(
 		refundAmtDec := refFactor.MulInt(burnedAmt)
 		refundAmt := refundAmtDec.TruncateInt()
 
+		// compute shares to issue
 		delegatorShares := poolShTkRatio.MulInt(refundAmt)
 		if err != nil {
 			//ERROR in refundPool.SharesFromTokens
 			return sdk.NewInt(0), sdk.NewDec(0), err
 		}
 
-		totalRefundedAmt = totalRefundedAmt.Add(refundAmt)
+		// issue shares
+		refund, found := k.GetRefund(ctx, delAddr, valAddr)
+		if !found {
+			refund = types.NewRefund(delAddr, valAddr, sdk.ZeroDec())
+		}
+		refund.Shares = refund.Shares.Add(delegatorShares)
+		k.SetRefund(ctx, refund)
 
-		// distribute shares
-		// TODO: check if refund exists for (delegator,validator), if not create it
-		// TODO: update refund shares of delegator
+		// update totals
+		totalRefundedAmt = totalRefundedAmt.Add(refundAmt)
 		totalRefundShares = totalRefundShares.Add(delegatorShares)
 	}
 
