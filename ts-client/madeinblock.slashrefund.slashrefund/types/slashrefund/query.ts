@@ -9,6 +9,7 @@ import {
 import { DepositPool } from "../slashrefund/deposit_pool";
 import { UnbondingDeposit } from "../slashrefund/unbonding_deposit";
 import { RefundPool } from "../slashrefund/refund_pool";
+import { Refund } from "../slashrefund/refund";
 
 export const protobufPackage = "madeinblock.slashrefund.slashrefund";
 
@@ -88,6 +89,24 @@ export interface QueryAllRefundPoolRequest {
 
 export interface QueryAllRefundPoolResponse {
   refundPool: RefundPool[];
+  pagination: PageResponse | undefined;
+}
+
+export interface QueryGetRefundRequest {
+  delegator: string;
+  validator: string;
+}
+
+export interface QueryGetRefundResponse {
+  refund: Refund | undefined;
+}
+
+export interface QueryAllRefundRequest {
+  pagination: PageRequest | undefined;
+}
+
+export interface QueryAllRefundResponse {
+  refund: Refund[];
   pagination: PageResponse | undefined;
 }
 
@@ -1529,6 +1548,299 @@ export const QueryAllRefundPoolResponse = {
   },
 };
 
+const baseQueryGetRefundRequest: object = { delegator: "", validator: "" };
+
+export const QueryGetRefundRequest = {
+  encode(
+    message: QueryGetRefundRequest,
+    writer: Writer = Writer.create()
+  ): Writer {
+    if (message.delegator !== "") {
+      writer.uint32(10).string(message.delegator);
+    }
+    if (message.validator !== "") {
+      writer.uint32(18).string(message.validator);
+    }
+    return writer;
+  },
+
+  decode(input: Reader | Uint8Array, length?: number): QueryGetRefundRequest {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = { ...baseQueryGetRefundRequest } as QueryGetRefundRequest;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.delegator = reader.string();
+          break;
+        case 2:
+          message.validator = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryGetRefundRequest {
+    const message = { ...baseQueryGetRefundRequest } as QueryGetRefundRequest;
+    if (object.delegator !== undefined && object.delegator !== null) {
+      message.delegator = String(object.delegator);
+    } else {
+      message.delegator = "";
+    }
+    if (object.validator !== undefined && object.validator !== null) {
+      message.validator = String(object.validator);
+    } else {
+      message.validator = "";
+    }
+    return message;
+  },
+
+  toJSON(message: QueryGetRefundRequest): unknown {
+    const obj: any = {};
+    message.delegator !== undefined && (obj.delegator = message.delegator);
+    message.validator !== undefined && (obj.validator = message.validator);
+    return obj;
+  },
+
+  fromPartial(
+    object: DeepPartial<QueryGetRefundRequest>
+  ): QueryGetRefundRequest {
+    const message = { ...baseQueryGetRefundRequest } as QueryGetRefundRequest;
+    if (object.delegator !== undefined && object.delegator !== null) {
+      message.delegator = object.delegator;
+    } else {
+      message.delegator = "";
+    }
+    if (object.validator !== undefined && object.validator !== null) {
+      message.validator = object.validator;
+    } else {
+      message.validator = "";
+    }
+    return message;
+  },
+};
+
+const baseQueryGetRefundResponse: object = {};
+
+export const QueryGetRefundResponse = {
+  encode(
+    message: QueryGetRefundResponse,
+    writer: Writer = Writer.create()
+  ): Writer {
+    if (message.refund !== undefined) {
+      Refund.encode(message.refund, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: Reader | Uint8Array, length?: number): QueryGetRefundResponse {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = { ...baseQueryGetRefundResponse } as QueryGetRefundResponse;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.refund = Refund.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryGetRefundResponse {
+    const message = { ...baseQueryGetRefundResponse } as QueryGetRefundResponse;
+    if (object.refund !== undefined && object.refund !== null) {
+      message.refund = Refund.fromJSON(object.refund);
+    } else {
+      message.refund = undefined;
+    }
+    return message;
+  },
+
+  toJSON(message: QueryGetRefundResponse): unknown {
+    const obj: any = {};
+    message.refund !== undefined &&
+      (obj.refund = message.refund ? Refund.toJSON(message.refund) : undefined);
+    return obj;
+  },
+
+  fromPartial(
+    object: DeepPartial<QueryGetRefundResponse>
+  ): QueryGetRefundResponse {
+    const message = { ...baseQueryGetRefundResponse } as QueryGetRefundResponse;
+    if (object.refund !== undefined && object.refund !== null) {
+      message.refund = Refund.fromPartial(object.refund);
+    } else {
+      message.refund = undefined;
+    }
+    return message;
+  },
+};
+
+const baseQueryAllRefundRequest: object = {};
+
+export const QueryAllRefundRequest = {
+  encode(
+    message: QueryAllRefundRequest,
+    writer: Writer = Writer.create()
+  ): Writer {
+    if (message.pagination !== undefined) {
+      PageRequest.encode(message.pagination, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: Reader | Uint8Array, length?: number): QueryAllRefundRequest {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = { ...baseQueryAllRefundRequest } as QueryAllRefundRequest;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.pagination = PageRequest.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryAllRefundRequest {
+    const message = { ...baseQueryAllRefundRequest } as QueryAllRefundRequest;
+    if (object.pagination !== undefined && object.pagination !== null) {
+      message.pagination = PageRequest.fromJSON(object.pagination);
+    } else {
+      message.pagination = undefined;
+    }
+    return message;
+  },
+
+  toJSON(message: QueryAllRefundRequest): unknown {
+    const obj: any = {};
+    message.pagination !== undefined &&
+      (obj.pagination = message.pagination
+        ? PageRequest.toJSON(message.pagination)
+        : undefined);
+    return obj;
+  },
+
+  fromPartial(
+    object: DeepPartial<QueryAllRefundRequest>
+  ): QueryAllRefundRequest {
+    const message = { ...baseQueryAllRefundRequest } as QueryAllRefundRequest;
+    if (object.pagination !== undefined && object.pagination !== null) {
+      message.pagination = PageRequest.fromPartial(object.pagination);
+    } else {
+      message.pagination = undefined;
+    }
+    return message;
+  },
+};
+
+const baseQueryAllRefundResponse: object = {};
+
+export const QueryAllRefundResponse = {
+  encode(
+    message: QueryAllRefundResponse,
+    writer: Writer = Writer.create()
+  ): Writer {
+    for (const v of message.refund) {
+      Refund.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.pagination !== undefined) {
+      PageResponse.encode(
+        message.pagination,
+        writer.uint32(18).fork()
+      ).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: Reader | Uint8Array, length?: number): QueryAllRefundResponse {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = { ...baseQueryAllRefundResponse } as QueryAllRefundResponse;
+    message.refund = [];
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.refund.push(Refund.decode(reader, reader.uint32()));
+          break;
+        case 2:
+          message.pagination = PageResponse.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryAllRefundResponse {
+    const message = { ...baseQueryAllRefundResponse } as QueryAllRefundResponse;
+    message.refund = [];
+    if (object.refund !== undefined && object.refund !== null) {
+      for (const e of object.refund) {
+        message.refund.push(Refund.fromJSON(e));
+      }
+    }
+    if (object.pagination !== undefined && object.pagination !== null) {
+      message.pagination = PageResponse.fromJSON(object.pagination);
+    } else {
+      message.pagination = undefined;
+    }
+    return message;
+  },
+
+  toJSON(message: QueryAllRefundResponse): unknown {
+    const obj: any = {};
+    if (message.refund) {
+      obj.refund = message.refund.map((e) =>
+        e ? Refund.toJSON(e) : undefined
+      );
+    } else {
+      obj.refund = [];
+    }
+    message.pagination !== undefined &&
+      (obj.pagination = message.pagination
+        ? PageResponse.toJSON(message.pagination)
+        : undefined);
+    return obj;
+  },
+
+  fromPartial(
+    object: DeepPartial<QueryAllRefundResponse>
+  ): QueryAllRefundResponse {
+    const message = { ...baseQueryAllRefundResponse } as QueryAllRefundResponse;
+    message.refund = [];
+    if (object.refund !== undefined && object.refund !== null) {
+      for (const e of object.refund) {
+        message.refund.push(Refund.fromPartial(e));
+      }
+    }
+    if (object.pagination !== undefined && object.pagination !== null) {
+      message.pagination = PageResponse.fromPartial(object.pagination);
+    } else {
+      message.pagination = undefined;
+    }
+    return message;
+  },
+};
+
 /** Query defines the gRPC querier service. */
 export interface Query {
   /** Parameters queries the parameters of the module. */
@@ -1561,6 +1873,10 @@ export interface Query {
   RefundPoolAll(
     request: QueryAllRefundPoolRequest
   ): Promise<QueryAllRefundPoolResponse>;
+  /** Queries a Refund by index. */
+  Refund(request: QueryGetRefundRequest): Promise<QueryGetRefundResponse>;
+  /** Queries a list of Refund items. */
+  RefundAll(request: QueryAllRefundRequest): Promise<QueryAllRefundResponse>;
 }
 
 export class QueryClientImpl implements Query {
@@ -1685,6 +2001,30 @@ export class QueryClientImpl implements Query {
     );
     return promise.then((data) =>
       QueryAllRefundPoolResponse.decode(new Reader(data))
+    );
+  }
+
+  Refund(request: QueryGetRefundRequest): Promise<QueryGetRefundResponse> {
+    const data = QueryGetRefundRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "madeinblock.slashrefund.slashrefund.Query",
+      "Refund",
+      data
+    );
+    return promise.then((data) =>
+      QueryGetRefundResponse.decode(new Reader(data))
+    );
+  }
+
+  RefundAll(request: QueryAllRefundRequest): Promise<QueryAllRefundResponse> {
+    const data = QueryAllRefundRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "madeinblock.slashrefund.slashrefund.Query",
+      "RefundAll",
+      data
+    );
+    return promise.then((data) =>
+      QueryAllRefundResponse.decode(new Reader(data))
     );
   }
 }

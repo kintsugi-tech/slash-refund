@@ -4,6 +4,7 @@ import { Deposit } from "../slashrefund/deposit";
 import { DepositPool } from "../slashrefund/deposit_pool";
 import { UnbondingDeposit } from "../slashrefund/unbonding_deposit";
 import { RefundPool } from "../slashrefund/refund_pool";
+import { Refund } from "../slashrefund/refund";
 import { Writer, Reader } from "protobufjs/minimal";
 
 export const protobufPackage = "madeinblock.slashrefund.slashrefund";
@@ -14,8 +15,9 @@ export interface GenesisState {
   depositList: Deposit[];
   depositPoolList: DepositPool[];
   unbondingDepositList: UnbondingDeposit[];
-  /** this line is used by starport scaffolding # genesis/proto/state */
   refundPoolList: RefundPool[];
+  /** this line is used by starport scaffolding # genesis/proto/state */
+  refundList: Refund[];
 }
 
 const baseGenesisState: object = {};
@@ -37,6 +39,9 @@ export const GenesisState = {
     for (const v of message.refundPoolList) {
       RefundPool.encode(v!, writer.uint32(58).fork()).ldelim();
     }
+    for (const v of message.refundList) {
+      Refund.encode(v!, writer.uint32(66).fork()).ldelim();
+    }
     return writer;
   },
 
@@ -48,6 +53,7 @@ export const GenesisState = {
     message.depositPoolList = [];
     message.unbondingDepositList = [];
     message.refundPoolList = [];
+    message.refundList = [];
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -72,6 +78,9 @@ export const GenesisState = {
             RefundPool.decode(reader, reader.uint32())
           );
           break;
+        case 8:
+          message.refundList.push(Refund.decode(reader, reader.uint32()));
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -86,6 +95,7 @@ export const GenesisState = {
     message.depositPoolList = [];
     message.unbondingDepositList = [];
     message.refundPoolList = [];
+    message.refundList = [];
     if (object.params !== undefined && object.params !== null) {
       message.params = Params.fromJSON(object.params);
     } else {
@@ -115,6 +125,11 @@ export const GenesisState = {
     if (object.refundPoolList !== undefined && object.refundPoolList !== null) {
       for (const e of object.refundPoolList) {
         message.refundPoolList.push(RefundPool.fromJSON(e));
+      }
+    }
+    if (object.refundList !== undefined && object.refundList !== null) {
+      for (const e of object.refundList) {
+        message.refundList.push(Refund.fromJSON(e));
       }
     }
     return message;
@@ -152,6 +167,13 @@ export const GenesisState = {
     } else {
       obj.refundPoolList = [];
     }
+    if (message.refundList) {
+      obj.refundList = message.refundList.map((e) =>
+        e ? Refund.toJSON(e) : undefined
+      );
+    } else {
+      obj.refundList = [];
+    }
     return obj;
   },
 
@@ -161,6 +183,7 @@ export const GenesisState = {
     message.depositPoolList = [];
     message.unbondingDepositList = [];
     message.refundPoolList = [];
+    message.refundList = [];
     if (object.params !== undefined && object.params !== null) {
       message.params = Params.fromPartial(object.params);
     } else {
@@ -190,6 +213,11 @@ export const GenesisState = {
     if (object.refundPoolList !== undefined && object.refundPoolList !== null) {
       for (const e of object.refundPoolList) {
         message.refundPoolList.push(RefundPool.fromPartial(e));
+      }
+    }
+    if (object.refundList !== undefined && object.refundList !== null) {
+      for (const e of object.refundList) {
+        message.refundList.push(Refund.fromPartial(e));
       }
     }
     return message;

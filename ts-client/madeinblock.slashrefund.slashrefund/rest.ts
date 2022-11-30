@@ -214,6 +214,21 @@ export interface SlashrefundQueryAllRefundPoolResponse {
   pagination?: V1Beta1PageResponse;
 }
 
+export interface SlashrefundQueryAllRefundResponse {
+  refund?: SlashrefundRefund[];
+
+  /**
+   * PageResponse is to be embedded in gRPC response messages where the
+   * corresponding request message has used PageRequest.
+   *
+   *  message SomeResponse {
+   *          repeated Bar results = 1;
+   *          PageResponse page = 2;
+   *  }
+   */
+  pagination?: V1Beta1PageResponse;
+}
+
 export interface SlashrefundQueryAllUnbondingDepositResponse {
   unbondingDeposit?: SlashrefundUnbondingDeposit[];
 
@@ -239,7 +254,12 @@ export interface SlashrefundQueryGetDepositResponse {
 }
 
 export interface SlashrefundQueryGetRefundPoolResponse {
+  /** TODO: to account for more than one token, Tokens and Shares must be a struct. */
   refundPool?: SlashrefundRefundPool;
+}
+
+export interface SlashrefundQueryGetRefundResponse {
+  refund?: SlashrefundRefund;
 }
 
 export interface SlashrefundQueryGetUnbondingDepositResponse {
@@ -254,9 +274,25 @@ export interface SlashrefundQueryParamsResponse {
   params?: SlashrefundParams;
 }
 
+export interface SlashrefundRefund {
+  delegator?: string;
+  validator?: string;
+  shares?: string;
+}
+
+/**
+ * TODO: to account for more than one token, Tokens and Shares must be a struct.
+ */
 export interface SlashrefundRefundPool {
-  operatorAddress?: string;
-  tokens?: string;
+  operator_address?: string;
+
+  /**
+   * Coin defines a token with a denomination and an amount.
+   *
+   * NOTE: The amount field is an Int which implements the custom method
+   * signatures required by gogoproto.
+   */
+  tokens?: V1Beta1Coin;
   shares?: string;
 }
 
@@ -646,6 +682,48 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
   queryParams = (params: RequestParams = {}) =>
     this.request<SlashrefundQueryParamsResponse, RpcStatus>({
       path: `/made-in-block/slash-refund/slashrefund/params`,
+      method: "GET",
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags Query
+   * @name QueryRefundAll
+   * @summary Queries a list of Refund items.
+   * @request GET:/made-in-block/slash-refund/slashrefund/refund
+   */
+  queryRefundAll = (
+    query?: {
+      "pagination.key"?: string;
+      "pagination.offset"?: string;
+      "pagination.limit"?: string;
+      "pagination.count_total"?: boolean;
+      "pagination.reverse"?: boolean;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<SlashrefundQueryAllRefundResponse, RpcStatus>({
+      path: `/made-in-block/slash-refund/slashrefund/refund`,
+      method: "GET",
+      query: query,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags Query
+   * @name QueryRefund
+   * @summary Queries a Refund by index.
+   * @request GET:/made-in-block/slash-refund/slashrefund/refund/{delegator}/{validator}
+   */
+  queryRefund = (delegator: string, validator: string, params: RequestParams = {}) =>
+    this.request<SlashrefundQueryGetRefundResponse, RpcStatus>({
+      path: `/made-in-block/slash-refund/slashrefund/refund/${delegator}/${validator}`,
       method: "GET",
       format: "json",
       ...params,
