@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -15,10 +17,13 @@ func (k Keeper) Withdraw(
 	witShares sdk.Dec,
 ) (sdk.Coin, time.Time, error) {
 
+	logger := k.Logger(ctx)
+	logger.Error("creating unbonding deposit entry:")
+
 	witAmt, err := k.Unbond(ctx, depAddr, valAddr, witShares)
 	if err != nil {
-		// TODO: change "stake"
-		return sdk.NewCoin("stake", sdk.NewInt(0)), time.Time{}, err
+		// TODO: change k.AllowedTokensList(ctx)[0] to handle different denoms
+		return sdk.NewCoin(k.AllowedTokensList(ctx)[0], sdk.NewInt(0)), time.Time{}, err
 	}
 
 	completionTime := ctx.BlockHeader().Time.Add(k.stakingKeeper.UnbondingTime(ctx))
@@ -27,7 +32,15 @@ func (k Keeper) Withdraw(
 
 	k.InsertUBDQueue(ctx, ubd, completionTime)
 
-	return sdk.NewCoin("stake", witAmt), completionTime, nil
+	// logger
+	logger.Error(fmt.Sprintf("  new entry:"))
+	logger.Error(fmt.Sprintf("    - initialBalance=%s", witAmt.String()))
+	logger.Error(fmt.Sprintf("    - creationHeight=%s", fmt.Sprint(ctx.BlockHeight())))
+	logger.Error(fmt.Sprintf("    - completionTime=%s", completionTime.String()))
+	logger.Error(fmt.Sprintf("    - depositor=%s", ubd.DepositorAddress))
+	logger.Error(fmt.Sprintf("    - validator=%s", ubd.ValidatorAddress))
+
+	return sdk.NewCoin(k.AllowedTokensList(ctx)[0], witAmt), completionTime, nil
 }
 
 func (k Keeper) ValidateWithdrawAmount(

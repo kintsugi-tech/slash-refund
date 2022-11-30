@@ -275,8 +275,8 @@ export interface SlashrefundQueryParamsResponse {
 }
 
 export interface SlashrefundRefund {
-  delegator?: string;
-  validator?: string;
+  delegator_address?: string;
+  validator_address?: string;
   shares?: string;
 }
 

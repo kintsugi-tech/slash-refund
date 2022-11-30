@@ -54,7 +54,13 @@ slash-refundd tx staking delegate $valaddr2 90000000stake --from bob --home $FLD
     | grep raw_log
 #===================================================================
 
+echo "    Balance of bob:    "
 slash-refundd q bank balances $(slash-refundd keys show bob -a)
+echo "--------------------------"
+echo "    All delegations for val2:    "
+slash-refundd q staking delegations-to $valaddr2
+echo "--------------------------"
+
 
 # DEPOSIT 
 #===================================================================
@@ -94,7 +100,12 @@ do
     slash-refundd tx staking unbond $valaddr2 100000stake --from bob -y \
         --broadcast-mode block \
         | grep raw_log
+    echo "    All delegations for val2:    "
+    slash-refundd q staking delegations-to $valaddr2
+    echo "--------------------------"
+    echo "    All unbonding delegations for val2:    "
     slash-refundd q staking unbonding-delegations-from $valaddr2
+    echo "--------------------------"
     echo -----------------------------------------------------
 done
 #===================================================================
