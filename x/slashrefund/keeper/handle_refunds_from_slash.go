@@ -20,7 +20,7 @@ func (k Keeper) HandleRefundsFromSlash(ctx sdk.Context, slashEvent sdk.Event) (r
 	// Iterate attributes to find which validators has been slashed
 	var validator stakingtypes.Validator
 	var isFound bool
-	var burnedTokens sdk.Int
+	var validatorBurnedTokens sdk.Int
 	var infractionHeight sdk.Int
 	var slashFactor sdk.Dec
 
@@ -44,9 +44,9 @@ func (k Keeper) HandleRefundsFromSlash(ctx sdk.Context, slashEvent sdk.Event) (r
 				return sdk.NewInt(0)
 			}
 		case "burned_coins":
-			burnedTokens, isFound = sdk.NewIntFromString(string(attr.GetValue()))
+			validatorBurnedTokens, isFound = sdk.NewIntFromString(string(attr.GetValue()))
 			if !isFound {
-				//ERROR in converting burnedTokens into int.
+				//ERROR in converting validatorBurnedTokens into int.
 				return sdk.NewInt(0)
 			}
 		case "infraction_height":
@@ -96,14 +96,14 @@ func (k Keeper) HandleRefundsFromSlash(ctx sdk.Context, slashEvent sdk.Event) (r
 
 		// draw from pool
 		//TODO: depPool Tokens has also a denom, should be managed
-		refundAmount, err = k.UpdateValidatorDepositPool(ctx, burnedTokens, depPool, validator)
+		refundAmount, err = k.UpdateValidatorDepositPool(ctx, validatorBurnedTokens, depPool, validator)
 		if err != nil {
 			//ERROR in RefundFromValidatorPool
 			return sdk.NewInt(0)
 		}
 
 		// compute refund factor
-		refFactor := sdk.NewDecFromInt(refundAmount).QuoInt(burnedTokens)
+		refFactor := sdk.NewDecFromInt(refundAmount).QuoInt(validatorBurnedTokens)
 
 		// get refund pool shares-token ratio
 		poolShTkRatio, err := refPool.GetSharesOverTokensRatio()
@@ -113,7 +113,7 @@ func (k Keeper) HandleRefundsFromSlash(ctx sdk.Context, slashEvent sdk.Event) (r
 		}
 
 		// refund delegations
-		amtRefundedDel, sharesRefundDel, err := k.RefundSlashedDelegations(ctx, valAddr, infractionHeight.Int64(), slashFactor, refFactor, poolShTkRatio)
+		amtRefundedDel, sharesRefundDel, err := k.RefundSlashedDelegations(ctx, valAddr, infractionHeight.Int64(), refundAmount, poolShTkRatio)
 		if err != nil {
 			//ERROR in RefundSlashedDelegations
 		}
@@ -138,11 +138,11 @@ func (k Keeper) HandleRefundsFromSlash(ctx sdk.Context, slashEvent sdk.Event) (r
 		logger.Error(fmt.Sprintf("Slash info:"))
 		logger.Error(fmt.Sprintf("  validator=%s", validator.OperatorAddress))
 		logger.Error(fmt.Sprintf("  slash factor=%s", slashFactor.String()))
-		logger.Error(fmt.Sprintf("  burned=%s", burnedTokens.String()))
 		logger.Error(fmt.Sprintf("  infraction height=%s", infractionHeight.String()))
+		logger.Error(fmt.Sprintf("  burned from validator=%s", validatorBurnedTokens.String()))
+		logger.Error(fmt.Sprintf("infractionHeight == currentHeight :"))
 		logger.Error(fmt.Sprintf("  depPool found=%t", isFoundDepositPool))
 		logger.Error(fmt.Sprintf("  refPool found=%t", found))
-		logger.Error(fmt.Sprintf("infractionHeight == currentHeight :"))
 		logger.Error(fmt.Sprintf("  avlbl  in  depPool=%s", depPool.Tokens.Amount.String()))
 		logger.Error(fmt.Sprintf("  drawn from depPool=%s", refundAmount.String()))
 		logger.Error(fmt.Sprintf("  refFactor=%s", refFactor.String()))
@@ -178,6 +178,11 @@ func (k Keeper) HandleRefundsFromSlash(ctx sdk.Context, slashEvent sdk.Event) (r
 		if availableRefundTokens.IsZero() {
 			return sdk.NewInt(0)
 		}
+
+		// = COMPUTE BURNED =
+		ubdelBurnedTokens, err := k.ComputeSlashedUnbondingDelegations(ctx, valAddr, infractionHeight.Int64(), slashFactor)
+		redelBurnedTokens, err := k.ComputeSlashedRedelegations(ctx, valAddr, infractionHeight.Int64(), slashFactor)
+		burnedTokens := validatorBurnedTokens.Add(ubdelBurnedTokens).Add(redelBurnedTokens)
 
 		// ====== DRAW ======
 		// drawFactor is not capped at 1 because deposit and unbonding deposit update methods
@@ -228,7 +233,8 @@ func (k Keeper) HandleRefundsFromSlash(ctx sdk.Context, slashEvent sdk.Event) (r
 		}
 
 		// refund delegations
-		amtRefundedDel, sharesRefundDel, err := k.RefundSlashedDelegations(ctx, valAddr, infractionHeight.Int64(), slashFactor, refFactor, poolShTkRatio)
+		refundForDelegators := refundAmount.Sub(amtRefundedUBDs).Sub(amtRefundedRedel)
+		amtRefundedDel, sharesRefundDel, err := k.RefundSlashedDelegations(ctx, valAddr, infractionHeight.Int64(), refundForDelegators, poolShTkRatio)
 		if err != nil {
 			//ERROR in RefundSlashedDelegations
 		}
@@ -254,11 +260,14 @@ func (k Keeper) HandleRefundsFromSlash(ctx sdk.Context, slashEvent sdk.Event) (r
 		logger.Error(fmt.Sprintf("Slash info:"))
 		logger.Error(fmt.Sprintf("  validator=%s", validator.OperatorAddress))
 		logger.Error(fmt.Sprintf("  slash factor=%s", slashFactor.String()))
-		logger.Error(fmt.Sprintf("  burned=%s", burnedTokens.String()))
 		logger.Error(fmt.Sprintf("  infraction height=%s", infractionHeight.String()))
+		logger.Error(fmt.Sprintf("  burned from validator=%s", validatorBurnedTokens.String()))
+		logger.Error(fmt.Sprintf("infractionHeight < currentHeight :"))
+		logger.Error(fmt.Sprintf("  burned from   undel  =%s", ubdelBurnedTokens.String()))
+		logger.Error(fmt.Sprintf("  burned from   redel  =%s", redelBurnedTokens.String()))
+		logger.Error(fmt.Sprintf("  burned     total     =%s", burnedTokens.String()))
 		logger.Error(fmt.Sprintf("  depPool found=%t", isFoundDepositPool))
 		logger.Error(fmt.Sprintf("  refPool found=%t", found))
-		logger.Error(fmt.Sprintf("infractionHeight < currentHeight :"))
 		logger.Error(fmt.Sprintf("  avlbl  in  depPool=%s", depPool.Tokens.Amount.String()))
 		logger.Error(fmt.Sprintf("  avlbl  in  unbndng=%s", unbondingRefunds.String()))
 		logger.Error(fmt.Sprintf("  total ref availabl=%s", availableRefundTokens.String()))
@@ -390,6 +399,86 @@ func (k Keeper) UpdateUnbondingDepositEntries(ctx sdk.Context, unbondingDeposit 
 
 	return refundAmount, nil
 
+}
+
+// TODO: handle output of different denoms (return skd.Coins)
+func (k Keeper) ComputeSlashedUnbondingDelegations(
+	ctx sdk.Context,
+	valAddr sdk.ValAddress,
+	infractionHeight int64,
+	slashFactor sdk.Dec,
+) (totalSlashedAmt sdk.Int, err error) {
+
+	logger := k.Logger(ctx)
+	logger.Error(fmt.Sprintf("  computing slashed unbonding delegations :"))
+
+	unbondingDelegations := k.stakingKeeper.GetUnbondingDelegationsFromValidator(ctx, valAddr)
+	now := ctx.BlockHeader().Time
+	totalSlashedAmt = sdk.NewInt(0)
+
+	for _, ubd := range unbondingDelegations {
+
+		// process slashed entries
+		for _, entry := range ubd.Entries {
+
+			// If unbonding started before this height, stake didn't contribute to infraction
+			if entry.CreationHeight < infractionHeight {
+				continue
+			}
+			if entry.IsMature(now) {
+				// Unbonding delegation were no longer eligible for slashing, skip it
+				continue
+			}
+
+			slashedAmtDec := slashFactor.MulInt(entry.InitialBalance)
+			slashedAmt := slashedAmtDec.TruncateInt()
+
+			totalSlashedAmt = totalSlashedAmt.Add(slashedAmt)
+			logger.Error(fmt.Sprintf("    undel entry: salshed=%s , initialBalance=%s , balance=%s , delegator=%s", slashedAmt.String(), entry.InitialBalance.String(), entry.Balance.String(), ubd.DelegatorAddress))
+		}
+	}
+
+	return totalSlashedAmt, err
+}
+
+// TODO: handle output of different denoms (return skd.Coins)
+func (k Keeper) ComputeSlashedRedelegations(
+	ctx sdk.Context,
+	valAddr sdk.ValAddress,
+	infractionHeight int64,
+	slashFactor sdk.Dec,
+) (totalSlashedAmt sdk.Int, err error) {
+
+	logger := k.Logger(ctx)
+	logger.Error(fmt.Sprintf("  computing slashed redelegations:"))
+
+	redelegations := k.stakingKeeper.GetRedelegationsFromSrcValidator(ctx, valAddr)
+	now := ctx.BlockHeader().Time
+	totalSlashedAmt = sdk.NewInt(0)
+
+	for _, red := range redelegations {
+
+		// process slashed entries
+		for _, entry := range red.Entries {
+
+			// If unbonding started before this height, stake didn't contribute to infraction
+			if entry.CreationHeight < infractionHeight {
+				continue
+			}
+			if entry.IsMature(now) {
+				// Unbonding delegation were no longer eligible for slashing, skip it
+				continue
+			}
+
+			slashedAmtDec := slashFactor.MulInt(entry.InitialBalance)
+			slashedAmt := slashedAmtDec.TruncateInt()
+
+			totalSlashedAmt = totalSlashedAmt.Add(slashedAmt)
+			logger.Error(fmt.Sprintf("    redel entry: salshed=%s , initialBalance=%s , delegator=%s", slashedAmt.String(), entry.InitialBalance.String(), red.DelegatorAddress))
+		}
+	}
+
+	return totalSlashedAmt, err
 }
 
 // TODO: handle output of different denoms (return skd.Coins)
@@ -526,8 +615,7 @@ func (k Keeper) RefundSlashedDelegations(
 	ctx sdk.Context,
 	valAddr sdk.ValAddress,
 	infractionHeight int64,
-	slashFactor sdk.Dec,
-	refFactor sdk.Dec,
+	refund sdk.Int,
 	poolShTkRatio sdk.Dec,
 ) (totalRefundedAmt sdk.Int, totalRefundShares sdk.Dec, err error) {
 
@@ -541,6 +629,7 @@ func (k Keeper) RefundSlashedDelegations(
 		return sdk.NewInt(0), sdk.NewDec(0), sdk.ErrEmptyHexAddress
 	}
 
+	refundPerShare := sdk.NewDecFromInt(refund).Quo(validator.GetDelegatorShares())
 	totalRefundedAmt = sdk.ZeroInt()
 	totalRefundShares = sdk.ZeroDec()
 
@@ -551,21 +640,26 @@ func (k Keeper) RefundSlashedDelegations(
 			return sdk.NewInt(0), sdk.NewDec(0), err
 		}
 
-		balanceDec := validator.TokensFromShares(del.Shares)
-		balance := balanceDec.TruncateInt()
+		delRefundAmtDec := refundPerShare.Mul(del.Shares)
+		delRefundAmt := delRefundAmtDec.TruncateInt()
 
-		//TODO check if zero-balance-check is needed to speed up the iteration
+		/*
+			balanceDec := validator.TokensFromShares(del.Shares)
+			balance := balanceDec.TruncateInt()
 
-		initialBalanceDec := balanceDec.Quo(sdk.NewDec(1).Sub(slashFactor))
-		delInitialBalance := initialBalanceDec.TruncateInt()
+			//TODO check if zero-balance-check is needed to speed up the iteration
 
-		burnedAmt := delInitialBalance.Sub(balance)
+			initialBalanceDec := balanceDec.Quo(sdk.NewDec(1).Sub(slashFactor))
+			initialBalance := initialBalanceDec.TruncateInt()
 
-		refundAmtDec := refFactor.MulInt(burnedAmt)
-		refundAmt := refundAmtDec.TruncateInt()
+			burnedAmt := initialBalance.Sub(balance)
+
+			refundAmtDec := refFactor.MulInt(burnedAmt)
+			refundAmt := refundAmtDec.TruncateInt()
+		*/
 
 		// compute shares to issue
-		delegatorShares := poolShTkRatio.MulInt(refundAmt)
+		delRefundShares := poolShTkRatio.MulInt(delRefundAmt)
 		if err != nil {
 			//ERROR in refundPool.SharesFromTokens
 			return sdk.NewInt(0), sdk.NewDec(0), err
@@ -576,13 +670,13 @@ func (k Keeper) RefundSlashedDelegations(
 		if !found {
 			refund = types.NewRefund(delAddr, valAddr, sdk.ZeroDec())
 		}
-		refund.Shares = refund.Shares.Add(delegatorShares)
+		refund.Shares = refund.Shares.Add(delRefundShares)
 		k.SetRefund(ctx, refund)
-		logger.Error(fmt.Sprintf("    deleg: refund=%s , shares=%s , delegator=%s", refundAmt.String(), delegatorShares.String(), del.DelegatorAddress))
+		logger.Error(fmt.Sprintf("    deleg: refund=%s , shares=%s , delegator=%s", delRefundAmt.String(), delRefundShares.String(), del.DelegatorAddress))
 
 		// update totals
-		totalRefundedAmt = totalRefundedAmt.Add(refundAmt)
-		totalRefundShares = totalRefundShares.Add(delegatorShares)
+		totalRefundedAmt = totalRefundedAmt.Add(delRefundAmt)
+		totalRefundShares = totalRefundShares.Add(delRefundShares)
 	}
 
 	return totalRefundedAmt, totalRefundShares, err
