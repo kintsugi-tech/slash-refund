@@ -27,6 +27,18 @@ export interface MsgWithdrawResponse {
   completionTime: Date | undefined;
 }
 
+export interface MsgClaim {
+  /**
+   * option (gogoproto.equal)           = false;
+   * option (gogoproto.goproto_getters) = false;
+   */
+  delegatorAddress: string;
+  validatorAddress: string;
+  amount: Coin | undefined;
+}
+
+export interface MsgClaimResponse {}
+
 const baseMsgDeposit: object = { depositorAddress: "", validatorAddress: "" };
 
 export const MsgDeposit = {
@@ -340,12 +352,156 @@ export const MsgWithdrawResponse = {
   },
 };
 
+const baseMsgClaim: object = { delegatorAddress: "", validatorAddress: "" };
+
+export const MsgClaim = {
+  encode(message: MsgClaim, writer: Writer = Writer.create()): Writer {
+    if (message.delegatorAddress !== "") {
+      writer.uint32(10).string(message.delegatorAddress);
+    }
+    if (message.validatorAddress !== "") {
+      writer.uint32(18).string(message.validatorAddress);
+    }
+    if (message.amount !== undefined) {
+      Coin.encode(message.amount, writer.uint32(26).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: Reader | Uint8Array, length?: number): MsgClaim {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = { ...baseMsgClaim } as MsgClaim;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.delegatorAddress = reader.string();
+          break;
+        case 2:
+          message.validatorAddress = reader.string();
+          break;
+        case 3:
+          message.amount = Coin.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MsgClaim {
+    const message = { ...baseMsgClaim } as MsgClaim;
+    if (
+      object.delegatorAddress !== undefined &&
+      object.delegatorAddress !== null
+    ) {
+      message.delegatorAddress = String(object.delegatorAddress);
+    } else {
+      message.delegatorAddress = "";
+    }
+    if (
+      object.validatorAddress !== undefined &&
+      object.validatorAddress !== null
+    ) {
+      message.validatorAddress = String(object.validatorAddress);
+    } else {
+      message.validatorAddress = "";
+    }
+    if (object.amount !== undefined && object.amount !== null) {
+      message.amount = Coin.fromJSON(object.amount);
+    } else {
+      message.amount = undefined;
+    }
+    return message;
+  },
+
+  toJSON(message: MsgClaim): unknown {
+    const obj: any = {};
+    message.delegatorAddress !== undefined &&
+      (obj.delegatorAddress = message.delegatorAddress);
+    message.validatorAddress !== undefined &&
+      (obj.validatorAddress = message.validatorAddress);
+    message.amount !== undefined &&
+      (obj.amount = message.amount ? Coin.toJSON(message.amount) : undefined);
+    return obj;
+  },
+
+  fromPartial(object: DeepPartial<MsgClaim>): MsgClaim {
+    const message = { ...baseMsgClaim } as MsgClaim;
+    if (
+      object.delegatorAddress !== undefined &&
+      object.delegatorAddress !== null
+    ) {
+      message.delegatorAddress = object.delegatorAddress;
+    } else {
+      message.delegatorAddress = "";
+    }
+    if (
+      object.validatorAddress !== undefined &&
+      object.validatorAddress !== null
+    ) {
+      message.validatorAddress = object.validatorAddress;
+    } else {
+      message.validatorAddress = "";
+    }
+    if (object.amount !== undefined && object.amount !== null) {
+      message.amount = Coin.fromPartial(object.amount);
+    } else {
+      message.amount = undefined;
+    }
+    return message;
+  },
+};
+
+const baseMsgClaimResponse: object = {};
+
+export const MsgClaimResponse = {
+  encode(_: MsgClaimResponse, writer: Writer = Writer.create()): Writer {
+    return writer;
+  },
+
+  decode(input: Reader | Uint8Array, length?: number): MsgClaimResponse {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = { ...baseMsgClaimResponse } as MsgClaimResponse;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(_: any): MsgClaimResponse {
+    const message = { ...baseMsgClaimResponse } as MsgClaimResponse;
+    return message;
+  },
+
+  toJSON(_: MsgClaimResponse): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  fromPartial(_: DeepPartial<MsgClaimResponse>): MsgClaimResponse {
+    const message = { ...baseMsgClaimResponse } as MsgClaimResponse;
+    return message;
+  },
+};
+
 /** Msg defines the slash-refund Msg service */
 export interface Msg {
   /** Deposit defines a method to make a deposit into the module */
   Deposit(request: MsgDeposit): Promise<MsgDepositResponse>;
   /** Withdraw defines a method to withdraw a previously deposited amount */
   Withdraw(request: MsgWithdraw): Promise<MsgWithdrawResponse>;
+  /** this line is used by starport scaffolding # proto/tx/rpc */
+  Claim(request: MsgClaim): Promise<MsgClaimResponse>;
 }
 
 export class MsgClientImpl implements Msg {
@@ -371,6 +527,16 @@ export class MsgClientImpl implements Msg {
       data
     );
     return promise.then((data) => MsgWithdrawResponse.decode(new Reader(data)));
+  }
+
+  Claim(request: MsgClaim): Promise<MsgClaimResponse> {
+    const data = MsgClaim.encode(request).finish();
+    const promise = this.rpc.request(
+      "madeinblock.slashrefund.slashrefund.Msg",
+      "Claim",
+      data
+    );
+    return promise.then((data) => MsgClaimResponse.decode(new Reader(data)));
   }
 }
 

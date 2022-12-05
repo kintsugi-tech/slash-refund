@@ -155,6 +155,8 @@ export interface SlashrefundDepositPool {
   shares?: string;
 }
 
+export type SlashrefundMsgClaimResponse = object;
+
 export type SlashrefundMsgDepositResponse = object;
 
 export interface SlashrefundMsgWithdrawResponse {

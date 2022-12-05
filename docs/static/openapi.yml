@@ -76067,6 +76067,8 @@ definitions:
     description: >-
       TODO: to account for more than one token, Tokens and Shares must be a
       struct.
+  madeinblock.slashrefund.slashrefund.MsgClaimResponse:
+    type: object
   madeinblock.slashrefund.slashrefund.MsgDepositResponse:
     type: object
   madeinblock.slashrefund.slashrefund.MsgWithdrawResponse:
