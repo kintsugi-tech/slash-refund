@@ -126,8 +126,8 @@ func (k Keeper) HandleRefundsFromSlash(ctx sdk.Context, slashEvent sdk.Event) (r
 		// update refund pool
 		if !refundAmount.IsZero() && !sharesRefundDel.IsZero() {
 			refundTokens := sdk.NewCoin(k.AllowedTokensList(ctx)[0], refundAmount)
-			refPool.Tokens.Add(refundTokens)
-			refPool.Shares.Add(sharesRefundDel)
+			refPool.Tokens = refPool.Tokens.Add(refundTokens)
+			refPool.Shares = refPool.Shares.Add(sharesRefundDel)
 			k.SetRefundPool(ctx, refPool)
 			logger.Error("  refund pool updated.")
 		}
@@ -248,8 +248,8 @@ func (k Keeper) HandleRefundsFromSlash(ctx sdk.Context, slashEvent sdk.Event) (r
 		// update refund pool
 		if !refundAmount.IsZero() && !totalRefundShares.IsZero() {
 			refundTokens := sdk.NewCoin(k.AllowedTokensList(ctx)[0], refundAmount)
-			refPool.Tokens.Add(refundTokens)
-			refPool.Shares.Add(totalRefundShares)
+			refPool.Tokens = refPool.Tokens.Add(refundTokens)
+			refPool.Shares = refPool.Shares.Add(totalRefundShares)
 			k.SetRefundPool(ctx, refPool)
 			logger.Error("  refund pool updated.")
 		}
@@ -642,21 +642,6 @@ func (k Keeper) RefundSlashedDelegations(
 
 		delRefundAmtDec := refundPerShare.Mul(del.Shares)
 		delRefundAmt := delRefundAmtDec.TruncateInt()
-
-		/*
-			balanceDec := validator.TokensFromShares(del.Shares)
-			balance := balanceDec.TruncateInt()
-
-			//TODO check if zero-balance-check is needed to speed up the iteration
-
-			initialBalanceDec := balanceDec.Quo(sdk.NewDec(1).Sub(slashFactor))
-			initialBalance := initialBalanceDec.TruncateInt()
-
-			burnedAmt := initialBalance.Sub(balance)
-
-			refundAmtDec := refFactor.MulInt(burnedAmt)
-			refundAmt := refundAmtDec.TruncateInt()
-		*/
 
 		// compute shares to issue
 		delRefundShares := poolShTkRatio.MulInt(delRefundAmt)

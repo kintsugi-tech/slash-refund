@@ -17,7 +17,7 @@ func CmdClaim() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "claim [validator-address] [amount]",
 		Short: "Broadcast message claim",
-		Args:  cobra.ExactArgs(3),
+		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argValidatorAddress := args[0]
 			argAmount := args[1]

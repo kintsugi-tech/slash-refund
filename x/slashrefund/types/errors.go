@@ -20,4 +20,5 @@ var (
 	ErrNoRefundForAddress          = sdkerrors.Register(ModuleName, 1400, "no refund for (address, validator) tuple")
 	ErrNoRefundPoolForValidator    = sdkerrors.Register(ModuleName, 1500, "no refund pool for validator")
 	ErrNotEnoughRefundShares       = sdkerrors.Register(ModuleName, 1600, "not enough refund shares")
+	ErrZeroClaim                   = sdkerrors.Register(ModuleName, 1700, "cannot claim zero amount")
 )

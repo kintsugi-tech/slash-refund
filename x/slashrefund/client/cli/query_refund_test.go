@@ -29,8 +29,8 @@ func networkWithRefundObjects(t *testing.T, n int) (*network.Network, []types.Re
 
 	for i := 0; i < n; i++ {
 		refund := types.Refund{
-			Delegator: strconv.Itoa(i),
-			Validator: strconv.Itoa(i),
+			DelegatorAddress: strconv.Itoa(i),
+			ValidatorAddress: strconv.Itoa(i),
 		}
 		nullify.Fill(&refund)
 		state.RefundList = append(state.RefundList, refund)
@@ -59,8 +59,8 @@ func TestShowRefund(t *testing.T) {
 	}{
 		{
 			desc:        "found",
-			idDelegator: objs[0].Delegator,
-			idValidator: objs[0].Validator,
+			idDelegator: objs[0].DelegatorAddress,
+			idValidator: objs[0].ValidatorAddress,
 
 			args: common,
 			obj:  objs[0],

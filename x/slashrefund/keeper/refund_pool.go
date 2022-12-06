@@ -9,46 +9,39 @@ import (
 // SetRefundPool set a specific refundPool in the store from its index
 func (k Keeper) SetRefundPool(ctx sdk.Context, refundPool types.RefundPool) {
 
-	valOperAddr, err := sdk.ValAddressFromBech32(refundPool.OperatorAddress)
+	valAddr, err := sdk.ValAddressFromBech32(refundPool.OperatorAddress)
 	if err != nil {
 		panic(err)
 	}
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RefundPoolKeyPrefix))
 	b := k.cdc.MustMarshal(&refundPool)
-	store.Set(types.RefundPoolKey(
-		valOperAddr,
-	), b)
+	store.Set(types.RefundPoolKey(valAddr), b)
 }
 
 // GetRefundPool returns a refundPool from its index
 func (k Keeper) GetRefundPool(
 	ctx sdk.Context,
-	operatorAddress sdk.ValAddress,
+	valAddr sdk.ValAddress,
 
-) (val types.RefundPool, found bool) {
+) (refPool types.RefundPool, found bool) {
+
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RefundPoolKeyPrefix))
-
-	b := store.Get(types.RefundPoolKey(
-		operatorAddress,
-	))
+	b := store.Get(types.RefundPoolKey(valAddr))
 	if b == nil {
-		return val, false
+		return refPool, false
 	}
-
-	k.cdc.MustUnmarshal(b, &val)
-	return val, true
+	k.cdc.MustUnmarshal(b, &refPool)
+	return refPool, true
 }
 
 // RemoveRefundPool removes a refundPool from the store
 func (k Keeper) RemoveRefundPool(
 	ctx sdk.Context,
-	operatorAddress sdk.ValAddress,
+	valAddr sdk.ValAddress,
 
 ) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RefundPoolKeyPrefix))
-	store.Delete(types.RefundPoolKey(
-		operatorAddress,
-	))
+	store.Delete(types.RefundPoolKey(valAddr))
 }
 
 // GetAllRefundPool returns all refundPool
@@ -59,9 +52,9 @@ func (k Keeper) GetAllRefundPool(ctx sdk.Context) (list []types.RefundPool) {
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
-		var val types.RefundPool
-		k.cdc.MustUnmarshal(iterator.Value(), &val)
-		list = append(list, val)
+		var refPool types.RefundPool
+		k.cdc.MustUnmarshal(iterator.Value(), &refPool)
+		list = append(list, refPool)
 	}
 
 	return
@@ -83,7 +76,6 @@ func (k Keeper) AddRefPoolTokensAndShares(
 			panic(err)
 		}
 		issuedShares = shares
-
 	}
 
 	refundPool.Tokens = refundPool.Tokens.Add(tokensToAdd)

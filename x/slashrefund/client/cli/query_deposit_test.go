@@ -29,7 +29,7 @@ func networkWithDepositObjects(t *testing.T, n int) (*network.Network, []types.D
 
 	for i := 0; i < n; i++ {
 		deposit := types.Deposit{
-			Address:          strconv.Itoa(i),
+			DepositorAddress: strconv.Itoa(i),
 			ValidatorAddress: strconv.Itoa(i),
 		}
 		nullify.Fill(&deposit)
@@ -59,7 +59,7 @@ func TestShowDeposit(t *testing.T) {
 	}{
 		{
 			desc:               "found",
-			idAddress:          objs[0].Address,
+			idAddress:          objs[0].DepositorAddress,
 			idValidatorAddress: objs[0].ValidatorAddress,
 
 			args: common,

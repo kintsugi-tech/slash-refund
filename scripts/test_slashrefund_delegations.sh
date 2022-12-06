@@ -52,14 +52,10 @@ valaddr2=$(slash-refundd keys show $VALKEY2 -a --bech val)
 slash-refundd tx staking delegate $valaddr2 90000000stake --from bob --home $FLDVAL2 -y \
     --broadcast-mode block \
     | grep raw_log
+echo "-------- All delegations for val2:    "
+slash-refundd q staking delegations-to $valaddr2
 #===================================================================
 
-echo "    Balance of bob:    "
-slash-refundd q bank balances $(slash-refundd keys show bob -a)
-echo "--------------------------"
-echo "    All delegations for val2:    "
-slash-refundd q staking delegations-to $valaddr2
-echo "--------------------------"
 
 
 # DEPOSIT 
@@ -80,11 +76,6 @@ sleep 1
 #===================================================================
 
 
-VALKEY2="carl"
-valaddr2=$(slash-refundd keys show $VALKEY2 -a --bech val)
-slash-refundd q bank balances $(slash-refundd keys show bob -a)
-slash-refundd q staking unbonding-delegations-from $valaddr2
-
 
 # CONTINUE QUERYING
 #===================================================================
@@ -95,11 +86,29 @@ do
     echo BLOCK:
     echo $(expr 1 + $(slash-refundd q block | jq '.block.header.height | tonumber'))
     echo ========
-    slash-refundd q staking delegations-to $valaddr2
     # wrong tx just to sync to wait for block to be committed
     slash-refundd tx staking unbond $valaddr2 1token --from carl -y \
         --broadcast-mode block \
         | grep raw_log
     echo -----------------------------------------------------
 done
+#===================================================================
+
+
+# CLAIM
+#===================================================================
+echo "-------- Balance of bob:" 
+slash-refundd q bank balances $(slash-refundd keys show bob -a)
+echo "-------- Claim:"
+slash-refundd tx slashrefund claim $valaddr2 500stake --from bob \
+    --broadcast-mode block -y | grep raw_log 
+echo "-------- Balance of bob:"
+slash-refundd q bank balances $(slash-refundd keys show bob -a)
+#===================================================================
+
+# CLAIM
+#===================================================================
+echo "-------- Claim (wrong: alice has no deposits):"
+slash-refundd tx slashrefund claim $valaddr2 500stake --from alice \
+    --broadcast-mode block -y | grep raw_log 
 #===================================================================
