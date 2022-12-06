@@ -31,16 +31,16 @@ func TestRefundQuerySingle(t *testing.T) {
 		{
 			desc: "First",
 			request: &types.QueryGetRefundRequest{
-				Delegator: msgs[0].Delegator,
-				Validator: msgs[0].Validator,
+				Delegator: msgs[0].DelegatorAddress,
+				Validator: msgs[0].ValidatorAddress,
 			},
 			response: &types.QueryGetRefundResponse{Refund: msgs[0]},
 		},
 		{
 			desc: "Second",
 			request: &types.QueryGetRefundRequest{
-				Delegator: msgs[1].Delegator,
-				Validator: msgs[1].Validator,
+				Delegator: msgs[1].DelegatorAddress,
+				Validator: msgs[1].ValidatorAddress,
 			},
 			response: &types.QueryGetRefundResponse{Refund: msgs[1]},
 		},

@@ -3,6 +3,8 @@ package keeper
 import (
 	//"fmt"
 
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
@@ -57,6 +59,8 @@ func (k Keeper) Claim(
 		return zeroCoins, err
 	}
 
+	logger := k.Logger(ctx)
+	logger.Error(fmt.Sprintf("Claim completed: %s%s, delegator %s, validator %s", refundCoin.Amount.String(), refundCoin.Denom, delAddr.String(), valAddr.String()))
 	return refundCoins, nil
 }
 
@@ -67,40 +71,50 @@ func (k Keeper) ValidateClaimAmount(
 	tokens sdk.Coin,
 ) (shares sdk.Dec, err error) {
 
+	logger := k.Logger(ctx)
+	logger.Error(fmt.Sprintf("Validating claim amount: %s%s, delegator %s, validator %s", tokens.Amount.String(), tokens.Denom, delAddr.String(), valAddr.String()))
+
 	isValid, err := k.CheckAllowedTokens(ctx, tokens.Denom)
 	if !isValid {
+		logger.Error("ERROR: Invalid denom")
 		return sdk.NewDec(0), err
 	}
 
 	if tokens.Amount.IsZero() {
+		logger.Error("ERROR: Zero claim")
 		return sdk.NewDec(0), types.ErrZeroWithdraw
 	}
 
 	refund, found := k.GetRefund(ctx, delAddr, valAddr)
 	if !found {
+		logger.Error("ERROR: No refund found")
 		return sdk.NewDec(0), types.ErrNoRefundForAddress
 	}
 
 	refPool, found := k.GetRefundPool(ctx, valAddr)
 	if !found {
+		logger.Error("ERROR: No refund pool found")
 		return sdk.NewDec(0), types.ErrNoRefundPoolForValidator
 	}
 
 	// compute shares from wanted withdraw tokens
 	shares, err = refPool.SharesFromTokens(tokens)
 	if err != nil {
+		logger.Error("ERROR: refPool.SharesFromTokens: ErrZeroTokensQuotient.")
 		return sdk.NewDec(0), err
 	}
 
 	// compute shares from wanted withdraw tokens, rounded down
 	sharesTruncated, err := refPool.SharesFromTokensTruncated(tokens)
 	if err != nil {
+		logger.Error("ERROR: refPool.SharesFromTokensTruncated: ErrZeroTokensQuotient.")
 		return sdk.NewDec(0), err
 	}
 
 	// check if wanted tokens converted to truncated shares are greater than actual total of delegator shares
 	delegatorShares := refund.GetShares()
 	if sharesTruncated.GT(delegatorShares) {
+		logger.Error("ERROR: Invalid claim amount.")
 		return sdk.NewDec(0), sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid token amount")
 	}
 
@@ -108,6 +122,8 @@ func (k Keeper) ValidateClaimAmount(
 	if shares.GT(delegatorShares) {
 		shares = delegatorShares
 	}
+
+	logger.Error("Validating claim amount: validated.")
 
 	return shares, nil
 }

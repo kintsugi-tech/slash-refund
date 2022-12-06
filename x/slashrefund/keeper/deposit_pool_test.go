@@ -29,9 +29,8 @@ func TestDepositPoolGet(t *testing.T) {
 	keeper, ctx := keepertest.SlashrefundKeeper(t)
 	items := createNDepositPool(keeper, ctx, 10)
 	for _, item := range items {
-		rst, found := keeper.GetDepositPool(ctx,
-			item.OperatorAddress,
-		)
+		valAddr, _ := sdk.ValAddressFromBech32(item.OperatorAddress)
+		rst, found := keeper.GetDepositPool(ctx, valAddr)
 		require.True(t, found)
 		require.Equal(t,
 			nullify.Fill(&item),
@@ -43,12 +42,9 @@ func TestDepositPoolRemove(t *testing.T) {
 	keeper, ctx := keepertest.SlashrefundKeeper(t)
 	items := createNDepositPool(keeper, ctx, 10)
 	for _, item := range items {
-		keeper.RemoveDepositPool(ctx,
-			item.OperatorAddress,
-		)
-		_, found := keeper.GetDepositPool(ctx,
-			item.OperatorAddress,
-		)
+		valAddr, _ := sdk.ValAddressFromBech32(item.OperatorAddress)
+		keeper.RemoveDepositPool(ctx, valAddr)
+		_, found := keeper.GetDepositPool(ctx, valAddr)
 		require.False(t, found)
 	}
 }

@@ -30,9 +30,11 @@ func TestUnbondingDepositGet(t *testing.T) {
 	keeper, ctx := keepertest.SlashrefundKeeper(t)
 	items := createNUnbondingDeposit(keeper, ctx, 10)
 	for _, item := range items {
+		depAddr, _ := sdk.AccAddressFromBech32(item.DepositorAddress)
+		valAddr, _ := sdk.ValAddressFromBech32(item.ValidatorAddress)
 		rst, found := keeper.GetUnbondingDeposit(ctx,
-			item.DepositorAddress,
-			item.ValidatorAddress,
+			depAddr,
+			valAddr,
 		)
 		require.True(t, found)
 		require.Equal(t,
@@ -49,9 +51,11 @@ func TestUnbondingDepositRemove(t *testing.T) {
 			item.DepositorAddress,
 			item.ValidatorAddress,
 		)
+		depAddr, _ := sdk.AccAddressFromBech32(item.DepositorAddress)
+		valAddr, _ := sdk.ValAddressFromBech32(item.ValidatorAddress)
 		_, found := keeper.GetUnbondingDeposit(ctx,
-			item.DepositorAddress,
-			item.ValidatorAddress,
+			depAddr,
+			valAddr,
 		)
 		require.False(t, found)
 	}
