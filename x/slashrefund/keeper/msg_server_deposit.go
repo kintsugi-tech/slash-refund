@@ -37,6 +37,11 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 		return nil, err
 	}
 
+	// Check if is non-zero deposit
+	if msg.Amount.Amount.IsZero() {
+		return nil, types.ErrZeroDeposit
+	}
+
 	// === STATE TRANSITION ===
 	newShares, err := k.Keeper.Deposit(ctx, depositorAddress, msg.Amount, validator)
 	if err != nil {

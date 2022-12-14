@@ -167,14 +167,3 @@ echo "list all deposits:" ; slash-refundd q  slashrefund list-deposit
 echo "deposit-pool:" ; slash-refundd q slashrefund show-deposit-pool $valaddr1
 echo "list unbonding deposits:" ; slash-refundd q slashrefund list-unbonding-deposit
 echo
-
-
-
-
-#    WARNINGS     -------------------------#
-# TODO: withdraw decimal is allowed
-echo  "TEST: withdraw decimal" ; echo ------------------------------------------ 
-slash-refundd tx slashrefund withdraw $valaddr1 1.5$DENOM --from $DEPKEY2 -y | grep raw_log
-echo
-#------------------------------------------#
-

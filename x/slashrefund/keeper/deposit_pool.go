@@ -76,7 +76,6 @@ func (k Keeper) AddDepPoolTokensAndShares(
 	if depositPool.Shares.IsZero() {
 		issuedShares = sdk.NewDecFromInt(tokensToAdd.Amount)
 	} else {
-		// TODO: we have to manage post slashing send of tokens. We have to put zero shares when  tokens -> 0
 		shares, err := depositPool.SharesFromTokens(tokensToAdd)
 		if err != nil {
 			panic(err)
@@ -99,27 +98,30 @@ func (k Keeper) RemoveDepPoolTokensAndShares(
 	sharesToRemove sdk.Dec,
 ) (types.DepositPool, sdk.Int) {
 
-	var issuedTokensAmt sdk.Int
+	// TODO: generalize it considering AllowedTokens param
+
+	var removedTokensAmt sdk.Int
+	var remainingTokensAmt sdk.Int
 
 	remainingShares := depositPool.Shares.Sub(sharesToRemove)
 
 	if remainingShares.IsZero() {
 		// last delegation share gets any trimmings
-		issuedTokensAmt = depositPool.Tokens.Amount
-		// TODO: generalize it considering AllowedTokens param
-		depositPool.Tokens.Amount = sdk.ZeroInt()
+		removedTokensAmt = depositPool.Tokens.Amount
+		remainingTokensAmt = sdk.ZeroInt()
 	} else {
 		// leave excess tokens in the deposit pool
 		// however fully use all the depositor shares
-		issuedTokensAmt = depositPool.TokensFromShares(sharesToRemove).TruncateInt()
-		depositPool.Tokens.Amount = depositPool.Tokens.Amount.Sub(issuedTokensAmt)
-		if depositPool.Tokens.Amount.IsNegative() {
+		removedTokensAmt = depositPool.TokensFromShares(sharesToRemove).TruncateInt()
+		remainingTokensAmt = depositPool.Tokens.Amount.Sub(removedTokensAmt)
+		if remainingTokensAmt.IsNegative() {
 			panic("attempting to remove more tokens than available in validator")
 		}
 	}
 
+	depositPool.Tokens.Amount = remainingTokensAmt
 	depositPool.Shares = remainingShares
 	k.SetDepositPool(ctx, depositPool)
 
-	return depositPool, issuedTokensAmt
+	return depositPool, removedTokensAmt
 }

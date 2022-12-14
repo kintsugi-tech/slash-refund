@@ -27,13 +27,11 @@ func (k Keeper) GetDeposit(ctx sdk.Context, depAddr sdk.AccAddress, valAddr sdk.
 // SetDeposit set a specific deposit in the store from its index
 func (k Keeper) SetDeposit(ctx sdk.Context, deposit types.Deposit) {
 
-	depositorAddress := sdk.MustAccAddressFromBech32(deposit.DepositorAddress)
-
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.DepositKeyPrefix))
 	b := k.cdc.MustMarshal(&deposit)
 	store.Set(types.DepositKey(
-		depositorAddress,
-		deposit.GetValidatorAddr(),
+		deposit.MustGetDepositorAddr(),
+		deposit.MustGetValidatorAddr(),
 	), b)
 }
 
@@ -43,12 +41,10 @@ func (k Keeper) RemoveDeposit(
 	deposit types.Deposit,
 ) {
 
-	depositorAddress := sdk.MustAccAddressFromBech32(deposit.DepositorAddress)
-
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.DepositKeyPrefix))
 	store.Delete(types.DepositKey(
-		depositorAddress,
-		deposit.GetValidatorAddr(),
+		deposit.MustGetDepositorAddr(),
+		deposit.MustGetValidatorAddr(),
 	))
 }
 

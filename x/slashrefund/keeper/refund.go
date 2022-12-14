@@ -9,13 +9,11 @@ import (
 // SetRefund set a specific refund in the store from its index
 func (k Keeper) SetRefund(ctx sdk.Context, refund types.Refund) {
 
-	delegatorAddress := sdk.MustAccAddressFromBech32(refund.DelegatorAddress)
-
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RefundKeyPrefix))
 	b := k.cdc.MustMarshal(&refund)
 	store.Set(types.RefundKey(
-		delegatorAddress,
-		refund.GetValidatorAddr(),
+		refund.MustGetDelegatorAddr(),
+		refund.MustGetValidatorAddr(),
 	), b)
 }
 
@@ -39,12 +37,10 @@ func (k Keeper) RemoveRefund(
 	refund types.Refund,
 ) {
 
-	delAddr := sdk.MustAccAddressFromBech32(refund.DelegatorAddress)
-
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RefundKeyPrefix))
 	store.Delete(types.RefundKey(
-		delAddr,
-		refund.GetValidatorAddr(),
+		refund.MustGetDelegatorAddr(),
+		refund.MustGetValidatorAddr(),
 	))
 }
 

@@ -4,11 +4,16 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-func (d Deposit) GetValidatorAddr() sdk.ValAddress {
+func (d Deposit) MustGetValidatorAddr() sdk.ValAddress {
 	addr, err := sdk.ValAddressFromBech32(d.ValidatorAddress)
 	if err != nil {
 		panic(err)
 	}
+	return addr
+}
+
+func (d Deposit) MustGetDepositorAddr() sdk.AccAddress {
+	addr := sdk.MustAccAddressFromBech32(d.DepositorAddress)
 	return addr
 }
 

@@ -28,7 +28,7 @@ init:
     consensus: #set the block time:
       timeout_commit: "2s" 
   client:
-    broadcast-mode: "sync"
+    broadcast-mode: "block"
 genesis: 
   consensus_params:
     block:
