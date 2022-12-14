@@ -456,19 +456,6 @@ export default {
 		},
 		
 		
-		async sendMsgClaim({ rootGetters }, { value, fee = [], memo = '' }) {
-			try {
-				const client=await initClient(rootGetters)
-				const result = await client.MadeinblockSlashrefundSlashrefund.tx.sendMsgClaim({ value, fee: {amount: fee, gas: "200000"}, memo })
-				return result
-			} catch (e) {
-				if (e == MissingWalletError) {
-					throw new Error('TxClient:MsgClaim:Init Could not initialize signing client. Wallet is required.')
-				}else{
-					throw new Error('TxClient:MsgClaim:Send Could not broadcast Tx: '+ e.message)
-				}
-			}
-		},
 		async sendMsgDeposit({ rootGetters }, { value, fee = [], memo = '' }) {
 			try {
 				const client=await initClient(rootGetters)
@@ -495,20 +482,20 @@ export default {
 				}
 			}
 		},
-		
-		async MsgClaim({ rootGetters }, { value }) {
+		async sendMsgClaim({ rootGetters }, { value, fee = [], memo = '' }) {
 			try {
-				const client=initClient(rootGetters)
-				const msg = await client.MadeinblockSlashrefundSlashrefund.tx.msgClaim({value})
-				return msg
+				const client=await initClient(rootGetters)
+				const result = await client.MadeinblockSlashrefundSlashrefund.tx.sendMsgClaim({ value, fee: {amount: fee, gas: "200000"}, memo })
+				return result
 			} catch (e) {
 				if (e == MissingWalletError) {
 					throw new Error('TxClient:MsgClaim:Init Could not initialize signing client. Wallet is required.')
-				} else{
-					throw new Error('TxClient:MsgClaim:Create Could not create message: ' + e.message)
+				}else{
+					throw new Error('TxClient:MsgClaim:Send Could not broadcast Tx: '+ e.message)
 				}
 			}
 		},
+		
 		async MsgDeposit({ rootGetters }, { value }) {
 			try {
 				const client=initClient(rootGetters)
@@ -532,6 +519,19 @@ export default {
 					throw new Error('TxClient:MsgWithdraw:Init Could not initialize signing client. Wallet is required.')
 				} else{
 					throw new Error('TxClient:MsgWithdraw:Create Could not create message: ' + e.message)
+				}
+			}
+		},
+		async MsgClaim({ rootGetters }, { value }) {
+			try {
+				const client=initClient(rootGetters)
+				const msg = await client.MadeinblockSlashrefundSlashrefund.tx.msgClaim({value})
+				return msg
+			} catch (e) {
+				if (e == MissingWalletError) {
+					throw new Error('TxClient:MsgClaim:Init Could not initialize signing client. Wallet is required.')
+				} else{
+					throw new Error('TxClient:MsgClaim:Create Could not create message: ' + e.message)
 				}
 			}
 		},

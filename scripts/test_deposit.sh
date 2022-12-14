@@ -2,7 +2,7 @@
 # TEST KEYS
 VALKEY1="alice"    #VALIDATOR 1
 DEPKEY1="bob"      #DEPOSITOR 1
-DEPKEY2="carl"    #DEPOSITOR 2
+DEPKEY2="carl"     #DEPOSITOR 2
 # PROCESS KEYS
 valaddr1=$(slash-refundd keys show $VALKEY1 -a --bech val)
 depadrr1=$(slash-refundd keys show $DEPKEY1 -a)

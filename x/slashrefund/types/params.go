@@ -1,7 +1,11 @@
 package types
 
 import (
+	"errors"
 	"fmt"
+	"strings"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"gopkg.in/yaml.v2"
@@ -65,8 +69,17 @@ func validateAllowedTokens(v interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", v)
 	}
 
-	// TODO implement validation
-	_ = allowedTokens
+	if strings.TrimSpace(allowedTokens) == "" {
+		return errors.New("allowed denoms cannot be blank")
+	}
+
+	allowedTokensList := strings.Split(allowedTokens, ",")
+
+	for _, token := range allowedTokensList {
+		if err := sdk.ValidateDenom(token); err != nil {
+			return err
+		}
+	}
 
 	return nil
 }

@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	keepertest "github.com/made-in-block/slash-refund/testutil/keeper"
 	"github.com/made-in-block/slash-refund/testutil/nullify"
@@ -18,9 +19,13 @@ var _ = strconv.IntSize
 func createNDeposit(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.Deposit {
 	items := make([]types.Deposit, n)
 	for i := range items {
-		items[i].DepositorAddress = strconv.Itoa(i)
-		items[i].ValidatorAddress = strconv.Itoa(i)
-
+		depPubk := secp256k1.GenPrivKey().PubKey()
+		depAddr := sdk.AccAddress(depPubk.Address())
+		valPubk := secp256k1.GenPrivKey().PubKey()
+		valAddr := sdk.ValAddress(valPubk.Address())
+		items[i].DepositorAddress = depAddr.String()
+		items[i].ValidatorAddress = valAddr.String()
+		items[i].Shares = sdk.ZeroDec()
 		keeper.SetDeposit(ctx, items[i])
 	}
 	return items
@@ -28,30 +33,26 @@ func createNDeposit(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.Depos
 
 func TestDepositGet(t *testing.T) {
 	keeper, ctx := keepertest.SlashrefundKeeper(t)
-	items := createNDeposit(keeper, ctx, 10)
-	for _, item := range items {
-		rst, found := keeper.GetDeposit(ctx,
-			sdk.AccAddress(item.DepositorAddress),
-			sdk.ValAddress(item.ValidatorAddress),
-		)
+	deposits := createNDeposit(keeper, ctx, 10)
+	for _, deposit := range deposits {
+		depAddr, _ := sdk.AccAddressFromBech32(deposit.DepositorAddress)
+		valAddr, _ := sdk.ValAddressFromBech32(deposit.ValidatorAddress)
+		rst, found := keeper.GetDeposit(ctx, depAddr, valAddr)
 		require.True(t, found)
 		require.Equal(t,
-			nullify.Fill(&item),
+			nullify.Fill(&deposit),
 			nullify.Fill(&rst),
 		)
 	}
 }
 func TestDepositRemove(t *testing.T) {
 	keeper, ctx := keepertest.SlashrefundKeeper(t)
-	items := createNDeposit(keeper, ctx, 10)
-	for _, item := range items {
-		keeper.RemoveDeposit(ctx,
-			items[0],
-		)
-		_, found := keeper.GetDeposit(ctx,
-			sdk.AccAddress(item.DepositorAddress),
-			sdk.ValAddress(item.ValidatorAddress),
-		)
+	deposits := createNDeposit(keeper, ctx, 10)
+	for _, deposit := range deposits {
+		keeper.RemoveDeposit(ctx, deposit)
+		depAddr, _ := sdk.AccAddressFromBech32(deposit.DepositorAddress)
+		valAddr, _ := sdk.ValAddressFromBech32(deposit.ValidatorAddress)
+		_, found := keeper.GetDeposit(ctx, depAddr, valAddr)
 		require.False(t, found)
 	}
 }

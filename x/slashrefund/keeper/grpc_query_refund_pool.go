@@ -45,19 +45,15 @@ func (k Keeper) RefundPool(c context.Context, req *types.QueryGetRefundPoolReque
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	valOperAddr, err := sdk.ValAddressFromBech32(req.OperatorAddress)
+	valAddr, err := sdk.ValAddressFromBech32(req.OperatorAddress)
 	if err != nil {
-		//TODO: change "panic(err) with "return nil, err" where needed in all files
-		panic(err)
+		return nil, err
 	}
 
-	val, found := k.GetRefundPool(
-		ctx,
-		valOperAddr,
-	)
+	refPool, found := k.GetRefundPool(ctx, valAddr)
 	if !found {
-		return nil, status.Error(codes.NotFound, "not found")
+		return nil, status.Error(codes.NotFound, "refund pool not found")
 	}
 
-	return &types.QueryGetRefundPoolResponse{RefundPool: val}, nil
+	return &types.QueryGetRefundPoolResponse{RefundPool: refPool}, nil
 }

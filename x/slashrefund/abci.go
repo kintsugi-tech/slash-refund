@@ -18,7 +18,6 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k keeper.Keeper) 
 
 	//Handle slashing event
 	events := ctx.EventManager().Events()
-	//Events()
 
 	// Iterate all events in this block
 	for _, event := range events {
@@ -46,13 +45,6 @@ func EndBlocker(ctx sdk.Context, req abci.RequestEndBlock, k keeper.Keeper) []ty
 	}
 
 	// TODO: Handle removed validator's deposit
-	/*
-		// get validator
-		_, found = k.stakingKeeper.GetValidator(ctx, valAddr)
-		if !found {
-			return issuedTokensAmt, stakingtypes.ErrNoValidatorFound
-		}
-	*/
 
 	return matureUnbonds
 }
