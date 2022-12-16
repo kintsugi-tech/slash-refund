@@ -4,6 +4,10 @@ import (
 	"strconv"
 	"testing"
 
+	"time"
+
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	keepertest "github.com/made-in-block/slash-refund/testutil/keeper"
 	"github.com/made-in-block/slash-refund/testutil/nullify"
@@ -15,12 +19,41 @@ import (
 // Prevent strconv unused error
 var _ = strconv.IntSize
 
-func createNUnbondingDeposit(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.UnbondingDeposit {
+func createNEntries(n int) []types.UnbondingDepositEntry {
+	creationHeight := n
+	completionTime := time.Now().Add(time.Duration(n * 1000))
+	balance := sdk.NewInt(1000000)
+	var entries []types.UnbondingDepositEntry
+	for i := 0; i < n; i++ {
+		entry := types.NewUnbondingDepositEntry(int64(creationHeight), completionTime, balance)
+		entries = append(entries, entry)
+	}
+	return entries
+}
+
+func createNUnbondingDeposit(keeper *keeper.Keeper, ctx sdk.Context, n int, nentries int) []types.UnbondingDeposit {
 	items := make([]types.UnbondingDeposit, n)
 	for i := range items {
-		items[i].DepositorAddress = strconv.Itoa(i)
-		items[i].ValidatorAddress = strconv.Itoa(i)
+		depPubk := secp256k1.GenPrivKey().PubKey()
+		depAddr := sdk.AccAddress(depPubk.Address())
+		valPubk := secp256k1.GenPrivKey().PubKey()
+		valAddr := sdk.ValAddress(valPubk.Address())
+		items[i].DepositorAddress = depAddr.String()
+		items[i].ValidatorAddress = valAddr.String()
+		items[i].Entries = createNEntries(nentries)
+		keeper.SetUnbondingDeposit(ctx, items[i])
+	}
+	return items
+}
 
+func createNUnbondingDepositForValidator(keeper *keeper.Keeper, ctx sdk.Context, n int, nentries int, valAddr sdk.ValAddress) []types.UnbondingDeposit {
+	items := make([]types.UnbondingDeposit, n)
+	for i := range items {
+		depPubk := secp256k1.GenPrivKey().PubKey()
+		depAddr := sdk.AccAddress(depPubk.Address())
+		items[i].DepositorAddress = depAddr.String()
+		items[i].ValidatorAddress = valAddr.String()
+		items[i].Entries = createNEntries(nentries)
 		keeper.SetUnbondingDeposit(ctx, items[i])
 	}
 	return items
@@ -28,44 +61,44 @@ func createNUnbondingDeposit(keeper *keeper.Keeper, ctx sdk.Context, n int) []ty
 
 func TestUnbondingDepositGet(t *testing.T) {
 	keeper, ctx := keepertest.SlashrefundKeeper(t)
-	items := createNUnbondingDeposit(keeper, ctx, 10)
+	items := createNUnbondingDeposit(keeper, ctx, 10, 3)
 	for _, item := range items {
 		depAddr, _ := sdk.AccAddressFromBech32(item.DepositorAddress)
 		valAddr, _ := sdk.ValAddressFromBech32(item.ValidatorAddress)
-		rst, found := keeper.GetUnbondingDeposit(ctx,
-			depAddr,
-			valAddr,
-		)
+		got, found := keeper.GetUnbondingDeposit(ctx, depAddr, valAddr)
 		require.True(t, found)
-		require.Equal(t,
-			nullify.Fill(&item),
-			nullify.Fill(&rst),
-		)
+		require.Equal(t, nullify.Fill(&item), nullify.Fill(&got))
 	}
 }
 func TestUnbondingDepositRemove(t *testing.T) {
 	keeper, ctx := keepertest.SlashrefundKeeper(t)
-	items := createNUnbondingDeposit(keeper, ctx, 10)
+	items := createNUnbondingDeposit(keeper, ctx, 10, 3)
 	for _, item := range items {
-		keeper.RemoveUnbondingDeposit(ctx,
-			item.DepositorAddress,
-			item.ValidatorAddress,
-		)
+		keeper.RemoveUnbondingDeposit(ctx, item)
 		depAddr, _ := sdk.AccAddressFromBech32(item.DepositorAddress)
 		valAddr, _ := sdk.ValAddressFromBech32(item.ValidatorAddress)
-		_, found := keeper.GetUnbondingDeposit(ctx,
-			depAddr,
-			valAddr,
-		)
+		_, found := keeper.GetUnbondingDeposit(ctx, depAddr, valAddr)
 		require.False(t, found)
+		_, found = keeper.GetUnbondingDepositByValIndexKey(ctx, valAddr, depAddr)
+		require.False(t, found)
+
 	}
 }
 
 func TestUnbondingDepositGetAll(t *testing.T) {
 	keeper, ctx := keepertest.SlashrefundKeeper(t)
-	items := createNUnbondingDeposit(keeper, ctx, 10)
+	items := createNUnbondingDeposit(keeper, ctx, 10, 3)
 	require.ElementsMatch(t,
 		nullify.Fill(items),
 		nullify.Fill(keeper.GetAllUnbondingDeposit(ctx)),
 	)
+}
+
+func TestUnbondingDepositGetUnbondingDepositsFromValidator(t *testing.T) {
+	keeper, ctx := keepertest.SlashrefundKeeper(t)
+	valPubk := secp256k1.GenPrivKey().PubKey()
+	valAddr := sdk.ValAddress(valPubk.Address())
+	items := createNUnbondingDepositForValidator(keeper, ctx, 10, 3, valAddr)
+	got := keeper.GetUnbondingDepositsFromValidator(ctx, valAddr)
+	require.ElementsMatch(t, nullify.Fill(items), nullify.Fill(got))
 }

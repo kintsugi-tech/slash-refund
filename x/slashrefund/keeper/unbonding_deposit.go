@@ -10,71 +10,195 @@ import (
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 )
 
+/*
+
 // SetUnbondingDeposit set a specific unbondingDeposit in the store from its index
-func (k Keeper) SetUnbondingDeposit(ctx sdk.Context, unbondingDeposit types.UnbondingDeposit) {
+func (k Keeper) SetUnbondingDepositBKP(ctx sdk.Context, unbondingDeposit types.UnbondingDeposit) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.UnbondingDepositKeyPrefix))
 	b := k.cdc.MustMarshal(&unbondingDeposit)
-	store.Set(types.UnbondingDepositKey(
-		unbondingDeposit.DepositorAddress,
-		unbondingDeposit.ValidatorAddress,
-	), b)
-
-	//TODO: change this to match the staking module method.
-	store.Set(types.UnbondingDepositKeyByValIndex(
-		unbondingDeposit.DepositorAddress,
-		unbondingDeposit.ValidatorAddress),
-		b)
+	store.Set(types.UnbondingDepositKey(unbondingDeposit.DepositorAddress, unbondingDeposit.ValidatorAddress), b)//TODO: change this to match the staking module method.
+	store.Set(types.UnbondingDepositKeyByValIndex(unbondingDeposit.DepositorAddress, unbondingDeposit.ValidatorAddress),b)
 }
 
 // GetUnbondingDeposit returns a unbondingDeposit from its index
-func (k Keeper) GetUnbondingDeposit(
+func (k Keeper) GetUnbondingDepositBKP(
 	ctx sdk.Context,
 	depositorAddress sdk.AccAddress,
 	validatorAddress sdk.ValAddress,
-
 ) (val types.UnbondingDeposit, found bool) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.UnbondingDepositKeyPrefix))
 
-	b := store.Get(types.UnbondingDepositKey(
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.UnbondingDepositKeyPrefix))
+	b := store.Get(types.UnbondingDepositKey(depositorAddress.String(),validatorAddress.String()))
+	if b == nil {
+		return val, false
+	}
+	k.cdc.MustUnmarshal(b, &val)
+	return val, true
+}
+
+// GetAllUnbondingDeposit returns all unbondingDeposit
+func (k Keeper) GetAllUnbondingDepositBKP(ctx sdk.Context) (list []types.UnbondingDeposit) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.UnbondingDepositKeyPrefix))
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var val types.UnbondingDeposit
+		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		list = append(list, val)
+	}
+	return
+}
+
+// GetUnbondingDelegationsFromValidator returns all unbonding delegations from a
+// particular validator.
+func (k Keeper) GetUnbondingDepositsFromValidatorBKP(ctx sdk.Context, validatorAddress string) (ubds []types.UnbondingDeposit) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.UnbondingDepositKeyPrefix))
+	iterator := sdk.KVStorePrefixIterator(store, types.GetUBDsByValIndexKey(validatorAddress))
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var ubd types.UnbondingDeposit
+		k.cdc.MustUnmarshal(iterator.Value(), &ubd)
+		ubds = append(ubds, ubd)
+	}
+	return ubds
+}
+
+// GetUnbondingDeposit returns a unbondingDeposit from its index
+func (k Keeper) GetUnbondingDepositByValIndexKeyBKP(
+	ctx sdk.Context,
+	validatorAddress sdk.ValAddress,
+	depositorAddress sdk.AccAddress,
+) (val types.UnbondingDeposit, found bool) {
+
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.UnbondingDepositKeyPrefix))
+	b := store.Get(types.UnbondingDepositKeyByValIndex(
 		depositorAddress.String(),
 		validatorAddress.String(),
 	))
 	if b == nil {
 		return val, false
 	}
-
 	k.cdc.MustUnmarshal(b, &val)
 	return val, true
+}
+
+*/
+
+// SetUnbondingDeposit set a specific unbondingDeposit in the store from its index
+func (k Keeper) SetUnbondingDeposit(ctx sdk.Context, unbondingDeposit types.UnbondingDeposit) {
+	store := ctx.KVStore(k.storeKey)
+	b := k.cdc.MustMarshal(&unbondingDeposit)
+	depAddr := sdk.MustAccAddressFromBech32(unbondingDeposit.DepositorAddress)
+	valAddr, err := sdk.ValAddressFromBech32(unbondingDeposit.ValidatorAddress)
+	if err != nil {
+		panic(err)
+	}
+	key := types.GetUBDKey(depAddr, valAddr)
+	store.Set(key, b)
+
+	// Store also reverse order for indexing purpose.
+	// NOTE: key2 is validator-depositor;
+	//       none value will be stored with this key because this key is used for key-rearrangement only,
+	//       in order to obtain from this key the actual depositor-validator key.
+	key2 := types.GetUBDByValIndexKey(valAddr, depAddr)
+	store.Set(key2, []byte{})
+}
+
+// GetUnbondingDeposit returns a unbondingDeposit from its index
+func (k Keeper) GetUnbondingDeposit(
+	ctx sdk.Context,
+	depAddr sdk.AccAddress,
+	valAddr sdk.ValAddress,
+
+) (ubd types.UnbondingDeposit, found bool) {
+	store := ctx.KVStore(k.storeKey)
+	key := types.GetUBDKey(depAddr, valAddr)
+	value := store.Get(key)
+
+	if value == nil {
+		return ubd, false
+	}
+
+	k.cdc.MustUnmarshal(value, &ubd)
+	return ubd, true
 }
 
 // RemoveUnbondingDeposit removes a unbondingDeposit from the store
 func (k Keeper) RemoveUnbondingDeposit(
 	ctx sdk.Context,
-	depositorAddress string,
-	validatorAddress string,
-
+	ubd types.UnbondingDeposit,
 ) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.UnbondingDepositKeyPrefix))
-	store.Delete(types.UnbondingDepositKey(
-		depositorAddress,
-		validatorAddress,
-	))
+	depAddr := sdk.MustAccAddressFromBech32(ubd.DepositorAddress)
+	valAddr, err := sdk.ValAddressFromBech32(ubd.ValidatorAddress)
+	if err != nil {
+		panic(err)
+	}
+	store := ctx.KVStore(k.storeKey)
+
+	key := types.GetUBDKey(depAddr, valAddr)
+	store.Delete(key)
+
+	key2 := types.GetUBDByValIndexKey(valAddr, depAddr)
+	store.Delete(key2)
 }
 
 // GetAllUnbondingDeposit returns all unbondingDeposit
-func (k Keeper) GetAllUnbondingDeposit(ctx sdk.Context) (list []types.UnbondingDeposit) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.UnbondingDepositKeyPrefix))
+func (k Keeper) GetAllUnbondingDeposit(ctx sdk.Context) (ubds []types.UnbondingDeposit) {
+
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.GetUBDsKeyPrefix())
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var ubd types.UnbondingDeposit
+		k.cdc.MustUnmarshal(iterator.Value(), &ubd)
+		ubds = append(ubds, ubd)
+	}
+	return ubds
+}
+
+// GetUnbondingDeposit returns a unbondingDeposit from its index
+func (k Keeper) GetUnbondingDepositByValIndexKey(
+	ctx sdk.Context,
+	valAddr sdk.ValAddress,
+	depAddr sdk.AccAddress,
+) (ubd types.UnbondingDeposit, found bool) {
+
+	store := ctx.KVStore(k.storeKey)
+	key := types.GetUBDByValIndexKey(valAddr, depAddr)
+	b := store.Get(key)
+	if b == nil {
+		return ubd, false
+	}
+
+	k.cdc.MustUnmarshal(b, &ubd)
+	return ubd, true
+}
+
+// GetUnbondingDelegationsFromValidator returns all unbonding delegations from a
+// particular validator.
+func (k Keeper) GetUnbondingDepositsFromValidator(ctx sdk.Context, valAddr sdk.ValAddress) (ubds []types.UnbondingDeposit) {
+
+	store := ctx.KVStore(k.storeKey)
+	keyspace := types.GetUBDsByValIndexKey(valAddr)
+	iterator := sdk.KVStorePrefixIterator(store, keyspace)
+	defer iterator.Close()
+
+	var ubd types.UnbondingDeposit
 
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
-		var val types.UnbondingDeposit
-		k.cdc.MustUnmarshal(iterator.Value(), &val)
-		list = append(list, val)
+		// rearrange key
+		key2 := iterator.Key()
+		key := types.GetUBDKeyFromValIndexKey(key2)
+
+		// access store and append value
+		value := store.Get(key)
+		k.cdc.MustUnmarshal(value, &ubd)
+		ubds = append(ubds, ubd)
 	}
 
-	return
+	return ubds
 }
 
 // SetUnbondingDepositEntry adds an entry to the unbonding deposit at
@@ -206,27 +330,10 @@ func (k Keeper) CompleteUnbonding(ctx sdk.Context, depAddr sdk.AccAddress, valAd
 
 	// set the unbonding deposit or remove it if there are no more entries
 	if len(ubd.Entries) == 0 {
-		k.RemoveUnbondingDeposit(ctx, ubd.DepositorAddress, ubd.ValidatorAddress)
+		k.RemoveUnbondingDeposit(ctx, ubd)
 	} else {
 		k.SetUnbondingDeposit(ctx, ubd)
 	}
 
 	return balances, nil
-}
-
-// GetUnbondingDelegationsFromValidator returns all unbonding delegations from a
-// particular validator.
-func (k Keeper) GetUnbondingDepositsFromValidator(ctx sdk.Context, validatorAddress string) (ubds []types.UnbondingDeposit) {
-
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.UnbondingDepositKeyPrefix))
-	iterator := sdk.KVStorePrefixIterator(store, types.GetUBDsByValIndexKey(validatorAddress))
-	defer iterator.Close()
-
-	for ; iterator.Valid(); iterator.Next() {
-		var ubd types.UnbondingDeposit
-		k.cdc.MustUnmarshal(iterator.Value(), &ubd)
-		ubds = append(ubds, ubd)
-	}
-
-	return ubds
 }

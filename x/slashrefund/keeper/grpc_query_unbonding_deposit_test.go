@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/stretchr/testify/require"
@@ -21,13 +22,45 @@ var _ = strconv.IntSize
 func TestUnbondingDepositQuerySingle(t *testing.T) {
 	keeper, ctx := keepertest.SlashrefundKeeper(t)
 	wctx := sdk.WrapSDKContext(ctx)
-	msgs := createNUnbondingDeposit(keeper, ctx, 2)
-	for _, tc := range []struct {
+
+	type testcase struct {
 		desc     string
 		request  *types.QueryGetUnbondingDepositRequest
 		response *types.QueryGetUnbondingDepositResponse
 		err      error
-	}{
+	}
+
+	// test not found
+	var tc testcase
+
+	depPubk := secp256k1.GenPrivKey().PubKey()
+	depAddr := sdk.AccAddress(depPubk.Address())
+	valPubk := secp256k1.GenPrivKey().PubKey()
+	valAddr := sdk.ValAddress(valPubk.Address())
+
+	tc.desc = "KeyNotFound"
+	tc.request = &types.QueryGetUnbondingDepositRequest{
+		DepositorAddress: depAddr.String(),
+		ValidatorAddress: valAddr.String(),
+	}
+	tc.err = status.Error(codes.NotFound, "unbonding deposit not found")
+
+	t.Run(tc.desc, func(t *testing.T) {
+		response, err := keeper.UnbondingDeposit(wctx, tc.request)
+		if tc.err != nil {
+			require.ErrorIs(t, err, tc.err)
+		} else {
+			require.NoError(t, err)
+			require.Equal(t,
+				nullify.Fill(tc.response),
+				nullify.Fill(response),
+			)
+		}
+	})
+
+	// test others
+	msgs := createNUnbondingDeposit(keeper, ctx, 2, 2)
+	for _, tc := range []testcase{
 		{
 			desc: "First",
 			request: &types.QueryGetUnbondingDepositRequest{
@@ -43,14 +76,6 @@ func TestUnbondingDepositQuerySingle(t *testing.T) {
 				ValidatorAddress: msgs[1].ValidatorAddress,
 			},
 			response: &types.QueryGetUnbondingDepositResponse{UnbondingDeposit: msgs[1]},
-		},
-		{
-			desc: "KeyNotFound",
-			request: &types.QueryGetUnbondingDepositRequest{
-				DepositorAddress: strconv.Itoa(100000),
-				ValidatorAddress: strconv.Itoa(100000),
-			},
-			err: status.Error(codes.NotFound, "not found"),
 		},
 		{
 			desc: "InvalidRequest",
@@ -75,7 +100,7 @@ func TestUnbondingDepositQuerySingle(t *testing.T) {
 func TestUnbondingDepositQueryPaginated(t *testing.T) {
 	keeper, ctx := keepertest.SlashrefundKeeper(t)
 	wctx := sdk.WrapSDKContext(ctx)
-	msgs := createNUnbondingDeposit(keeper, ctx, 5)
+	msgs := createNUnbondingDeposit(keeper, ctx, 5, 2)
 
 	request := func(next []byte, offset, limit uint64, total bool) *types.QueryAllUnbondingDepositRequest {
 		return &types.QueryAllUnbondingDepositRequest{

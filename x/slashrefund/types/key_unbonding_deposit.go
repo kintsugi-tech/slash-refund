@@ -6,22 +6,23 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
+	kv "github.com/cosmos/cosmos-sdk/types/kv"
 )
 
 var _ binary.ByteOrder
 
-// UnbondingQueueKey defined as staking module does: empty byte slice
-var UnbondingDepositsKey = []byte{0x32}
-var UnbondingDepositByValIndexKey = []byte{0x33} // prefix for each key for an unbonding-deposit, by validator operator
-var UnbondingQueueKey = []byte{0x41}             // prefix for the timestamps in unbonding queue
+var UnbondingDepositsKeyPrefix = []byte{0x32}          // prefix for each key for an unbonding-deposit
+var UnbondingDepositByValIndexKeyPrefix = []byte{0x33} // prefix for each key for an unbonding-deposit, by validator operator
+var UnbondingQueueKey = []byte{0x41}                   // key for the timestamps in unbonding queue
 
+/*
 const (
 	// UnbondingDepositKeyPrefix is the prefix to retrieve all UnbondingDeposit
 	UnbondingDepositKeyPrefix = "UnbondingDeposit/value/"
 )
 
 // UnbondingDepositKey returns the store key to retrieve a UnbondingDeposit from the index fields
-func UnbondingDepositKey(
+func UnbondingDepositKeyBKP(
 	depositorAddress string,
 	validatorAddress string,
 ) []byte {
@@ -38,7 +39,7 @@ func UnbondingDepositKey(
 	return key
 }
 
-func UnbondingDepositKeyByValIndex(
+func UnbondingDepositKeyByValIndexBKP(
 	depositorAddress string,
 	validatorAddress string,
 ) []byte {
@@ -53,33 +54,62 @@ func UnbondingDepositKeyByValIndex(
 	key = append(key, []byte("/")...)
 
 	return key
+}
+
+// GetUBDsByValIndexKey creates the prefix keyspace for the indexes of unbonding deposits for a validator
+func GetUBDsByValIndexKeyBKP(validatorAddress string) []byte {
+
+	var key []byte
+	validatorAddressBytes := []byte(validatorAddress)
+	key = append(key, validatorAddressBytes...)
+	key = append(key, []byte("/")...)
+	return key
+}
+
+*/
+
+// GetUBDsKey creates the prefix for all unbonding deposits
+func GetUBDsKeyPrefix() []byte {
+	return UnbondingDepositsKeyPrefix
+}
+
+// GetUBDsKey creates the prefix for all unbonding deposits from a depositor
+func GetUBDsKey(depAddr sdk.AccAddress) []byte {
+	return append(GetUBDsKeyPrefix(), address.MustLengthPrefix(depAddr)...)
+}
+
+// GetUBDKey creates the key for an unbonding deposit by depositor and validator addr
+func GetUBDKey(depAddr sdk.AccAddress, valAddr sdk.ValAddress) []byte {
+	return append(GetUBDsKey(depAddr.Bytes()), address.MustLengthPrefix(valAddr)...)
+}
+
+// GetUBDByValIndexKey creates the index-key for an unbonding deposits, stored by validator-index.
+// This will return empty bytes, because the key (validator-depositor) is used only to return to
+// the actual key (depositor-validator) and get data from that.
+func GetUBDByValIndexKey(valAddr sdk.ValAddress, depAddr sdk.AccAddress) []byte {
+	return append(GetUBDsByValIndexKey(valAddr), address.MustLengthPrefix(depAddr)...)
+}
+
+// GetUBDsByValIndexKey creates the prefix keyspace for the indexes of unbonding deposits for a validator
+func GetUBDsByValIndexKey(valAddr sdk.ValAddress) []byte {
+	return append(UnbondingDepositByValIndexKeyPrefix, address.MustLengthPrefix(valAddr)...)
+}
+
+func GetUBDKeyFromValIndexKey(indexKey []byte) []byte {
+	kv.AssertKeyAtLeastLength(indexKey, 2)
+	addrs := indexKey[1:] // remove prefix bytes
+
+	valAddrLen := addrs[0]
+	kv.AssertKeyAtLeastLength(addrs, 2+int(valAddrLen))
+	valAddr := addrs[1 : 1+valAddrLen]
+	kv.AssertKeyAtLeastLength(addrs, 3+int(valAddrLen))
+	depAddr := addrs[valAddrLen+2:]
+
+	return GetUBDKey(depAddr, valAddr)
 }
 
 // GetUnbondingDepositTimeKey creates the prefix for all unbonding deposits from a delegator
 func GetUnbondingDepositTimeKey(timestamp time.Time) []byte {
 	bz := sdk.FormatTimeBytes(timestamp)
 	return append(UnbondingQueueKey, bz...)
-}
-
-// GetUBDsByValIndexKey creates the prefix keyspace for the indexes of unbonding deposits for a validator
-func GetUBDsByValIndexKey(validatorAddress string) []byte {
-
-	var key []byte
-
-	validatorAddressBytes := []byte(validatorAddress)
-	key = append(key, validatorAddressBytes...)
-	key = append(key, []byte("/")...)
-
-	return key
-}
-
-// GetUBDsKey creates the prefix for all unbonding deposits from a delegator
-func GetUBDsKey(depAddr sdk.AccAddress) []byte {
-	return append(UnbondingDepositsKey, address.MustLengthPrefix(depAddr)...)
-}
-
-// GetUBDKey creates the key for an unbonding deposit by delegator and validator addr
-// VALUE: staking/UnbondingDeposit
-func GetUBDKey(depAddr sdk.AccAddress, valAddr sdk.ValAddress) []byte {
-	return append(GetUBDsKey(depAddr.Bytes()), address.MustLengthPrefix(valAddr)...)
 }
