@@ -20,7 +20,7 @@ func (k Keeper) UnbondingDepositAll(c context.Context, req *types.QueryAllUnbond
 	ctx := sdk.UnwrapSDKContext(c)
 
 	store := ctx.KVStore(k.storeKey)
-	unbondingDepositStore := prefix.NewStore(store, types.KeyPrefix(types.UnbondingDepositKeyPrefix))
+	unbondingDepositStore := prefix.NewStore(store, types.KeyPrefix(string(types.GetUBDsKeyPrefix())))
 
 	pageRes, err := query.Paginate(unbondingDepositStore, req.Pagination, func(key []byte, value []byte) error {
 		var unbondingDeposit types.UnbondingDeposit

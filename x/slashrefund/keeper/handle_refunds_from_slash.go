@@ -150,7 +150,7 @@ func (k Keeper) HandleRefundsFromSlash(ctx sdk.Context, slashEvent sdk.Event) (r
 	// must check for unbondings between slash and evidence
 	case infractionHeight.Int64() < ctx.BlockHeight():
 		// Iterate through unbonding deposits from slashed validator
-		unbondingDeposits := k.GetUnbondingDepositsFromValidator(ctx, validator.OperatorAddress)
+		unbondingDeposits := k.GetUnbondingDepositsFromValidator(ctx, valAddr)
 
 		// compute pool+ubds amount
 		var availableRefundTokens sdk.Int

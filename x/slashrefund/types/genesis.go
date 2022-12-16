@@ -25,16 +25,14 @@ func DefaultGenesis() *GenesisState {
 // Validate performs basic genesis state validation returning an error upon any
 // failure.
 func (gs GenesisState) Validate() error {
+
 	// Check for duplicated index in deposit
 	depositIndexMap := make(map[string]struct{})
-
 	for _, elem := range gs.DepositList {
-
 		depositor, err := sdk.AccAddressFromBech32(elem.DepositorAddress)
 		if err != nil {
 			return err
 		}
-
 		validator, err := sdk.ValAddressFromBech32(elem.ValidatorAddress)
 		if err != nil {
 			return err
@@ -48,7 +46,6 @@ func (gs GenesisState) Validate() error {
 
 	// Check for duplicated index in depositPool
 	depositPoolIndexMap := make(map[string]struct{})
-
 	for _, elem := range gs.DepositPoolList {
 		valOperAddr, err := sdk.ValAddressFromBech32(elem.OperatorAddress)
 		if err != nil {
@@ -60,19 +57,24 @@ func (gs GenesisState) Validate() error {
 		}
 		depositPoolIndexMap[index] = struct{}{}
 	}
+
 	// Check for duplicated index in unbondingDeposit
 	unbondingDepositIndexMap := make(map[string]struct{})
-
 	for _, elem := range gs.UnbondingDepositList {
-		index := string(UnbondingDepositKey(elem.DepositorAddress, elem.ValidatorAddress))
+		depAddr := sdk.MustAccAddressFromBech32(elem.DepositorAddress)
+		valAddr, err := sdk.ValAddressFromBech32(elem.ValidatorAddress)
+		if err != nil {
+			panic(err)
+		}
+		index := string(GetUBDKey(depAddr, valAddr))
 		if _, ok := unbondingDepositIndexMap[index]; ok {
 			return fmt.Errorf("duplicated index for unbondingDeposit")
 		}
 		unbondingDepositIndexMap[index] = struct{}{}
 	}
+
 	// Check for duplicated index in refundPool
 	refundPoolIndexMap := make(map[string]struct{})
-
 	for _, elem := range gs.RefundPoolList {
 		valOperAddr, err := sdk.ValAddressFromBech32(elem.OperatorAddress)
 		if err != nil {
@@ -84,21 +86,18 @@ func (gs GenesisState) Validate() error {
 		}
 		refundPoolIndexMap[index] = struct{}{}
 	}
+
 	// Check for duplicated index in refund
 	refundIndexMap := make(map[string]struct{})
-
 	for _, elem := range gs.RefundList {
-
 		delegator, err := sdk.AccAddressFromBech32(elem.DelegatorAddress)
 		if err != nil {
 			return err
 		}
-
 		validator, err := sdk.ValAddressFromBech32(elem.ValidatorAddress)
 		if err != nil {
 			return err
 		}
-
 		index := string(RefundKey(delegator, validator))
 		if _, ok := refundIndexMap[index]; ok {
 			return fmt.Errorf("duplicated index for refund")
