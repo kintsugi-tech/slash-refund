@@ -21,7 +21,7 @@ func (k Keeper) Claim(
 	// Since this function is normally called after ValidateClaimAmount,
 	// refund and refundPool should be available as ValidateClaimAmount
 	// checks for their presence.
-	zeroCoins := sdk.NewCoins(sdk.NewCoin(k.AllowedTokensList(ctx)[0], sdk.NewInt(0)))
+	zeroCoins := sdk.NewCoins(sdk.NewCoin(k.AllowedTokens(ctx)[0], sdk.NewInt(0)))
 	refund, found := k.GetRefund(ctx, delAddr, valAddr)
 	if !found {
 		return zeroCoins, types.ErrNoRefundForAddress
@@ -51,7 +51,7 @@ func (k Keeper) Claim(
 	}
 
 	// 3. Send coins to delegator
-	refundCoin := sdk.NewCoin(k.AllowedTokensList(ctx)[0], drawnAmt)
+	refundCoin := sdk.NewCoin(k.AllowedTokens(ctx)[0], drawnAmt)
 	refundCoins = sdk.NewCoins(refundCoin)
 	senderModule := types.ModuleName
 	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, senderModule, delAddr, refundCoins)

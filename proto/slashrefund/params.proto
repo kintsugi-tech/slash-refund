@@ -9,5 +9,5 @@ option go_package = "github.com/made-in-block/slash-refund/x/slashrefund/types";
 message Params {
   option (gogoproto.goproto_stringer) = false;
   
-  string allowedTokens = 1 [(gogoproto.moretags) = "yaml:\"allowed_tokens\""];
+  repeated string allowedTokens = 1 [(gogoproto.moretags) = "yaml:\"allowed_tokens\""];
 }

@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -21,17 +20,13 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 }
 
 // AllowedTokens returns the AllowedTokens param
-func (k Keeper) AllowedTokens(ctx sdk.Context) (res string) {
+func (k Keeper) AllowedTokens(ctx sdk.Context) (res []string) {
 	k.paramstore.Get(ctx, types.KeyAllowedTokens, &res)
 	return
 }
 
-func (k Keeper) AllowedTokensList(ctx sdk.Context) (re []string) {
-	return strings.Split(k.AllowedTokens(ctx), ",")
-}
-
 func (k Keeper) CheckAllowedTokens(ctx sdk.Context, denom string) (bool, error) {
-	for _, validToken := range k.AllowedTokensList(ctx) {
+	for _, validToken := range k.AllowedTokens(ctx) {
 		if denom == validToken {
 			return true, nil
 		}
