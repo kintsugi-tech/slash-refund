@@ -31,17 +31,13 @@ func (k Keeper) AllowedTokensList(ctx sdk.Context) (re []string) {
 }
 
 func (k Keeper) CheckAllowedTokens(ctx sdk.Context, denom string) (bool, error) {
-	var isAcceptable bool // default is false
 	for _, validToken := range k.AllowedTokensList(ctx) {
 		if denom == validToken {
-			isAcceptable = true
-			break
+			return true, nil
 		}
 	}
-	if !isAcceptable {
-		return false, sdkerrors.Wrapf(
+
+	return false, sdkerrors.Wrapf(
 			sdkerrors.ErrInvalidRequest, "invalid coin denomination: got %s. Allowed tokens are %s", denom, k.AllowedTokens(ctx),
-		)
-	}
-	return true, nil
+	)
 }
