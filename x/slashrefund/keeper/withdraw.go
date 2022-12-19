@@ -23,7 +23,7 @@ func (k Keeper) Withdraw(
 	witAmt, err := k.Unbond(ctx, depAddr, valAddr, witShares)
 	if err != nil {
 		// TODO: change k.AllowedTokensList(ctx)[0] to handle different denoms
-		return sdk.NewCoin(k.AllowedTokensList(ctx)[0], sdk.NewInt(0)), time.Time{}, err
+		return sdk.NewCoin(k.AllowedTokens(ctx)[0], sdk.NewInt(0)), time.Time{}, err
 	}
 
 	completionTime := ctx.BlockHeader().Time.Add(k.stakingKeeper.UnbondingTime(ctx))
@@ -40,7 +40,7 @@ func (k Keeper) Withdraw(
 	logger.Error(fmt.Sprintf("    - depositor=%s", ubd.DepositorAddress))
 	logger.Error(fmt.Sprintf("    - validator=%s", ubd.ValidatorAddress))
 
-	return sdk.NewCoin(k.AllowedTokensList(ctx)[0], witAmt), completionTime, nil
+	return sdk.NewCoin(k.AllowedTokens(ctx)[0], witAmt), completionTime, nil
 }
 
 func (k Keeper) ValidateWithdrawAmount(

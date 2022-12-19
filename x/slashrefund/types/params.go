@@ -16,7 +16,7 @@ var _ paramtypes.ParamSet = (*Params)(nil)
 var (
 	KeyAllowedTokens = []byte("AllowedTokens")
 	// TODO: Determine the default value
-	DefaultAllowedTokens string = "stake"
+	DefaultAllowedTokens = []string{"stake"}
 )
 
 // ParamKeyTable the param key table for launch module
@@ -26,7 +26,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 
 // NewParams creates a new Params instance
 func NewParams(
-	allowedTokens string,
+	allowedTokens []string,
 ) Params {
 	return Params{
 		AllowedTokens: allowedTokens,

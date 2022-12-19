@@ -298,7 +298,7 @@ func (k Keeper) CompleteUnbonding(ctx sdk.Context, depAddr sdk.AccAddress, valAd
 	}
 
 	//TODO: generalize refundDenom with all the AllowedTokens
-	refundDenom := k.AllowedTokensList(ctx)[0]
+	refundDenom := k.AllowedTokens(ctx)[0]
 	balances := sdk.NewCoins()
 	ctxTime := ctx.BlockHeader().Time
 

@@ -25,7 +25,7 @@ func createNRefundPool(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.Re
 		items[i].OperatorAddress = valAddr.String()
 		items[i].Shares = sdk.ZeroDec()
 		items[i].Tokens.Amount = sdk.ZeroInt()
-		items[i].Tokens.Denom = keeper.AllowedTokensList(ctx)[0]
+		items[i].Tokens.Denom = keeper.AllowedTokens(ctx)[0]
 		keeper.SetRefundPool(ctx, items[i])
 	}
 	return items
