@@ -68,6 +68,11 @@ func validateAllowedTokens(v interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", v)
 	}
 
+	// TODO: remove this line when multiple tokens are allowed
+	if len(allowedTokens) != 1 {
+		return fmt.Errorf("only one allowed token is currently accepted.")
+	}
+
 	// ensure each denom is only registered one time.
 	registered := make(map[string]bool)
 	for _, token := range allowedTokens {

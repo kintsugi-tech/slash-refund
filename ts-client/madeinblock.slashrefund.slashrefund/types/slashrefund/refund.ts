@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { Writer, Reader } from "protobufjs/minimal";
+import _m0 from "protobufjs/minimal";
 
 export const protobufPackage = "madeinblock.slashrefund.slashrefund";
 
@@ -9,14 +9,12 @@ export interface Refund {
   shares: string;
 }
 
-const baseRefund: object = {
-  delegatorAddress: "",
-  validatorAddress: "",
-  shares: "",
-};
+function createBaseRefund(): Refund {
+  return { delegatorAddress: "", validatorAddress: "", shares: "" };
+}
 
 export const Refund = {
-  encode(message: Refund, writer: Writer = Writer.create()): Writer {
+  encode(message: Refund, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.delegatorAddress !== "") {
       writer.uint32(10).string(message.delegatorAddress);
     }
@@ -29,10 +27,10 @@ export const Refund = {
     return writer;
   },
 
-  decode(input: Reader | Uint8Array, length?: number): Refund {
-    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+  decode(input: _m0.Reader | Uint8Array, length?: number): Refund {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseRefund } as Refund;
+    const message = createBaseRefund();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -54,75 +52,41 @@ export const Refund = {
   },
 
   fromJSON(object: any): Refund {
-    const message = { ...baseRefund } as Refund;
-    if (
-      object.delegatorAddress !== undefined &&
-      object.delegatorAddress !== null
-    ) {
-      message.delegatorAddress = String(object.delegatorAddress);
-    } else {
-      message.delegatorAddress = "";
-    }
-    if (
-      object.validatorAddress !== undefined &&
-      object.validatorAddress !== null
-    ) {
-      message.validatorAddress = String(object.validatorAddress);
-    } else {
-      message.validatorAddress = "";
-    }
-    if (object.shares !== undefined && object.shares !== null) {
-      message.shares = String(object.shares);
-    } else {
-      message.shares = "";
-    }
-    return message;
+    return {
+      delegatorAddress: isSet(object.delegatorAddress) ? String(object.delegatorAddress) : "",
+      validatorAddress: isSet(object.validatorAddress) ? String(object.validatorAddress) : "",
+      shares: isSet(object.shares) ? String(object.shares) : "",
+    };
   },
 
   toJSON(message: Refund): unknown {
     const obj: any = {};
-    message.delegatorAddress !== undefined &&
-      (obj.delegatorAddress = message.delegatorAddress);
-    message.validatorAddress !== undefined &&
-      (obj.validatorAddress = message.validatorAddress);
+    message.delegatorAddress !== undefined && (obj.delegatorAddress = message.delegatorAddress);
+    message.validatorAddress !== undefined && (obj.validatorAddress = message.validatorAddress);
     message.shares !== undefined && (obj.shares = message.shares);
     return obj;
   },
 
-  fromPartial(object: DeepPartial<Refund>): Refund {
-    const message = { ...baseRefund } as Refund;
-    if (
-      object.delegatorAddress !== undefined &&
-      object.delegatorAddress !== null
-    ) {
-      message.delegatorAddress = object.delegatorAddress;
-    } else {
-      message.delegatorAddress = "";
-    }
-    if (
-      object.validatorAddress !== undefined &&
-      object.validatorAddress !== null
-    ) {
-      message.validatorAddress = object.validatorAddress;
-    } else {
-      message.validatorAddress = "";
-    }
-    if (object.shares !== undefined && object.shares !== null) {
-      message.shares = object.shares;
-    } else {
-      message.shares = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<Refund>, I>>(object: I): Refund {
+    const message = createBaseRefund();
+    message.delegatorAddress = object.delegatorAddress ?? "";
+    message.validatorAddress = object.validatorAddress ?? "";
+    message.shares = object.shares ?? "";
     return message;
   },
 };
 
-type Builtin = Date | Function | Uint8Array | string | number | undefined;
-export type DeepPartial<T> = T extends Builtin
-  ? T
-  : T extends Array<infer U>
-  ? Array<DeepPartial<U>>
-  : T extends ReadonlyArray<infer U>
-  ? ReadonlyArray<DeepPartial<U>>
-  : T extends {}
-  ? { [K in keyof T]?: DeepPartial<T[K]> }
+type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
+
+export type DeepPartial<T> = T extends Builtin ? T
+  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
+
+type KeysOfUnion<T> = T extends T ? keyof T : never;
+export type Exact<P, I extends P> = P extends Builtin ? P
+  : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
+
+function isSet(value: any): boolean {
+  return value !== null && value !== undefined;
+}

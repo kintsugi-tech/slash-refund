@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { Writer, Reader } from "protobufjs/minimal";
+import _m0 from "protobufjs/minimal";
 
 export const protobufPackage = "madeinblock.slashrefund.slashrefund";
 
@@ -8,10 +8,12 @@ export interface Validator {
   shares: string;
 }
 
-const baseValidator: object = { validatorAddress: "", shares: "" };
+function createBaseValidator(): Validator {
+  return { validatorAddress: "", shares: "" };
+}
 
 export const Validator = {
-  encode(message: Validator, writer: Writer = Writer.create()): Writer {
+  encode(message: Validator, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.validatorAddress !== "") {
       writer.uint32(10).string(message.validatorAddress);
     }
@@ -21,10 +23,10 @@ export const Validator = {
     return writer;
   },
 
-  decode(input: Reader | Uint8Array, length?: number): Validator {
-    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+  decode(input: _m0.Reader | Uint8Array, length?: number): Validator {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseValidator } as Validator;
+    const message = createBaseValidator();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -43,57 +45,38 @@ export const Validator = {
   },
 
   fromJSON(object: any): Validator {
-    const message = { ...baseValidator } as Validator;
-    if (
-      object.validatorAddress !== undefined &&
-      object.validatorAddress !== null
-    ) {
-      message.validatorAddress = String(object.validatorAddress);
-    } else {
-      message.validatorAddress = "";
-    }
-    if (object.shares !== undefined && object.shares !== null) {
-      message.shares = String(object.shares);
-    } else {
-      message.shares = "";
-    }
-    return message;
+    return {
+      validatorAddress: isSet(object.validatorAddress) ? String(object.validatorAddress) : "",
+      shares: isSet(object.shares) ? String(object.shares) : "",
+    };
   },
 
   toJSON(message: Validator): unknown {
     const obj: any = {};
-    message.validatorAddress !== undefined &&
-      (obj.validatorAddress = message.validatorAddress);
+    message.validatorAddress !== undefined && (obj.validatorAddress = message.validatorAddress);
     message.shares !== undefined && (obj.shares = message.shares);
     return obj;
   },
 
-  fromPartial(object: DeepPartial<Validator>): Validator {
-    const message = { ...baseValidator } as Validator;
-    if (
-      object.validatorAddress !== undefined &&
-      object.validatorAddress !== null
-    ) {
-      message.validatorAddress = object.validatorAddress;
-    } else {
-      message.validatorAddress = "";
-    }
-    if (object.shares !== undefined && object.shares !== null) {
-      message.shares = object.shares;
-    } else {
-      message.shares = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<Validator>, I>>(object: I): Validator {
+    const message = createBaseValidator();
+    message.validatorAddress = object.validatorAddress ?? "";
+    message.shares = object.shares ?? "";
     return message;
   },
 };
 
-type Builtin = Date | Function | Uint8Array | string | number | undefined;
-export type DeepPartial<T> = T extends Builtin
-  ? T
-  : T extends Array<infer U>
-  ? Array<DeepPartial<U>>
-  : T extends ReadonlyArray<infer U>
-  ? ReadonlyArray<DeepPartial<U>>
-  : T extends {}
-  ? { [K in keyof T]?: DeepPartial<T[K]> }
+type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
+
+export type DeepPartial<T> = T extends Builtin ? T
+  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
+
+type KeysOfUnion<T> = T extends T ? keyof T : never;
+export type Exact<P, I extends P> = P extends Builtin ? P
+  : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
+
+function isSet(value: any): boolean {
+  return value !== null && value !== undefined;
+}

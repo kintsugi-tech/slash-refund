@@ -106,14 +106,8 @@ func (k Keeper) Deposit(
 	// Operator address of the validator
 	valOperAddr := validator.GetOperator()
 
-	// Check if the deposit exists or create it
-	deposit, found := k.GetDeposit(ctx, depAddr, valOperAddr)
-	if !found {
-		// If a previous deposit does not exist initialize one with zero shares
-		deposit = types.NewDeposit(depAddr, valOperAddr, sdk.ZeroDec())
-	}
-
 	// Check if the deposit pool exists or create it
+	var deposit types.Deposit
 	depPool, found := k.GetDepositPool(ctx, valOperAddr)
 	if !found {
 		// TODO: should be initialized with actual Coins allowed. Now the hp is of just one allowed token.
@@ -122,6 +116,16 @@ func (k Keeper) Deposit(
 			sdk.NewCoin(k.AllowedTokens(ctx)[0], sdk.ZeroInt()),
 			sdk.ZeroDec(),
 		)
+
+		// If the pool does not exists no deposit can exists.
+		deposit = types.NewDeposit(depAddr, valOperAddr, sdk.ZeroDec())
+	} else {
+		// Check if the deposit exists or create it
+		deposit, found = k.GetDeposit(ctx, depAddr, valOperAddr)
+		if !found {
+			// If a previous deposit does not exist initialize one with zero shares
+			deposit = types.NewDeposit(depAddr, valOperAddr, sdk.ZeroDec())
+		}
 	}
 
 	// Send the deposited tokens to the slashrefund module
