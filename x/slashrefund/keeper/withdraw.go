@@ -10,10 +10,13 @@ import (
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 )
 
+// Withdraw implements the state transition logic associated to a valid amount of tokens that a user
+// wants to withdraw from the module.
 func (k Keeper) Withdraw(
 	ctx sdk.Context,
 	depAddr sdk.AccAddress,
 	valAddr sdk.ValAddress,
+	denom string,
 	witShares sdk.Dec,
 ) (sdk.Coin, time.Time, error) {
 
@@ -22,10 +25,10 @@ func (k Keeper) Withdraw(
 
 	witAmt, err := k.Unbond(ctx, depAddr, valAddr, witShares)
 	if err != nil {
-		// TODO: change k.AllowedTokensList(ctx)[0] to handle different denoms
-		return sdk.NewCoin(k.AllowedTokens(ctx)[0], sdk.NewInt(0)), time.Time{}, err
+		return sdk.NewCoin(denom, sdk.NewInt(0)), time.Time{}, err
 	}
 
+	// Time at which the withdrawn tokens become available.
 	completionTime := ctx.BlockHeader().Time.Add(k.stakingKeeper.UnbondingTime(ctx))
 
 	ubd := k.SetUnbondingDepositEntry(ctx, depAddr, valAddr, ctx.BlockHeight(), completionTime, witAmt)
@@ -43,7 +46,9 @@ func (k Keeper) Withdraw(
 	return sdk.NewCoin(k.AllowedTokens(ctx)[0], witAmt), completionTime, nil
 }
 
-func (k Keeper) ValidateWithdrawAmount(
+// Returns user's shares associated with desired withdrawal tokens if available,
+// or an error.
+func (k Keeper) ComputeAssociatedShares(
 	ctx sdk.Context,
 	depAddr sdk.AccAddress,
 	valAddr sdk.ValAddress,
@@ -69,25 +74,26 @@ func (k Keeper) ValidateWithdrawAmount(
 		return sdk.NewDec(0), types.ErrNoDepositPoolForValidator
 	}
 
-	// compute shares from wanted withdraw tokens
+	// Compute shares from desired withdrawal tokens.
 	shares, err = depPool.SharesFromTokens(tokens)
 	if err != nil {
 		return sdk.NewDec(0), err
 	}
 
-	// compute shares from wanted withdraw tokens, rounded down
+	// Compute rounded down shares from desired withdrawal tokens.
 	sharesTruncated, err := depPool.SharesFromTokensTruncated(tokens)
 	if err != nil {
 		return sdk.NewDec(0), err
 	}
 
-	// check if wanted tokens converted to truncated shares are greater than actual total of depositor shares
+	// Check if desired withdrawal tokens converted to truncated shares are greater than actual
+	// total of depositor shares.
 	depositorShares := deposit.GetShares()
 	if sharesTruncated.GT(depositorShares) {
 		return sdk.NewDec(0), sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid token amount")
 	}
 
-	// cap shares (not-truncated) at total depositor shares
+	// Cap shares (not-truncated) at total depositor shares.
 	if shares.GT(depositorShares) {
 		shares = depositorShares
 	}
@@ -102,27 +108,27 @@ func (k Keeper) Unbond(
 	shares sdk.Dec,
 ) (issuedTokensAmt sdk.Int, err error) {
 
-	// check if the deposit exists in the store
+	// Check if the deposit exists in the store.
 	deposit, found := k.GetDeposit(ctx, delAddr, valAddr)
 	if !found {
 		return issuedTokensAmt, types.ErrNoDepositForAddress
 	}
 
-	// check if deposit pool exists in the store
+	// Check if deposit pool exists in the store.
 	depPool, found := k.GetDepositPool(ctx, valAddr)
 	if !found {
 		return issuedTokensAmt, types.ErrNoDepositPoolForValidator
 	}
 
-	// ensure that we have enough shares to remove
+	// Ensure that we have enough shares to remove.
 	if deposit.Shares.LT(shares) {
 		return issuedTokensAmt, sdkerrors.Wrap(types.ErrNotEnoughDepositShares, deposit.Shares.String())
 	}
 
-	// subtract shares from deposit
+	// Subtract shares from deposit.
 	deposit.Shares = deposit.Shares.Sub(shares)
 
-	// remove the deposit if zero or set a new deposit
+	// Remove the deposit if zero or set a new deposit.
 	if deposit.Shares.IsZero() {
 		k.RemoveDeposit(ctx, deposit)
 	} else {

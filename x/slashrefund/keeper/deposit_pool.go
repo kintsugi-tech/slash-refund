@@ -66,6 +66,8 @@ func (k Keeper) GetAllDepositPool(ctx sdk.Context) (list []types.DepositPool) {
 	return
 }
 
+// Given a pool and an amount of tokens, the method adds the tokens and associated shares to
+// the pool balance.
 func (k Keeper) AddDepPoolTokensAndShares(
 	ctx sdk.Context,
 	depositPool types.DepositPool,
@@ -92,30 +94,27 @@ func (k Keeper) AddDepPoolTokensAndShares(
 	return issuedShares
 }
 
+// Removes shares and associated tokens from a deposit pool. Return an error
+// if the requested amounts are not available.
 func (k Keeper) RemoveDepPoolTokensAndShares(
 	ctx sdk.Context,
 	depositPool types.DepositPool,
 	sharesToRemove sdk.Dec,
 ) (types.DepositPool, sdk.Int) {
-
-	// TODO: generalize it considering AllowedTokens param
-
 	var removedTokensAmt sdk.Int
 	var remainingTokensAmt sdk.Int
 
 	remainingShares := depositPool.Shares.Sub(sharesToRemove)
 
 	if remainingShares.IsZero() {
-		// last delegation share gets any trimmings
+		// Last delegation share gets any trimmings.
 		removedTokensAmt = depositPool.Tokens.Amount
 		remainingTokensAmt = sdk.ZeroInt()
 	} else {
-		// leave excess tokens in the deposit pool
-		// however fully use all the depositor shares
 		removedTokensAmt = depositPool.TokensFromShares(sharesToRemove).TruncateInt()
 		remainingTokensAmt = depositPool.Tokens.Amount.Sub(removedTokensAmt)
 		if remainingTokensAmt.IsNegative() {
-			panic("attempting to remove more tokens than available in validator")
+			panic("attempting to remove more tokens than available in the pool")
 		}
 	}
 
