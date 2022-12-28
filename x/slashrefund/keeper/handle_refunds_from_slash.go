@@ -102,7 +102,7 @@ func (k Keeper) RefundFromSlash(
 		// TODO: should be initialized with actual Coins allowed. Now the hp is of just one allowed token.
 		refPool = types.NewRefundPool(
 			valAddr,
-			sdk.NewCoin(k.AllowedTokensList(ctx)[0], sdk.ZeroInt()),
+			sdk.NewCoin(k.AllowedTokens(ctx)[0], sdk.ZeroInt()),
 			sdk.ZeroDec(),
 		)
 	}
@@ -148,7 +148,7 @@ func (k Keeper) RefundFromSlash(
 
 		// update refund pool
 		if !refundAmount.IsZero() && !sharesRefundDel.IsZero() {
-			refundTokens := sdk.NewCoin(k.AllowedTokensList(ctx)[0], refundAmount)
+			refundTokens := sdk.NewCoin(k.AllowedTokens(ctx)[0], refundAmount)
 			refPool.Tokens = refPool.Tokens.Add(refundTokens)
 			refPool.Shares = refPool.Shares.Add(sharesRefundDel)
 			k.SetRefundPool(ctx, refPool)
@@ -255,7 +255,7 @@ func (k Keeper) RefundFromSlash(
 
 		// update refund pool
 		if !refundAmount.IsZero() && !totalRefundShares.IsZero() {
-			refundTokens := sdk.NewCoin(k.AllowedTokensList(ctx)[0], refundAmount)
+			refundTokens := sdk.NewCoin(k.AllowedTokens(ctx)[0], refundAmount)
 			refPool.Tokens = refPool.Tokens.Add(refundTokens)
 			refPool.Shares = refPool.Shares.Add(totalRefundShares)
 			k.SetRefundPool(ctx, refPool)

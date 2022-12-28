@@ -15,8 +15,7 @@ var _ paramtypes.ParamSet = (*Params)(nil)
 
 var (
 	KeyAllowedTokens = []byte("AllowedTokens")
-	// TODO: Determine the default value
-	DefaultAllowedTokens string = "stake"
+	DefaultAllowedTokens = []string{"stake"}
 )
 
 // ParamKeyTable the param key table for launch module
@@ -26,7 +25,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 
 // NewParams creates a new Params instance
 func NewParams(
-	allowedTokens string,
+	allowedTokens []string,
 ) Params {
 	return Params{
 		AllowedTokens: allowedTokens,
@@ -64,22 +63,40 @@ func (p Params) String() string {
 
 // validateAllowedTokens validates the AllowedTokens param
 func validateAllowedTokens(v interface{}) error {
-	allowedTokens, ok := v.(string)
+	allowedTokens, ok := v.([]string)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", v)
 	}
 
-	if strings.TrimSpace(allowedTokens) == "" {
-		return errors.New("allowed denoms cannot be blank")
+	// TODO: remove this line when multiple tokens are allowed
+	if len(allowedTokens) != 1 {
+		return fmt.Errorf("only one allowed token is currently accepted.")
 	}
 
-	allowedTokensList := strings.Split(allowedTokens, ",")
-
-	for _, token := range allowedTokensList {
-		if err := sdk.ValidateDenom(token); err != nil {
+	// ensure each denom is only registered one time.
+	registered := make(map[string]bool)
+	for _, token := range allowedTokens {
+		if _, exists := registered[token]; exists {
+			return fmt.Errorf("duplicate allowed tokens found: '%s'", token)
+		}
+		if err := validateAllowedToken(token); err != nil {
 			return err
 		}
+
+		registered[token] = true
 	}
 
 	return nil
+}
+
+func validateAllowedToken(t interface{}) error {
+	token, ok := t.(string)
+	if !ok {
+		return fmt.Errorf("invalid paramter type: %T", t)
+	}
+
+	if strings.TrimSpace(token) == "" {
+		return errors.New("allowed denoms cannot be blank")
+	}
+	return sdk.ValidateDenom(token)
 }

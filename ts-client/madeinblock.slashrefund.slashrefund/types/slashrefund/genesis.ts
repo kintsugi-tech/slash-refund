@@ -1,11 +1,11 @@
 /* eslint-disable */
-import { Params } from "../slashrefund/params";
-import { Deposit } from "../slashrefund/deposit";
-import { DepositPool } from "../slashrefund/deposit_pool";
-import { UnbondingDeposit } from "../slashrefund/unbonding_deposit";
-import { RefundPool } from "../slashrefund/refund_pool";
-import { Refund } from "../slashrefund/refund";
-import { Writer, Reader } from "protobufjs/minimal";
+import _m0 from "protobufjs/minimal";
+import { Deposit } from "./deposit";
+import { DepositPool } from "./deposit_pool";
+import { Params } from "./params";
+import { Refund } from "./refund";
+import { RefundPool } from "./refund_pool";
+import { UnbondingDeposit } from "./unbonding_deposit";
 
 export const protobufPackage = "madeinblock.slashrefund.slashrefund";
 
@@ -20,10 +20,19 @@ export interface GenesisState {
   refundList: Refund[];
 }
 
-const baseGenesisState: object = {};
+function createBaseGenesisState(): GenesisState {
+  return {
+    params: undefined,
+    depositList: [],
+    depositPoolList: [],
+    unbondingDepositList: [],
+    refundPoolList: [],
+    refundList: [],
+  };
+}
 
 export const GenesisState = {
-  encode(message: GenesisState, writer: Writer = Writer.create()): Writer {
+  encode(message: GenesisState, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.params !== undefined) {
       Params.encode(message.params, writer.uint32(10).fork()).ldelim();
     }
@@ -45,15 +54,10 @@ export const GenesisState = {
     return writer;
   },
 
-  decode(input: Reader | Uint8Array, length?: number): GenesisState {
-    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+  decode(input: _m0.Reader | Uint8Array, length?: number): GenesisState {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseGenesisState } as GenesisState;
-    message.depositList = [];
-    message.depositPoolList = [];
-    message.unbondingDepositList = [];
-    message.refundPoolList = [];
-    message.refundList = [];
+    const message = createBaseGenesisState();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -64,19 +68,13 @@ export const GenesisState = {
           message.depositList.push(Deposit.decode(reader, reader.uint32()));
           break;
         case 5:
-          message.depositPoolList.push(
-            DepositPool.decode(reader, reader.uint32())
-          );
+          message.depositPoolList.push(DepositPool.decode(reader, reader.uint32()));
           break;
         case 6:
-          message.unbondingDepositList.push(
-            UnbondingDeposit.decode(reader, reader.uint32())
-          );
+          message.unbondingDepositList.push(UnbondingDeposit.decode(reader, reader.uint32()));
           break;
         case 7:
-          message.refundPoolList.push(
-            RefundPool.decode(reader, reader.uint32())
-          );
+          message.refundPoolList.push(RefundPool.decode(reader, reader.uint32()));
           break;
         case 8:
           message.refundList.push(Refund.decode(reader, reader.uint32()));
@@ -90,147 +88,78 @@ export const GenesisState = {
   },
 
   fromJSON(object: any): GenesisState {
-    const message = { ...baseGenesisState } as GenesisState;
-    message.depositList = [];
-    message.depositPoolList = [];
-    message.unbondingDepositList = [];
-    message.refundPoolList = [];
-    message.refundList = [];
-    if (object.params !== undefined && object.params !== null) {
-      message.params = Params.fromJSON(object.params);
-    } else {
-      message.params = undefined;
-    }
-    if (object.depositList !== undefined && object.depositList !== null) {
-      for (const e of object.depositList) {
-        message.depositList.push(Deposit.fromJSON(e));
-      }
-    }
-    if (
-      object.depositPoolList !== undefined &&
-      object.depositPoolList !== null
-    ) {
-      for (const e of object.depositPoolList) {
-        message.depositPoolList.push(DepositPool.fromJSON(e));
-      }
-    }
-    if (
-      object.unbondingDepositList !== undefined &&
-      object.unbondingDepositList !== null
-    ) {
-      for (const e of object.unbondingDepositList) {
-        message.unbondingDepositList.push(UnbondingDeposit.fromJSON(e));
-      }
-    }
-    if (object.refundPoolList !== undefined && object.refundPoolList !== null) {
-      for (const e of object.refundPoolList) {
-        message.refundPoolList.push(RefundPool.fromJSON(e));
-      }
-    }
-    if (object.refundList !== undefined && object.refundList !== null) {
-      for (const e of object.refundList) {
-        message.refundList.push(Refund.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      params: isSet(object.params) ? Params.fromJSON(object.params) : undefined,
+      depositList: Array.isArray(object?.depositList) ? object.depositList.map((e: any) => Deposit.fromJSON(e)) : [],
+      depositPoolList: Array.isArray(object?.depositPoolList)
+        ? object.depositPoolList.map((e: any) => DepositPool.fromJSON(e))
+        : [],
+      unbondingDepositList: Array.isArray(object?.unbondingDepositList)
+        ? object.unbondingDepositList.map((e: any) => UnbondingDeposit.fromJSON(e))
+        : [],
+      refundPoolList: Array.isArray(object?.refundPoolList)
+        ? object.refundPoolList.map((e: any) => RefundPool.fromJSON(e))
+        : [],
+      refundList: Array.isArray(object?.refundList) ? object.refundList.map((e: any) => Refund.fromJSON(e)) : [],
+    };
   },
 
   toJSON(message: GenesisState): unknown {
     const obj: any = {};
-    message.params !== undefined &&
-      (obj.params = message.params ? Params.toJSON(message.params) : undefined);
+    message.params !== undefined && (obj.params = message.params ? Params.toJSON(message.params) : undefined);
     if (message.depositList) {
-      obj.depositList = message.depositList.map((e) =>
-        e ? Deposit.toJSON(e) : undefined
-      );
+      obj.depositList = message.depositList.map((e) => e ? Deposit.toJSON(e) : undefined);
     } else {
       obj.depositList = [];
     }
     if (message.depositPoolList) {
-      obj.depositPoolList = message.depositPoolList.map((e) =>
-        e ? DepositPool.toJSON(e) : undefined
-      );
+      obj.depositPoolList = message.depositPoolList.map((e) => e ? DepositPool.toJSON(e) : undefined);
     } else {
       obj.depositPoolList = [];
     }
     if (message.unbondingDepositList) {
-      obj.unbondingDepositList = message.unbondingDepositList.map((e) =>
-        e ? UnbondingDeposit.toJSON(e) : undefined
-      );
+      obj.unbondingDepositList = message.unbondingDepositList.map((e) => e ? UnbondingDeposit.toJSON(e) : undefined);
     } else {
       obj.unbondingDepositList = [];
     }
     if (message.refundPoolList) {
-      obj.refundPoolList = message.refundPoolList.map((e) =>
-        e ? RefundPool.toJSON(e) : undefined
-      );
+      obj.refundPoolList = message.refundPoolList.map((e) => e ? RefundPool.toJSON(e) : undefined);
     } else {
       obj.refundPoolList = [];
     }
     if (message.refundList) {
-      obj.refundList = message.refundList.map((e) =>
-        e ? Refund.toJSON(e) : undefined
-      );
+      obj.refundList = message.refundList.map((e) => e ? Refund.toJSON(e) : undefined);
     } else {
       obj.refundList = [];
     }
     return obj;
   },
 
-  fromPartial(object: DeepPartial<GenesisState>): GenesisState {
-    const message = { ...baseGenesisState } as GenesisState;
-    message.depositList = [];
-    message.depositPoolList = [];
-    message.unbondingDepositList = [];
-    message.refundPoolList = [];
-    message.refundList = [];
-    if (object.params !== undefined && object.params !== null) {
-      message.params = Params.fromPartial(object.params);
-    } else {
-      message.params = undefined;
-    }
-    if (object.depositList !== undefined && object.depositList !== null) {
-      for (const e of object.depositList) {
-        message.depositList.push(Deposit.fromPartial(e));
-      }
-    }
-    if (
-      object.depositPoolList !== undefined &&
-      object.depositPoolList !== null
-    ) {
-      for (const e of object.depositPoolList) {
-        message.depositPoolList.push(DepositPool.fromPartial(e));
-      }
-    }
-    if (
-      object.unbondingDepositList !== undefined &&
-      object.unbondingDepositList !== null
-    ) {
-      for (const e of object.unbondingDepositList) {
-        message.unbondingDepositList.push(UnbondingDeposit.fromPartial(e));
-      }
-    }
-    if (object.refundPoolList !== undefined && object.refundPoolList !== null) {
-      for (const e of object.refundPoolList) {
-        message.refundPoolList.push(RefundPool.fromPartial(e));
-      }
-    }
-    if (object.refundList !== undefined && object.refundList !== null) {
-      for (const e of object.refundList) {
-        message.refundList.push(Refund.fromPartial(e));
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<GenesisState>, I>>(object: I): GenesisState {
+    const message = createBaseGenesisState();
+    message.params = (object.params !== undefined && object.params !== null)
+      ? Params.fromPartial(object.params)
+      : undefined;
+    message.depositList = object.depositList?.map((e) => Deposit.fromPartial(e)) || [];
+    message.depositPoolList = object.depositPoolList?.map((e) => DepositPool.fromPartial(e)) || [];
+    message.unbondingDepositList = object.unbondingDepositList?.map((e) => UnbondingDeposit.fromPartial(e)) || [];
+    message.refundPoolList = object.refundPoolList?.map((e) => RefundPool.fromPartial(e)) || [];
+    message.refundList = object.refundList?.map((e) => Refund.fromPartial(e)) || [];
     return message;
   },
 };
 
-type Builtin = Date | Function | Uint8Array | string | number | undefined;
-export type DeepPartial<T> = T extends Builtin
-  ? T
-  : T extends Array<infer U>
-  ? Array<DeepPartial<U>>
-  : T extends ReadonlyArray<infer U>
-  ? ReadonlyArray<DeepPartial<U>>
-  : T extends {}
-  ? { [K in keyof T]?: DeepPartial<T[K]> }
+type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
+
+export type DeepPartial<T> = T extends Builtin ? T
+  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
+
+type KeysOfUnion<T> = T extends T ? keyof T : never;
+export type Exact<P, I extends P> = P extends Builtin ? P
+  : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
+
+function isSet(value: any): boolean {
+  return value !== null && value !== undefined;
+}

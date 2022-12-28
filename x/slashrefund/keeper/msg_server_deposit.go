@@ -8,7 +8,7 @@ import (
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 )
 
-// Manages the deposit of funds from a user to a particular validator into a module KVStore.
+// Manages the deposit of funds from a user to a particular validator into the module KVStore.
 func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types.MsgDepositResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 

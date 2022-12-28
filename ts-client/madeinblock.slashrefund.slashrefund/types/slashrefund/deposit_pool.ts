@@ -1,6 +1,6 @@
 /* eslint-disable */
+import _m0 from "protobufjs/minimal";
 import { Coin } from "../cosmos/base/v1beta1/coin";
-import { Writer, Reader } from "protobufjs/minimal";
 
 export const protobufPackage = "madeinblock.slashrefund.slashrefund";
 
@@ -11,10 +11,12 @@ export interface DepositPool {
   shares: string;
 }
 
-const baseDepositPool: object = { operatorAddress: "", shares: "" };
+function createBaseDepositPool(): DepositPool {
+  return { operatorAddress: "", tokens: undefined, shares: "" };
+}
 
 export const DepositPool = {
-  encode(message: DepositPool, writer: Writer = Writer.create()): Writer {
+  encode(message: DepositPool, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.operatorAddress !== "") {
       writer.uint32(10).string(message.operatorAddress);
     }
@@ -27,10 +29,10 @@ export const DepositPool = {
     return writer;
   },
 
-  decode(input: Reader | Uint8Array, length?: number): DepositPool {
-    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+  decode(input: _m0.Reader | Uint8Array, length?: number): DepositPool {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseDepositPool } as DepositPool;
+    const message = createBaseDepositPool();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -52,69 +54,43 @@ export const DepositPool = {
   },
 
   fromJSON(object: any): DepositPool {
-    const message = { ...baseDepositPool } as DepositPool;
-    if (
-      object.operatorAddress !== undefined &&
-      object.operatorAddress !== null
-    ) {
-      message.operatorAddress = String(object.operatorAddress);
-    } else {
-      message.operatorAddress = "";
-    }
-    if (object.tokens !== undefined && object.tokens !== null) {
-      message.tokens = Coin.fromJSON(object.tokens);
-    } else {
-      message.tokens = undefined;
-    }
-    if (object.shares !== undefined && object.shares !== null) {
-      message.shares = String(object.shares);
-    } else {
-      message.shares = "";
-    }
-    return message;
+    return {
+      operatorAddress: isSet(object.operatorAddress) ? String(object.operatorAddress) : "",
+      tokens: isSet(object.tokens) ? Coin.fromJSON(object.tokens) : undefined,
+      shares: isSet(object.shares) ? String(object.shares) : "",
+    };
   },
 
   toJSON(message: DepositPool): unknown {
     const obj: any = {};
-    message.operatorAddress !== undefined &&
-      (obj.operatorAddress = message.operatorAddress);
-    message.tokens !== undefined &&
-      (obj.tokens = message.tokens ? Coin.toJSON(message.tokens) : undefined);
+    message.operatorAddress !== undefined && (obj.operatorAddress = message.operatorAddress);
+    message.tokens !== undefined && (obj.tokens = message.tokens ? Coin.toJSON(message.tokens) : undefined);
     message.shares !== undefined && (obj.shares = message.shares);
     return obj;
   },
 
-  fromPartial(object: DeepPartial<DepositPool>): DepositPool {
-    const message = { ...baseDepositPool } as DepositPool;
-    if (
-      object.operatorAddress !== undefined &&
-      object.operatorAddress !== null
-    ) {
-      message.operatorAddress = object.operatorAddress;
-    } else {
-      message.operatorAddress = "";
-    }
-    if (object.tokens !== undefined && object.tokens !== null) {
-      message.tokens = Coin.fromPartial(object.tokens);
-    } else {
-      message.tokens = undefined;
-    }
-    if (object.shares !== undefined && object.shares !== null) {
-      message.shares = object.shares;
-    } else {
-      message.shares = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<DepositPool>, I>>(object: I): DepositPool {
+    const message = createBaseDepositPool();
+    message.operatorAddress = object.operatorAddress ?? "";
+    message.tokens = (object.tokens !== undefined && object.tokens !== null)
+      ? Coin.fromPartial(object.tokens)
+      : undefined;
+    message.shares = object.shares ?? "";
     return message;
   },
 };
 
-type Builtin = Date | Function | Uint8Array | string | number | undefined;
-export type DeepPartial<T> = T extends Builtin
-  ? T
-  : T extends Array<infer U>
-  ? Array<DeepPartial<U>>
-  : T extends ReadonlyArray<infer U>
-  ? ReadonlyArray<DeepPartial<U>>
-  : T extends {}
-  ? { [K in keyof T]?: DeepPartial<T[K]> }
+type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
+
+export type DeepPartial<T> = T extends Builtin ? T
+  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
+
+type KeysOfUnion<T> = T extends T ? keyof T : never;
+export type Exact<P, I extends P> = P extends Builtin ? P
+  : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
+
+function isSet(value: any): boolean {
+  return value !== null && value !== undefined;
+}

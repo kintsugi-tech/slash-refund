@@ -84,7 +84,7 @@ func (k Keeper) GetUnbondingDepositByValIndexKeyBKP(
 
 */
 
-// SetUnbondingDeposit set a specific unbondingDeposit in the store from its index
+// Sets a specific unbondingDeposit in the store from its index.
 func (k Keeper) SetUnbondingDeposit(ctx sdk.Context, unbondingDeposit types.UnbondingDeposit) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshal(&unbondingDeposit)
@@ -104,7 +104,7 @@ func (k Keeper) SetUnbondingDeposit(ctx sdk.Context, unbondingDeposit types.Unbo
 	store.Set(key2, []byte{})
 }
 
-// GetUnbondingDeposit returns a unbondingDeposit from its index
+// Returns an unbondingDeposit from its index
 func (k Keeper) GetUnbondingDeposit(
 	ctx sdk.Context,
 	depAddr sdk.AccAddress,
@@ -201,8 +201,8 @@ func (k Keeper) GetUnbondingDepositsFromValidator(ctx sdk.Context, valAddr sdk.V
 	return ubds
 }
 
-// SetUnbondingDepositEntry adds an entry to the unbonding deposit at
-// the given addresses. It creates the unbonding deposit if it does not exist.
+// Adds an entry to the unbonding deposit at the given addresses. 
+// It creates the unbonding deposit if it does not exist.
 func (k Keeper) SetUnbondingDepositEntry(
 	ctx sdk.Context, depositorAddr sdk.AccAddress, validatorAddr sdk.ValAddress,
 	creationHeight int64, minTime time.Time, balance math.Int,
@@ -298,7 +298,7 @@ func (k Keeper) CompleteUnbonding(ctx sdk.Context, depAddr sdk.AccAddress, valAd
 	}
 
 	//TODO: generalize refundDenom with all the AllowedTokens
-	refundDenom := k.AllowedTokensList(ctx)[0]
+	refundDenom := k.AllowedTokens(ctx)[0]
 	balances := sdk.NewCoins()
 	ctxTime := ctx.BlockHeader().Time
 

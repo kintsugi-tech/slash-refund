@@ -1,6 +1,6 @@
 /* eslint-disable */
-import { UnbondingDepositEntry } from "../slashrefund/unbonding_deposit_entry";
-import { Writer, Reader } from "protobufjs/minimal";
+import _m0 from "protobufjs/minimal";
+import { UnbondingDepositEntry } from "./unbonding_deposit_entry";
 
 export const protobufPackage = "madeinblock.slashrefund.slashrefund";
 
@@ -15,13 +15,12 @@ export interface UnbondingDeposit {
   entries: UnbondingDepositEntry[];
 }
 
-const baseUnbondingDeposit: object = {
-  depositorAddress: "",
-  validatorAddress: "",
-};
+function createBaseUnbondingDeposit(): UnbondingDeposit {
+  return { depositorAddress: "", validatorAddress: "", entries: [] };
+}
 
 export const UnbondingDeposit = {
-  encode(message: UnbondingDeposit, writer: Writer = Writer.create()): Writer {
+  encode(message: UnbondingDeposit, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.depositorAddress !== "") {
       writer.uint32(10).string(message.depositorAddress);
     }
@@ -34,11 +33,10 @@ export const UnbondingDeposit = {
     return writer;
   },
 
-  decode(input: Reader | Uint8Array, length?: number): UnbondingDeposit {
-    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+  decode(input: _m0.Reader | Uint8Array, length?: number): UnbondingDeposit {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseUnbondingDeposit } as UnbondingDeposit;
-    message.entries = [];
+    const message = createBaseUnbondingDeposit();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -49,9 +47,7 @@ export const UnbondingDeposit = {
           message.validatorAddress = reader.string();
           break;
         case 3:
-          message.entries.push(
-            UnbondingDepositEntry.decode(reader, reader.uint32())
-          );
+          message.entries.push(UnbondingDepositEntry.decode(reader, reader.uint32()));
           break;
         default:
           reader.skipType(tag & 7);
@@ -62,83 +58,45 @@ export const UnbondingDeposit = {
   },
 
   fromJSON(object: any): UnbondingDeposit {
-    const message = { ...baseUnbondingDeposit } as UnbondingDeposit;
-    message.entries = [];
-    if (
-      object.depositorAddress !== undefined &&
-      object.depositorAddress !== null
-    ) {
-      message.depositorAddress = String(object.depositorAddress);
-    } else {
-      message.depositorAddress = "";
-    }
-    if (
-      object.validatorAddress !== undefined &&
-      object.validatorAddress !== null
-    ) {
-      message.validatorAddress = String(object.validatorAddress);
-    } else {
-      message.validatorAddress = "";
-    }
-    if (object.entries !== undefined && object.entries !== null) {
-      for (const e of object.entries) {
-        message.entries.push(UnbondingDepositEntry.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      depositorAddress: isSet(object.depositorAddress) ? String(object.depositorAddress) : "",
+      validatorAddress: isSet(object.validatorAddress) ? String(object.validatorAddress) : "",
+      entries: Array.isArray(object?.entries) ? object.entries.map((e: any) => UnbondingDepositEntry.fromJSON(e)) : [],
+    };
   },
 
   toJSON(message: UnbondingDeposit): unknown {
     const obj: any = {};
-    message.depositorAddress !== undefined &&
-      (obj.depositorAddress = message.depositorAddress);
-    message.validatorAddress !== undefined &&
-      (obj.validatorAddress = message.validatorAddress);
+    message.depositorAddress !== undefined && (obj.depositorAddress = message.depositorAddress);
+    message.validatorAddress !== undefined && (obj.validatorAddress = message.validatorAddress);
     if (message.entries) {
-      obj.entries = message.entries.map((e) =>
-        e ? UnbondingDepositEntry.toJSON(e) : undefined
-      );
+      obj.entries = message.entries.map((e) => e ? UnbondingDepositEntry.toJSON(e) : undefined);
     } else {
       obj.entries = [];
     }
     return obj;
   },
 
-  fromPartial(object: DeepPartial<UnbondingDeposit>): UnbondingDeposit {
-    const message = { ...baseUnbondingDeposit } as UnbondingDeposit;
-    message.entries = [];
-    if (
-      object.depositorAddress !== undefined &&
-      object.depositorAddress !== null
-    ) {
-      message.depositorAddress = object.depositorAddress;
-    } else {
-      message.depositorAddress = "";
-    }
-    if (
-      object.validatorAddress !== undefined &&
-      object.validatorAddress !== null
-    ) {
-      message.validatorAddress = object.validatorAddress;
-    } else {
-      message.validatorAddress = "";
-    }
-    if (object.entries !== undefined && object.entries !== null) {
-      for (const e of object.entries) {
-        message.entries.push(UnbondingDepositEntry.fromPartial(e));
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<UnbondingDeposit>, I>>(object: I): UnbondingDeposit {
+    const message = createBaseUnbondingDeposit();
+    message.depositorAddress = object.depositorAddress ?? "";
+    message.validatorAddress = object.validatorAddress ?? "";
+    message.entries = object.entries?.map((e) => UnbondingDepositEntry.fromPartial(e)) || [];
     return message;
   },
 };
 
-type Builtin = Date | Function | Uint8Array | string | number | undefined;
-export type DeepPartial<T> = T extends Builtin
-  ? T
-  : T extends Array<infer U>
-  ? Array<DeepPartial<U>>
-  : T extends ReadonlyArray<infer U>
-  ? ReadonlyArray<DeepPartial<U>>
-  : T extends {}
-  ? { [K in keyof T]?: DeepPartial<T[K]> }
+type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
+
+export type DeepPartial<T> = T extends Builtin ? T
+  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
+
+type KeysOfUnion<T> = T extends T ? keyof T : never;
+export type Exact<P, I extends P> = P extends Builtin ? P
+  : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
+
+function isSet(value: any): boolean {
+  return value !== null && value !== undefined;
+}
