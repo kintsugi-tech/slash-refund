@@ -1,9 +1,9 @@
 package keeper_test
 
 import (
-	"strconv"
 	"testing"
 
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	keepertest "github.com/made-in-block/slash-refund/testutil/keeper"
 	"github.com/made-in-block/slash-refund/testutil/nullify"
@@ -12,14 +12,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// Prevent strconv unused error
-var _ = strconv.IntSize
-
 func createNDepositPool(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.DepositPool {
 	items := make([]types.DepositPool, n)
 	for i := range items {
-		items[i].OperatorAddress = strconv.Itoa(i)
-
+		valPubk := secp256k1.GenPrivKey().PubKey()
+		valAddr := sdk.ValAddress(valPubk.Address())
+		items[i].OperatorAddress = valAddr.String()
+		items[i].Shares = sdk.NewDec(int64(1000 * i))
 		keeper.SetDepositPool(ctx, items[i])
 	}
 	return items
@@ -32,10 +31,7 @@ func TestDepositPoolGet(t *testing.T) {
 		valAddr, _ := sdk.ValAddressFromBech32(item.OperatorAddress)
 		rst, found := keeper.GetDepositPool(ctx, valAddr)
 		require.True(t, found)
-		require.Equal(t,
-			nullify.Fill(&item),
-			nullify.Fill(&rst),
-		)
+		require.Equal(t, nullify.Fill(&item), nullify.Fill(&rst))
 	}
 }
 func TestDepositPoolRemove(t *testing.T) {
