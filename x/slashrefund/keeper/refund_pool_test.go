@@ -1,11 +1,9 @@
 package keeper_test
 
 import (
-	"strconv"
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	keepertest "github.com/made-in-block/slash-refund/testutil/keeper"
 	"github.com/made-in-block/slash-refund/testutil/nullify"
@@ -13,9 +11,6 @@ import (
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 	"github.com/stretchr/testify/require"
 )
-
-// Prevent strconv unused error
-var _ = strconv.IntSize
 
 func createNRefundPool(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.RefundPool {
 	items := make([]types.RefundPool, n)

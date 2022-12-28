@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"strconv"
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
@@ -15,9 +14,6 @@ import (
 	"github.com/made-in-block/slash-refund/testutil/nullify"
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 )
-
-// Prevent strconv unused error
-var _ = strconv.IntSize
 
 func TestUnbondingDepositQuerySingle(t *testing.T) {
 	keeper, ctx := keepertest.SlashrefundKeeper(t)
