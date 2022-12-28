@@ -179,7 +179,7 @@ func NewHelper(t *testing.T, k keeper.Keeper, ctx sdk.Context) *Helper {
 
 func (srh *Helper) Deposit(depAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.Int) {
 	types.DefaultGenesis().Params.GetAllowedTokens()
-	coin := sdk.NewCoin(srh.k.AllowedTokensList(srh.ctx)[0], amount)
+	coin := sdk.NewCoin(srh.k.AllowedTokens(srh.ctx)[0], amount)
 	msg := types.NewMsgDeposit(depAddr.String(), valAddr.String(), coin)
 	res, err := srh.msgSrvr.Deposit(sdk.WrapSDKContext(srh.ctx), msg)
 	require.NoError(srh.t, err)
