@@ -85,7 +85,9 @@ func (k Keeper) GetDepositOfValidator(ctx sdk.Context, valAddr sdk.ValAddress) (
 	return valDeposits, sdk.NewCoin("stake", totalDeposit)
 }
 
-// Deposit implements the state transition logic for a deposit
+// Deposit implements the state transition logic for a deposit. It checks if a pool for the
+// validator exists or create it. Sended tokens are deposited into the module and shares are
+// created for the depositor to take into account its balance inside the module.
 func (k Keeper) Deposit(
 	ctx sdk.Context,
 	depAddr sdk.AccAddress,
@@ -110,10 +112,9 @@ func (k Keeper) Deposit(
 	var deposit types.Deposit
 	depPool, found := k.GetDepositPool(ctx, valOperAddr)
 	if !found {
-		// TODO: should be initialized with actual Coins allowed. Now the hp is of just one allowed token.
 		depPool = types.NewDepositPool(
 			valOperAddr,
-			sdk.NewCoin(k.AllowedTokens(ctx)[0], sdk.ZeroInt()),
+			sdk.NewCoin(depCoin.Denom, sdk.ZeroInt()),
 			sdk.ZeroDec(),
 		)
 

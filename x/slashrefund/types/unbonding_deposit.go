@@ -8,9 +8,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// AddEntry - append entry to the unbonding deposit
+// Append an entry to the unbonding deposit entry list.
 func (ubd *UnbondingDeposit) AddEntry(creationHeight int64, minTime time.Time, balance math.Int) {
-	// Check the entries exists with creation_height and complete_time
+	// Check if another entry with equal time and creation height exists.
 	entryIndex := -1
 	for index, ubdEntry := range ubd.Entries {
 		if ubdEntry.CreationHeight == creationHeight && ubdEntry.CompletionTime.Equal(minTime) {
@@ -18,16 +18,15 @@ func (ubd *UnbondingDeposit) AddEntry(creationHeight int64, minTime time.Time, b
 			break
 		}
 	}
-	// already present an entry with same creation height and completion time: update balances
+	// If the eentry exists, update the balance
 	if entryIndex != -1 {
 		ubdEntry := ubd.Entries[entryIndex]
 		ubdEntry.Balance = ubdEntry.Balance.Add(balance)
 		ubdEntry.InitialBalance = ubdEntry.InitialBalance.Add(balance)
 
-		// update the entry
 		ubd.Entries[entryIndex] = ubdEntry
 	} else {
-		// append the new unbond deposit entry
+		// Append the new unbonding deposit entry
 		entry := NewUnbondingDepositEntry(creationHeight, minTime, balance)
 		ubd.Entries = append(ubd.Entries, entry)
 	}
