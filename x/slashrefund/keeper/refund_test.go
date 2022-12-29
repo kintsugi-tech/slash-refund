@@ -8,9 +8,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	keepertest "github.com/made-in-block/slash-refund/testutil/keeper"
 	"github.com/made-in-block/slash-refund/testutil/nullify"
 	"github.com/made-in-block/slash-refund/x/slashrefund/keeper"
+	"github.com/made-in-block/slash-refund/x/slashrefund/testslashrefund"
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 	"github.com/stretchr/testify/require"
 )
@@ -35,7 +35,7 @@ func createNRefund(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.Refund
 }
 
 func TestRefundGet(t *testing.T) {
-	keeper, ctx := keepertest.SlashrefundKeeper(t)
+	keeper, ctx := testslashrefund.NewTestKeeper(t)
 	items := createNRefund(keeper, ctx, 10)
 	for _, item := range items {
 		delAddr, _ := sdk.AccAddressFromBech32(item.DelegatorAddress)
@@ -49,7 +49,7 @@ func TestRefundGet(t *testing.T) {
 	}
 }
 func TestRefundRemove(t *testing.T) {
-	keeper, ctx := keepertest.SlashrefundKeeper(t)
+	keeper, ctx := testslashrefund.NewTestKeeper(t)
 	items := createNRefund(keeper, ctx, 10)
 	for _, item := range items {
 		delAddr, _ := sdk.AccAddressFromBech32(item.DelegatorAddress)
@@ -62,7 +62,7 @@ func TestRefundRemove(t *testing.T) {
 }
 
 func TestRefundGetAll(t *testing.T) {
-	keeper, ctx := keepertest.SlashrefundKeeper(t)
+	keeper, ctx := testslashrefund.NewTestKeeper(t)
 	items := createNRefund(keeper, ctx, 10)
 	require.ElementsMatch(t,
 		nullify.Fill(items),

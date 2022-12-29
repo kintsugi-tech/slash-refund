@@ -6,9 +6,9 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	keepertest "github.com/made-in-block/slash-refund/testutil/keeper"
 	"github.com/made-in-block/slash-refund/testutil/nullify"
 	"github.com/made-in-block/slash-refund/x/slashrefund/keeper"
+	"github.com/made-in-block/slash-refund/x/slashrefund/testslashrefund"
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 	"github.com/stretchr/testify/require"
 )
@@ -54,7 +54,7 @@ func createNUnbondingDepositForValidator(keeper *keeper.Keeper, ctx sdk.Context,
 }
 
 func TestUnbondingDepositGet(t *testing.T) {
-	keeper, ctx := keepertest.SlashrefundKeeper(t)
+	keeper, ctx := testslashrefund.NewTestKeeper(t)
 	items := createNUnbondingDeposit(keeper, ctx, 10, 3)
 	for _, item := range items {
 		depAddr, _ := sdk.AccAddressFromBech32(item.DepositorAddress)
@@ -65,7 +65,7 @@ func TestUnbondingDepositGet(t *testing.T) {
 	}
 }
 func TestUnbondingDepositRemove(t *testing.T) {
-	keeper, ctx := keepertest.SlashrefundKeeper(t)
+	keeper, ctx := testslashrefund.NewTestKeeper(t)
 	items := createNUnbondingDeposit(keeper, ctx, 10, 3)
 	for _, item := range items {
 		keeper.RemoveUnbondingDeposit(ctx, item)
@@ -80,7 +80,7 @@ func TestUnbondingDepositRemove(t *testing.T) {
 }
 
 func TestUnbondingDepositGetAll(t *testing.T) {
-	keeper, ctx := keepertest.SlashrefundKeeper(t)
+	keeper, ctx := testslashrefund.NewTestKeeper(t)
 	items := createNUnbondingDeposit(keeper, ctx, 10, 3)
 	require.ElementsMatch(t,
 		nullify.Fill(items),
@@ -89,7 +89,7 @@ func TestUnbondingDepositGetAll(t *testing.T) {
 }
 
 func TestUnbondingDepositGetUnbondingDepositsFromValidator(t *testing.T) {
-	keeper, ctx := keepertest.SlashrefundKeeper(t)
+	keeper, ctx := testslashrefund.NewTestKeeper(t)
 	valPubk := secp256k1.GenPrivKey().PubKey()
 	valAddr := sdk.ValAddress(valPubk.Address())
 	items := createNUnbondingDepositForValidator(keeper, ctx, 10, 3, valAddr)

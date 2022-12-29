@@ -2,7 +2,6 @@ package testsuite
 
 import (
 	"encoding/json"
-	"testing"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -15,9 +14,6 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ignite/cli/ignite/pkg/cosmoscmd"
 	"github.com/made-in-block/slash-refund/app"
-	"github.com/made-in-block/slash-refund/x/slashrefund/keeper"
-	"github.com/made-in-block/slash-refund/x/slashrefund/types"
-	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -164,24 +160,4 @@ func CustomGenesisState(srApp *app.App) (genesisState app.GenesisState) {
 	genesisState[banktypes.ModuleName] = srApp.AppCodec().MustMarshalJSON(bankGenesis)
 
 	return genesisState
-}
-
-type Helper struct {
-	t       *testing.T
-	k       keeper.Keeper
-	msgSrvr types.MsgServer
-	ctx     sdk.Context
-}
-
-func NewHelper(t *testing.T, k keeper.Keeper, ctx sdk.Context) *Helper {
-	return &Helper{t, k, keeper.NewMsgServerImpl(k), ctx}
-}
-
-func (srh *Helper) Deposit(depAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.Int) {
-	types.DefaultGenesis().Params.GetAllowedTokens()
-	coin := sdk.NewCoin(srh.k.AllowedTokens(srh.ctx)[0], amount)
-	msg := types.NewMsgDeposit(depAddr.String(), valAddr.String(), coin)
-	res, err := srh.msgSrvr.Deposit(sdk.WrapSDKContext(srh.ctx), msg)
-	require.NoError(srh.t, err)
-	require.NotNil(srh.t, res)
 }

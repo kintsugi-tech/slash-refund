@@ -5,9 +5,9 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	keepertest "github.com/made-in-block/slash-refund/testutil/keeper"
 	"github.com/made-in-block/slash-refund/testutil/nullify"
 	"github.com/made-in-block/slash-refund/x/slashrefund/keeper"
+	"github.com/made-in-block/slash-refund/x/slashrefund/testslashrefund"
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 	"github.com/stretchr/testify/require"
 )
@@ -28,7 +28,7 @@ func createNDeposit(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.Depos
 }
 
 func TestDepositGet(t *testing.T) {
-	keeper, ctx := keepertest.SlashrefundKeeper(t)
+	keeper, ctx := testslashrefund.NewTestKeeper(t)
 	deposits := createNDeposit(keeper, ctx, 10)
 	for _, deposit := range deposits {
 		depAddr, _ := sdk.AccAddressFromBech32(deposit.DepositorAddress)
@@ -42,7 +42,7 @@ func TestDepositGet(t *testing.T) {
 	}
 }
 func TestDepositRemove(t *testing.T) {
-	keeper, ctx := keepertest.SlashrefundKeeper(t)
+	keeper, ctx := testslashrefund.NewTestKeeper(t)
 	deposits := createNDeposit(keeper, ctx, 10)
 	for _, deposit := range deposits {
 		keeper.RemoveDeposit(ctx, deposit)
@@ -54,7 +54,7 @@ func TestDepositRemove(t *testing.T) {
 }
 
 func TestDepositGetAll(t *testing.T) {
-	keeper, ctx := keepertest.SlashrefundKeeper(t)
+	keeper, ctx := testslashrefund.NewTestKeeper(t)
 	items := createNDeposit(keeper, ctx, 10)
 	require.ElementsMatch(t,
 		nullify.Fill(items),

@@ -5,9 +5,9 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	keepertest "github.com/made-in-block/slash-refund/testutil/keeper"
 	"github.com/made-in-block/slash-refund/testutil/nullify"
 	"github.com/made-in-block/slash-refund/x/slashrefund/keeper"
+	"github.com/made-in-block/slash-refund/x/slashrefund/testslashrefund"
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 	"github.com/stretchr/testify/require"
 )
@@ -27,7 +27,7 @@ func createNRefundPool(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.Re
 }
 
 func TestRefundPoolGet(t *testing.T) {
-	keeper, ctx := keepertest.SlashrefundKeeper(t)
+	keeper, ctx := testslashrefund.NewTestKeeper(t)
 	items := createNRefundPool(keeper, ctx, 10)
 	for _, item := range items {
 		valAddr, _ := sdk.ValAddressFromBech32(item.OperatorAddress)
@@ -41,7 +41,7 @@ func TestRefundPoolGet(t *testing.T) {
 }
 
 func TestUpdateRefundPool(t *testing.T) {
-	keeper, ctx := keepertest.SlashrefundKeeper(t)
+	keeper, ctx := testslashrefund.NewTestKeeper(t)
 	refPools := createNRefundPool(keeper, ctx, 10)
 	for i, refPool := range refPools {
 		valAddr, _ := sdk.ValAddressFromBech32(refPool.OperatorAddress)
@@ -60,7 +60,7 @@ func TestUpdateRefundPool(t *testing.T) {
 }
 
 func TestRefundPoolRemove(t *testing.T) {
-	keeper, ctx := keepertest.SlashrefundKeeper(t)
+	keeper, ctx := testslashrefund.NewTestKeeper(t)
 	items := createNRefundPool(keeper, ctx, 10)
 	for _, item := range items {
 		valAddr, _ := sdk.ValAddressFromBech32(item.OperatorAddress)
@@ -71,7 +71,7 @@ func TestRefundPoolRemove(t *testing.T) {
 }
 
 func TestRefundPoolGetAll(t *testing.T) {
-	keeper, ctx := keepertest.SlashrefundKeeper(t)
+	keeper, ctx := testslashrefund.NewTestKeeper(t)
 	items := createNRefundPool(keeper, ctx, 10)
 	require.ElementsMatch(t,
 		nullify.Fill(items),

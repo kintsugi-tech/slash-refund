@@ -27,7 +27,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// TODO: this sould be generalized for multiple coins.
+// TODO: to account for more than one token, Tokens and Shares must be a struct.
 type DepositPool struct {
 	OperatorAddress string                                 `protobuf:"bytes,1,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty"`
 	Tokens          types.Coin                             `protobuf:"bytes,2,opt,name=tokens,proto3" json:"tokens"`
