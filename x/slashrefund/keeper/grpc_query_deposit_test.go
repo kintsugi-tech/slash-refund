@@ -10,7 +10,7 @@ package keeper_test
 // 	"google.golang.org/grpc/codes"
 // 	"google.golang.org/grpc/status"
 
-// 	keepertest "github.com/made-in-block/slash-refund/testutil/keeper"
+// 	"github.com/made-in-block/slash-refund/x/slashrefund/testslashrefund"
 // 	"github.com/made-in-block/slash-refund/testutil/nullify"
 // 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 // 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -20,7 +20,7 @@ package keeper_test
 // var _ = strconv.IntSize
 
 // func TestDepositQuerySingle(t *testing.T) {
-// 	keeper, ctx := keepertest.SlashrefundKeeper(t)
+// 	keeper, ctx := testslashrefund.NewTestKeeper(t)
 // 	wctx := sdk.WrapSDKContext(ctx)
 // 	_ = wctx
 // 	msgs := createNDeposit(keeper, ctx, 2)
@@ -79,7 +79,7 @@ package keeper_test
 // }
 
 // func TestDepositQueryPaginated(t *testing.T) {
-// 	keeper, ctx := keepertest.SlashrefundKeeper(t)
+// 	keeper, ctx := testslashrefund.NewTestKeeper(t)
 // 	wctx := sdk.WrapSDKContext(ctx)
 // 	msgs := createNDeposit(keeper, ctx, 5)
 

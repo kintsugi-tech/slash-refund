@@ -10,8 +10,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	keepertest "github.com/made-in-block/slash-refund/testutil/keeper"
 	"github.com/made-in-block/slash-refund/testutil/nullify"
+	"github.com/made-in-block/slash-refund/x/slashrefund/testslashrefund"
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 )
 
@@ -19,7 +19,7 @@ import (
 var _ = strconv.IntSize
 
 func TestRefundPoolQuerySingle(t *testing.T) {
-	keeper, ctx := keepertest.SlashrefundKeeper(t)
+	keeper, ctx := testslashrefund.NewTestKeeper(t)
 	wctx := sdk.WrapSDKContext(ctx)
 	msgs := createNRefundPool(keeper, ctx, 2)
 	for _, tc := range []struct {
@@ -70,7 +70,7 @@ func TestRefundPoolQuerySingle(t *testing.T) {
 }
 
 func TestRefundPoolQueryPaginated(t *testing.T) {
-	keeper, ctx := keepertest.SlashrefundKeeper(t)
+	keeper, ctx := testslashrefund.NewTestKeeper(t)
 	wctx := sdk.WrapSDKContext(ctx)
 	msgs := createNRefundPool(keeper, ctx, 5)
 

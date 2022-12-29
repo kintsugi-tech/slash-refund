@@ -8,6 +8,7 @@ import (
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 
 	"github.com/made-in-block/slash-refund/testutil/testsuite"
+	"github.com/made-in-block/slash-refund/x/slashrefund/testslashrefund"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/simapp"
@@ -170,7 +171,7 @@ func TestRefundFromSlash(t *testing.T) {
 	// init state
 	srApp, ctx := testsuite.CreateTestApp(false)
 	sth := teststaking.NewHelper(t, ctx, srApp.StakingKeeper)
-	srh := testsuite.NewHelper(t, srApp.SlashrefundKeeper, ctx)
+	srh := testslashrefund.NewHelper(t, srApp.SlashrefundKeeper, ctx)
 
 	var Nacc int = 5
 	var units int64 = 1e6
