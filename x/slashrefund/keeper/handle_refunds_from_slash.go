@@ -120,8 +120,8 @@ func (k Keeper) RefundFromSlash(
 	// unbonding delegations and redelegations were not slashed
 	case infractionHeight == ctx.BlockHeight():
 		if !isFoundDepositPool {
-			logger.Error("ERROR:  zero deposit available")
-			return sdk.NewInt(0), types.ErrZeroDepositAvailable
+			logger.Error("RETURNED:  zero deposit available")
+			return sdk.NewInt(0), nil
 		}
 
 		// draw from pool
@@ -176,7 +176,7 @@ func (k Keeper) RefundFromSlash(
 		logger.Error(fmt.Sprintf("  refund pool now: found=%t , tokens=%s , shares=%s", foundRefPoolLOG, refPoolLOG.Tokens.Amount.String(), refPoolLOG.Shares.String()))
 		logger.Error(fmt.Sprintf("---------------  done refund ---------------"))
 
-		// ---- standard case: ----
+	// ---- standard case: ----
 	// must check for unbondings between slash and evidence
 	case infractionHeight < ctx.BlockHeight():
 		// Iterate through unbonding deposits from slashed validator
@@ -200,8 +200,8 @@ func (k Keeper) RefundFromSlash(
 		// compute percentage to draw from pool and ubdeps
 		drawFactor := sdk.NewDec(0)
 		if availableRefundTokens.IsZero() {
-			logger.Error("ERROR:  zero deposit available")
-			return sdk.NewInt(0), types.ErrZeroDepositAvailable
+			logger.Error("RETURNED:  zero deposit available")
+			return sdk.NewInt(0), nil
 		}
 
 		// = COMPUTE BURNED =
@@ -537,15 +537,17 @@ func (k Keeper) RefundSlashedUnbondingDelegations(
 		}
 
 		// issue shares
-		refund, found := k.GetRefund(ctx, delAddr, valAddr)
-		if !found {
-			refund = types.NewRefund(delAddr, valAddr, sdk.ZeroDec())
-		}
-		refund.Shares = refund.Shares.Add(delegatorShares)
-		k.SetRefund(ctx, refund)
-		logger.Error(fmt.Sprintf("    undel: total delegator shares=%s , delegator=%s", delegatorShares.String(), ubd.DelegatorAddress))
+		if !delegatorShares.IsZero() {
+			refund, found := k.GetRefund(ctx, delAddr, valAddr)
+			if !found {
+				refund = types.NewRefund(delAddr, valAddr, sdk.ZeroDec())
+			}
+			refund.Shares = refund.Shares.Add(delegatorShares)
+			k.SetRefund(ctx, refund)
+			logger.Error(fmt.Sprintf("    undel: total delegator shares=%s , delegator=%s", delegatorShares.String(), ubd.DelegatorAddress))
 
-		totalRefundShares = totalRefundShares.Add(delegatorShares)
+			totalRefundShares = totalRefundShares.Add(delegatorShares)
+		}
 	}
 
 	return totalRefundedAmt, totalRefundShares
@@ -603,15 +605,17 @@ func (k Keeper) RefundSlashedRedelegations(
 		}
 
 		// issue shares
-		refund, found := k.GetRefund(ctx, delAddr, valAddr)
-		if !found {
-			refund = types.NewRefund(delAddr, valAddr, sdk.ZeroDec())
-		}
-		refund.Shares = refund.Shares.Add(delegatorShares)
-		k.SetRefund(ctx, refund)
-		logger.Error(fmt.Sprintf("    redel: total delegator shares=%s , delegator=%s", delegatorShares.String(), red.DelegatorAddress))
+		if !delegatorShares.IsZero() {
+			refund, found := k.GetRefund(ctx, delAddr, valAddr)
+			if !found {
+				refund = types.NewRefund(delAddr, valAddr, sdk.ZeroDec())
+			}
+			refund.Shares = refund.Shares.Add(delegatorShares)
+			k.SetRefund(ctx, refund)
+			logger.Error(fmt.Sprintf("    redel: total delegator shares=%s , delegator=%s", delegatorShares.String(), red.DelegatorAddress))
 
-		totalRefundShares = totalRefundShares.Add(delegatorShares)
+			totalRefundShares = totalRefundShares.Add(delegatorShares)
+		}
 	}
 
 	return totalRefundedAmt, totalRefundShares
