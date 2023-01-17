@@ -343,15 +343,26 @@ func (k Keeper) ComputeEligibleRefundFromUnbondingDeposits(ctx sdk.Context, unbo
 // set the deposit pool and returns the amount that will be refunded from the pool.
 func (k Keeper) UpdateValidatorDepositPool(ctx sdk.Context, amt sdk.Int, depPool types.DepositPool,
 ) (refundTokens sdk.Int) {
-	if amt.GT(depPool.Tokens.Amount) {
+
+	if amt.GTE(depPool.Tokens.Amount) {
+
 		refundTokens = depPool.Tokens.Amount
-		depPool.Tokens.Amount = sdk.ZeroInt()
-		// TODO: remove pool
+
+		// remove validator deposit pool and associated deposits
+		valAddr, _ := sdk.ValAddressFromBech32(depPool.OperatorAddress)
+		k.RemoveDepositPool(ctx, valAddr)
+		for _, d := range k.GetValidatorDeposits(ctx, valAddr) {
+			k.RemoveDeposit(ctx, d)
+		}
+
 	} else {
+
 		refundTokens = amt
 		depPool.Tokens.Amount = depPool.Tokens.Amount.Sub(amt)
+		k.SetDepositPool(ctx, depPool)
+
 	}
-	k.SetDepositPool(ctx, depPool)
+
 	return refundTokens
 }
 

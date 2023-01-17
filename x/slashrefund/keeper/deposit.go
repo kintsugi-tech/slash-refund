@@ -85,6 +85,17 @@ func (k Keeper) GetDepositOfValidator(ctx sdk.Context, valAddr sdk.ValAddress) (
 	return valDeposits, sdk.NewCoin("stake", totalDeposit)
 }
 
+// GetDeposits of specific validator
+func (k Keeper) GetValidatorDeposits(ctx sdk.Context, valAddr sdk.ValAddress) (deposits []types.Deposit) {
+
+	for _, deposit := range k.GetAllDeposit(ctx) {
+		if deposit.ValidatorAddress == valAddr.String() {
+			deposits = append(deposits, deposit)
+		}
+	}
+	return deposits
+}
+
 // Deposit implements the state transition logic for a deposit. It checks if a pool for the
 // validator exists or create it. Sended tokens are deposited into the module and shares are
 // created for the depositor to take into account its balance inside the module.
