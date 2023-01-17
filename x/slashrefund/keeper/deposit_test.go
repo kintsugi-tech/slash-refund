@@ -27,6 +27,21 @@ func createNDeposit(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.Depos
 	return items
 }
 
+func createNDepositForValidator(keeper *keeper.Keeper, ctx sdk.Context, n int) ([]types.Deposit, sdk.ValAddress) {
+	items := make([]types.Deposit, n)
+	valPubk := secp256k1.GenPrivKey().PubKey()
+	valAddr := sdk.ValAddress(valPubk.Address())
+	for i := range items {
+		depPubk := secp256k1.GenPrivKey().PubKey()
+		depAddr := sdk.AccAddress(depPubk.Address())
+		items[i].DepositorAddress = depAddr.String()
+		items[i].ValidatorAddress = valAddr.String()
+		items[i].Shares = sdk.ZeroDec()
+		keeper.SetDeposit(ctx, items[i])
+	}
+	return items, valAddr
+}
+
 func TestDepositGet(t *testing.T) {
 	keeper, ctx := testslashrefund.NewTestKeeper(t)
 	deposits := createNDeposit(keeper, ctx, 10)
@@ -60,4 +75,20 @@ func TestDepositGetAll(t *testing.T) {
 		nullify.Fill(items),
 		nullify.Fill(keeper.GetAllDeposit(ctx)),
 	)
+}
+
+func TestGetValidatorDeposits(t *testing.T) {
+	keeper, ctx := testslashrefund.NewTestKeeper(t)
+	items, valAddr := createNDepositForValidator(keeper, ctx, 10)
+	require.ElementsMatch(t,
+		nullify.Fill(items),
+		nullify.Fill(keeper.GetValidatorDeposits(ctx, valAddr)),
+	)
+	_ = createNDeposit(keeper, ctx, 20)
+	deposits := keeper.GetValidatorDeposits(ctx, valAddr)
+	require.ElementsMatch(t,
+		nullify.Fill(items),
+		nullify.Fill(deposits),
+	)
+
 }
