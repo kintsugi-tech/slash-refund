@@ -6,30 +6,25 @@ import (
 	"time"
 
 	"github.com/made-in-block/slash-refund/testutil/testsuite"
-	"github.com/made-in-block/slash-refund/x/slashrefund"
 	"github.com/made-in-block/slash-refund/x/slashrefund/testslashrefund"
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	"github.com/cosmos/cosmos-sdk/x/staking/teststaking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-
-	abci "github.com/tendermint/tendermint/abci/types"
-	//"github.com/tendermint/tendermint/libs/bytes"
 
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/stretchr/testify/require"
 )
 
-var units int64 = sdk.DefaultPowerReduction.Int64()
-
 // bootstrapRefundTest creates a validator with given power and bootstrap the app
 func bootstrapRefundTest(t *testing.T, power int64) *KeeperTestSuite {
 
 	srApp, ctx := testsuite.CreateTestApp(false)
+
+	units := srApp.StakingKeeper.PowerReduction(ctx).Int64()
 
 	initAmt := sdk.NewInt(int64(1000 * units))
 	testAddrs, pubks := CreateNTestAccounts(srApp, ctx, 5, initAmt)
@@ -37,13 +32,12 @@ func bootstrapRefundTest(t *testing.T, power int64) *KeeperTestSuite {
 	selfDelegation := sdk.NewInt(power * units)
 
 	// create 2 validators with consensous power equal to input power
-	powerReduction := srApp.StakingKeeper.PowerReduction(ctx)
 	sth := teststaking.NewHelper(t, ctx, srApp.StakingKeeper)
 
 	valAddrs := make([]sdk.ValAddress, 0, 2)
 
 	for i := 0; i < 2; i++ {
-		sth.CreateValidatorWithValPower(sdk.ValAddress(testAddrs[i]), pubks[i], selfDelegation.Quo(powerReduction).Int64(), true)
+		sth.CreateValidatorWithValPower(sdk.ValAddress(testAddrs[i]), pubks[i], selfDelegation.QuoRaw(units).Int64(), true)
 		validator, found := srApp.StakingKeeper.GetValidatorByConsAddr(ctx, sdk.ConsAddress(testAddrs[i]))
 		require.True(t, found)
 		valAddr := validator.GetOperator()
@@ -54,13 +48,14 @@ func bootstrapRefundTest(t *testing.T, power int64) *KeeperTestSuite {
 	}
 
 	s := KeeperTestSuite{}
-	s.srApp, s.ctx, s.testAddrs, s.valAddrs, s.selfDelegation, s.t = srApp, ctx, testAddrs, valAddrs, selfDelegation, t
+	s.srApp, s.ctx, s.units, s.testAddrs, s.valAddrs, s.selfDelegation, s.t = srApp, ctx, units, testAddrs, valAddrs, selfDelegation, t
 
 	return &s
 }
 
 func defaultTestValues() (power int64, slashFactor sdk.Dec, slashAmt sdk.Int, depositAmt sdk.Int, infractionHeight int64, slashTime time.Time) {
 
+	units := sdk.DefaultPowerReduction.Int64()
 	power = int64(100)
 	slashFactor = sdk.NewDecWithPrec(5, 2)
 	slashAmt = sdk.NewInt(5 * units)
@@ -238,7 +233,7 @@ func TestRefundFromSlash_EqualToDepositPool(t *testing.T) {
 
 	power, slashFactor, slashAmt, _, _, _ := defaultTestValues()
 	s := bootstrapRefundTest(t, power)
-	srApp, ctx, testAddrs, selfDelegation, valAddr, valAddrs := s.srApp, s.ctx, s.testAddrs, s.selfDelegation, s.valAddrs[0], s.valAddrs
+	srApp, ctx, testAddrs, selfDelegation, valAddr, valAddrs, units := s.srApp, s.ctx, s.testAddrs, s.selfDelegation, s.valAddrs[0], s.valAddrs, s.units
 
 	// deposit
 	srh := testslashrefund.NewHelper(t, ctx, srApp.SlashrefundKeeper)
@@ -279,7 +274,7 @@ func TestRefundFromSlash_GTDepositPool(t *testing.T) {
 
 	power, slashFactor, slashAmt, _, _, _ := defaultTestValues()
 	s := bootstrapRefundTest(t, power)
-	srApp, ctx, testAddrs, valAddr := s.srApp, s.ctx, s.testAddrs, s.valAddrs[0]
+	srApp, ctx, testAddrs, valAddr, units := s.srApp, s.ctx, s.testAddrs, s.valAddrs[0], s.units
 
 	// deposit
 	depAmt := sdk.NewInt(1 * units)
@@ -309,7 +304,7 @@ func TestRefundFromSlash_MultipleDelegations(t *testing.T) {
 
 	_, slashFactor, slashAmt, depAmt, _, _ := defaultTestValues()
 	s := bootstrapRefundTest(t, 10)
-	srApp, ctx, testAddrs, valAddrs, selfDelegation, valAddr := s.srApp, s.ctx, s.testAddrs, s.valAddrs, s.selfDelegation, s.valAddrs[0]
+	srApp, ctx, testAddrs, valAddrs, selfDelegation, valAddr, units := s.srApp, s.ctx, s.testAddrs, s.valAddrs, s.selfDelegation, s.valAddrs[0], s.units
 
 	delAmt1 := sdk.NewInt(50 * units)
 	delAmt2 := sdk.NewInt(40 * units)
@@ -355,7 +350,7 @@ func TestRefundFromSlash_MultipleDeposits(t *testing.T) {
 
 	power, slashFactor, slashAmt, _, _, _ := defaultTestValues()
 	s := bootstrapRefundTest(t, power)
-	srApp, ctx, testAddrs, valAddrs, selfDelegation, valAddr := s.srApp, s.ctx, s.testAddrs, s.valAddrs, s.selfDelegation, s.valAddrs[0]
+	srApp, ctx, testAddrs, valAddrs, selfDelegation, valAddr, units := s.srApp, s.ctx, s.testAddrs, s.valAddrs, s.selfDelegation, s.valAddrs[0], s.units
 
 	depAmt1 := sdk.NewInt(8 * units)
 	depAmt2 := sdk.NewInt(2 * units)
@@ -437,7 +432,7 @@ func TestRefundFromSlash_EligibleUnbondingDeposit(t *testing.T) {
 
 	power, slashFactor, slashAmt, depAmt, infractionHeight, slashTime := defaultTestValues()
 	s := bootstrapRefundTest(t, power)
-	srApp, ctx, testAddrs, selfDelegation, valAddr := s.srApp, s.ctx, s.testAddrs, s.selfDelegation, s.valAddrs[0]
+	srApp, ctx, testAddrs, selfDelegation, valAddr, units := s.srApp, s.ctx, s.testAddrs, s.selfDelegation, s.valAddrs[0], s.units
 
 	// Eligible Unbonding Deposit
 	ctx = ctx.WithBlockHeight(infractionHeight + 1)
@@ -468,7 +463,7 @@ func TestRefundFromSlash_NotEligibleUnbondingDelegations(t *testing.T) {
 
 	power, slashFactor, valSlashAmt, depAmt, infractionHeight, slashTime := defaultTestValues()
 	s := bootstrapRefundTest(t, power)
-	srApp, ctx, testAddrs, selfDelegation, valAddr := s.srApp, s.ctx, s.testAddrs, s.selfDelegation, s.valAddrs[0]
+	srApp, ctx, testAddrs, selfDelegation, valAddr, units := s.srApp, s.ctx, s.testAddrs, s.selfDelegation, s.valAddrs[0], s.units
 
 	// deposit
 	testslashrefund.NewHelper(t, ctx, srApp.SlashrefundKeeper).Deposit(testAddrs[0], valAddr, depAmt)
@@ -526,7 +521,7 @@ func TestRefundFromSlash_EligibleUnbondingDelegations(t *testing.T) {
 
 	power, slashFactor, valSlashAmt, _, infractionHeight, slashTime := defaultTestValues()
 	s := bootstrapRefundTest(t, power)
-	srApp, ctx, testAddrs, valAddrs, selfDelegation, valAddr := s.srApp, s.ctx, s.testAddrs, s.valAddrs, s.selfDelegation, s.valAddrs[0]
+	srApp, ctx, testAddrs, valAddrs, selfDelegation, valAddr, units := s.srApp, s.ctx, s.testAddrs, s.valAddrs, s.selfDelegation, s.valAddrs[0], s.units
 
 	// will set 2 unbonding delegations: ubd1 and ubd2, each with 2 eligible entries of 100 units each
 	ubdelAmt := sdk.NewInt(100 * units)
@@ -586,7 +581,7 @@ func TestRefundFromSlash_EligibleRedelegations(t *testing.T) {
 
 	power, slashFactor, valSlashAmt, _, infractionHeight, slashTime := defaultTestValues()
 	s := bootstrapRefundTest(t, power)
-	srApp, ctx, testAddrs, valAddrs, selfDelegation, valAddr := s.srApp, s.ctx, s.testAddrs, s.valAddrs, s.selfDelegation, s.valAddrs[0]
+	srApp, ctx, testAddrs, valAddrs, selfDelegation, valAddr, units := s.srApp, s.ctx, s.testAddrs, s.valAddrs, s.selfDelegation, s.valAddrs[0], s.units
 
 	// will set 2 redelegations: ubd1 and ubd2, each with 2 eligible entries of 100 units each
 	amt := sdk.NewInt(100 * units)
@@ -647,7 +642,7 @@ func TestRefundFromSlash_NotEligibleRedelegations(t *testing.T) {
 
 	power, slashFactor, valSlashAmt, depAmt, infractionHeight, slashTime := defaultTestValues()
 	s := bootstrapRefundTest(t, power)
-	srApp, ctx, testAddrs, valAddrs, selfDelegation, valAddr := s.srApp, s.ctx, s.testAddrs, s.valAddrs, s.selfDelegation, s.valAddrs[0]
+	srApp, ctx, testAddrs, valAddrs, selfDelegation, valAddr, units := s.srApp, s.ctx, s.testAddrs, s.valAddrs, s.selfDelegation, s.valAddrs[0], s.units
 
 	// deposit
 	testslashrefund.NewHelper(t, ctx, srApp.SlashrefundKeeper).Deposit(testAddrs[0], valAddr, depAmt)
@@ -708,121 +703,238 @@ func TestRefundFromSlash_NotEligibleRedelegations(t *testing.T) {
 	s.RequireDepositPool(valAddr, sdk.NewInt(5*units), sdk.NewDecFromInt(depAmt), []types.Deposit{deposit1})
 }
 
-func TestHandleRefundsFromSlashDoubleSign(t *testing.T) {
-	//TODO
-}
+func TestHandleRefundsFromSlash_DoubleSign(t *testing.T) {
 
-func TestHandleRefundsFromSlashDownTime(t *testing.T) {
-	//TODO
-}
+	_, _, _, _, infractionHeight, slashTime := defaultTestValues()
+	s := bootstrapRefundTest(t, 10)
+	srApp, ctx, testAddrs, selfDelegation, valAddr, valAddrs, units := s.srApp, s.ctx, s.testAddrs, s.selfDelegation, s.valAddrs[0], s.valAddrs, s.units
 
-func TestSlashRefundDoubleSign(t *testing.T) {
-	// init state
-	srApp, ctx := testsuite.CreateTestApp(false)
 	sth := teststaking.NewHelper(t, ctx, srApp.StakingKeeper)
 	srh := testslashrefund.NewHelper(t, ctx, srApp.SlashrefundKeeper)
 
-	initAmt := sdk.NewInt(int64(1000 * units))
-	addrs, pks := CreateNTestAccounts(srApp, ctx, 5, initAmt)
+	depAmt := sdk.NewInt(150 * units)
+	ubdepAmt := sdk.NewInt(50 * units)
+	delAmt := sdk.NewInt(90 * units)
+	ubdelAmt := sdk.NewInt(5 * units)
+	redelAmt := sdk.NewInt(15 * units)
 
-	operator := addrs[0]
-	depositor1 := addrs[0]
-	depositor2 := addrs[1]
-	delegator1 := addrs[2]
-	delegator2 := addrs[3]
-	stranger := addrs[4]
+	srh.Deposit(testAddrs[0], valAddr, depAmt)
+	sth.Delegate(testAddrs[2], valAddr, delAmt)
 
-	selfDelegation := sdk.NewInt(10 * units)
-	delAmt1 := sdk.NewInt(50 * units)
-	delAmt2 := sdk.NewInt(40 * units)
+	// eligible unbonding deposit
+	// entry 1: eligible
+	// entry 2: not eligible
+	ubdep := types.NewUnbondingDeposit(testAddrs[1], valAddr, infractionHeight+1, slashTime.Add(100), ubdepAmt)
+	ubdep.Entries = append(ubdep.Entries,
+		types.NewUnbondingDepositEntry(
+			infractionHeight-1,
+			slashTime.Add(100),
+			ubdepAmt,
+		))
+	srApp.SlashrefundKeeper.SetUnbondingDeposit(ctx, ubdep)
 
-	depAmt1 := sdk.NewInt(800 * units)
-	depAmt2 := sdk.NewInt(200 * units)
+	// eligible unbonding delegation
+	// entry 1: eligible
+	// entry 2: not eligible
+	ubdel := stakingtypes.NewUnbondingDelegation(testAddrs[3], valAddr, infractionHeight+1, slashTime.Add(100), ubdelAmt)
+	ubdel.Entries = append(ubdel.Entries,
+		stakingtypes.NewUnbondingDelegationEntry(
+			infractionHeight-1,
+			slashTime.Add(100),
+			ubdelAmt,
+		))
+	srApp.StakingKeeper.SetUnbondingDelegation(ctx, ubdel)
 
-	// create validator
-	powerReduction := srApp.StakingKeeper.PowerReduction(ctx)
-	sth.CreateValidatorWithValPower(sdk.ValAddress(operator), pks[0], selfDelegation.Quo(powerReduction).Int64(), true)
-	validator, found := srApp.StakingKeeper.GetValidatorByConsAddr(ctx, sdk.ConsAddress(operator))
-	require.True(t, found)
-	valAddr := validator.GetOperator()
-
-	// ==== new block ====
-	sth.TurnBlock(ctx.BlockTime().Add(time.Duration(1) * time.Second))
-
-	sth.Delegate(delegator1, valAddr, delAmt1)
-	sth.Delegate(delegator2, valAddr, delAmt2)
-
-	srh.Deposit(depositor1, valAddr, depAmt1)
-	srh.Deposit(depositor2, valAddr, depAmt2)
-
-	// ==== new block ====
-	sth.TurnBlock(ctx.BlockTime().Add(time.Duration(1) * time.Second))
-
-	// slash for double sign
-	consAddr, err := srApp.StakingKeeper.Validator(ctx, valAddr).GetConsAddr()
-	require.NoError(t, err)
-	initialTokAmt := srApp.StakingKeeper.Validator(ctx, valAddr).GetTokens()
-	consPower := srApp.StakingKeeper.Validator(ctx, valAddr).GetConsensusPower(srApp.StakingKeeper.PowerReduction(ctx))
-	//srApp.SlashingKeeper.HandleValidatorSignature(ctx, bytes.HexBytes(valAddr.Bytes()), selfDelegation.Int64(), true)
-	srApp.EvidenceKeeper.HandleEquivocationEvidence(ctx,
-		&evidencetypes.Equivocation{
-			Height:           0,
-			Time:             time.Unix(0, 0),
-			Power:            consPower,
-			ConsensusAddress: consAddr.String(),
-		},
+	// redelegation:
+	// entry 1: eligible
+	// entry 2: not eligible
+	red := stakingtypes.NewRedelegation(testAddrs[4], valAddr, valAddrs[1], infractionHeight+1, slashTime.Add(100), redelAmt, sdk.NewDec(1))
+	red.Entries = append(red.Entries,
+		stakingtypes.NewRedelegationEntry(
+			infractionHeight-1,
+			slashTime.Add(100),
+			redelAmt, sdk.NewDec(1)),
 	)
+	srApp.StakingKeeper.SetRedelegation(ctx, red)
+
+	// validator update
+	ctx = sth.TurnBlock(slashTime)
 
 	// compute burned tokens
-	sf := srApp.SlashingKeeper.SlashFractionDoubleSign(ctx)
-	valBurnedTokens := sf.MulInt(srApp.StakingKeeper.TokensFromConsensusPower(ctx, consPower)).TruncateInt()
-	require.Equal(t, initialTokAmt.Sub(valBurnedTokens), srApp.StakingKeeper.Validator(ctx, valAddr).GetTokens())
+	consAddr, err := srApp.StakingKeeper.Validator(ctx, valAddr).GetConsAddr()
+	require.NoError(t, err)
 
-	// check no refund pool
-	_, found = srApp.SlashrefundKeeper.GetRefundPool(ctx, valAddr)
-	require.False(t, found)
+	consPower := srApp.StakingKeeper.Validator(ctx, valAddr).GetConsensusPower(srApp.StakingKeeper.PowerReduction(ctx))
+
+	slashFactor := srApp.SlashingKeeper.SlashFractionDoubleSign(ctx)
+
+	valBurnedTokens := slashFactor.MulInt(srApp.StakingKeeper.TokensFromConsensusPower(ctx, consPower)).TruncateInt()
+
+	slashEventDS := sdk.NewEvent(
+		slashingtypes.EventTypeSlash,
+		sdk.NewAttribute(slashingtypes.AttributeKeyAddress, consAddr.String()),
+		sdk.NewAttribute(slashingtypes.AttributeKeyPower, fmt.Sprintf("%d", consPower)),
+		sdk.NewAttribute(slashingtypes.AttributeKeyReason, slashingtypes.AttributeValueDoubleSign),
+		sdk.NewAttribute(slashingtypes.AttributeKeyBurnedCoins, valBurnedTokens.String()),
+		sdk.NewAttribute(slashingtypes.AttributeKeyInfractionHeight, fmt.Sprintf("%d", infractionHeight)),
+	)
+
+	burnedUbdel := slashFactor.MulInt(ubdelAmt).TruncateInt()
+	burnedRedel := slashFactor.MulInt(redelAmt).TruncateInt()
+	burnedTokens := valBurnedTokens.Add(burnedUbdel).Add(burnedRedel)
 
 	// call slash refund
-	slashrefund.BeginBlocker(ctx, abci.RequestBeginBlock{}, srApp.SlashrefundKeeper)
+	ctx = ctx.WithBlockHeader(tmproto.Header{Height: infractionHeight + 2, Time: slashTime})
+	refAmt, err := srApp.SlashrefundKeeper.HandleRefundsFromSlash(ctx, slashEventDS)
+	require.NoError(t, err)
+	require.Equal(t, burnedTokens, refAmt)
 
 	// check refunds
-	_, found = srApp.SlashrefundKeeper.GetRefund(ctx, stranger, valAddr)
-	require.False(t, found)
-
-	refund0, found := srApp.SlashrefundKeeper.GetRefund(ctx, operator, valAddr)
-	require.True(t, found)
-	require.Equal(t, refund0.Shares, sdk.NewDecFromInt(selfDelegation).Mul(sf))
-
-	refund1, found := srApp.SlashrefundKeeper.GetRefund(ctx, delegator1, valAddr)
-	require.True(t, found)
-	require.Equal(t, refund1.Shares, sdk.NewDecFromInt(delAmt1).Mul(sf))
-
-	refund2, found := srApp.SlashrefundKeeper.GetRefund(ctx, delegator2, valAddr)
-	require.True(t, found)
-	require.Equal(t, refund2.Shares, sdk.NewDecFromInt(delAmt2).Mul(sf))
+	refund0 := s.RequireRefund(testAddrs[0], valAddr, slashFactor.MulInt(selfDelegation))
+	refund2 := s.RequireRefund(testAddrs[2], valAddr, slashFactor.MulInt(delAmt))
+	refund3 := s.RequireRefund(testAddrs[3], valAddr, slashFactor.MulInt(ubdelAmt))
+	refund4 := s.RequireRefund(testAddrs[4], valAddr, slashFactor.MulInt(redelAmt))
+	s.RequireNoRefund(testAddrs[1], valAddr)
 
 	// check refund pool
-	refPool, found := srApp.SlashrefundKeeper.GetRefundPool(ctx, valAddr)
-	require.True(t, found)
-	require.Equal(t, valBurnedTokens, refPool.Tokens.Amount)
-	require.Equal(t, refund0.Shares.Add(refund1.Shares).Add(refund2.Shares), refPool.Shares)
-	require.Equal(t, sdk.NewDecFromInt(valBurnedTokens), refPool.Shares)
+	s.RequireRefundPool(valAddr, burnedTokens, sdk.NewDecFromInt(burnedTokens), []types.Refund{refund0, refund2, refund3, refund4})
 
 	// check deposits
-	deposit1, found := srApp.SlashrefundKeeper.GetDeposit(ctx, depositor1, valAddr)
+	deposit0 := s.RequireDeposit(testAddrs[0], valAddr, sdk.NewDecFromInt(depAmt))
+	s.RequireNoDeposit(testAddrs[1], valAddr)
+
+	depTotal := depAmt.Add(ubdepAmt)
+	drawFactor := sdk.NewDecFromInt(burnedTokens).QuoInt(depTotal)
+	drawnFromUbdep := drawFactor.MulInt(ubdepAmt).TruncateInt()
+	drawnFromPool := drawFactor.MulInt(depAmt).TruncateInt()
+	require.Equal(t, drawnFromPool.Add(drawnFromUbdep), refAmt)
+
+	// check unbonding deposits
+	ubd, found := srApp.SlashrefundKeeper.GetUnbondingDeposit(ctx, testAddrs[1], valAddr)
 	require.True(t, found)
-	require.Equal(t, sdk.NewDecFromInt(depAmt1), deposit1.Shares)
-	deposit2, found := srApp.SlashrefundKeeper.GetDeposit(ctx, depositor2, valAddr)
-	require.True(t, found)
-	require.Equal(t, sdk.NewDecFromInt(depAmt2), deposit2.Shares)
+	require.Equal(t, ubdepAmt, ubd.Entries[0].InitialBalance)
+	require.Equal(t, ubdepAmt.Sub(drawnFromUbdep), ubd.Entries[0].Balance)
+	require.Equal(t, ubdepAmt, ubd.Entries[1].InitialBalance)
+	require.Equal(t, ubdepAmt, ubd.Entries[1].Balance)
 
 	// check deposit pool
-	depPool, found := srApp.SlashrefundKeeper.GetDepositPool(ctx, valAddr)
-	require.True(t, found)
-	require.Equal(t, depPool.Shares, sdk.NewDecFromInt(depAmt1.Add(depAmt2)))
-	require.Equal(t, depAmt1.Add(depAmt2), depPool.Tokens.Amount.Add(valBurnedTokens))
+	s.RequireDepositPool(valAddr, depAmt.Sub(drawnFromPool), sdk.NewDecFromInt(depAmt), []types.Deposit{deposit0})
 }
 
-func TestSlashRefundDownTime(t *testing.T) {
-	//TODO
+func TestHandleRefundsFromSlash_DownTime(t *testing.T) {
+	_, _, _, _, infractionHeight, slashTime := defaultTestValues()
+	s := bootstrapRefundTest(t, 10)
+	srApp, ctx, testAddrs, selfDelegation, valAddr, valAddrs, units := s.srApp, s.ctx, s.testAddrs, s.selfDelegation, s.valAddrs[0], s.valAddrs, s.units
+
+	sth := teststaking.NewHelper(t, ctx, srApp.StakingKeeper)
+	srh := testslashrefund.NewHelper(t, ctx, srApp.SlashrefundKeeper)
+
+	depAmt := sdk.NewInt(150 * units)
+	ubdepAmt := sdk.NewInt(50 * units)
+	delAmt := sdk.NewInt(90 * units)
+	ubdelAmt := sdk.NewInt(5 * units)
+	redelAmt := sdk.NewInt(15 * units)
+
+	srh.Deposit(testAddrs[0], valAddr, depAmt)
+	sth.Delegate(testAddrs[2], valAddr, delAmt)
+
+	// eligible unbonding deposit
+	// entry 1: eligible
+	// entry 2: not eligible
+	ubdep := types.NewUnbondingDeposit(testAddrs[1], valAddr, infractionHeight+1, slashTime.Add(100), ubdepAmt)
+	ubdep.Entries = append(ubdep.Entries,
+		types.NewUnbondingDepositEntry(
+			infractionHeight-1,
+			slashTime.Add(100),
+			ubdepAmt,
+		))
+	srApp.SlashrefundKeeper.SetUnbondingDeposit(ctx, ubdep)
+
+	// eligible unbonding delegation
+	// entry 1: eligible
+	// entry 2: not eligible
+	ubdel := stakingtypes.NewUnbondingDelegation(testAddrs[3], valAddr, infractionHeight+1, slashTime.Add(100), ubdelAmt)
+	ubdel.Entries = append(ubdel.Entries,
+		stakingtypes.NewUnbondingDelegationEntry(
+			infractionHeight-1,
+			slashTime.Add(100),
+			ubdelAmt,
+		))
+	srApp.StakingKeeper.SetUnbondingDelegation(ctx, ubdel)
+
+	// redelegation:
+	// entry 1: eligible
+	// entry 2: not eligible
+	red := stakingtypes.NewRedelegation(testAddrs[4], valAddr, valAddrs[1], infractionHeight+1, slashTime.Add(100), redelAmt, sdk.NewDec(1))
+	red.Entries = append(red.Entries,
+		stakingtypes.NewRedelegationEntry(
+			infractionHeight-1,
+			slashTime.Add(100),
+			redelAmt, sdk.NewDec(1)),
+	)
+	srApp.StakingKeeper.SetRedelegation(ctx, red)
+
+	// validator update
+	ctx = sth.TurnBlock(slashTime)
+
+	// compute burned tokens
+	consAddr, err := srApp.StakingKeeper.Validator(ctx, valAddr).GetConsAddr()
+	require.NoError(t, err)
+
+	consPower := srApp.StakingKeeper.Validator(ctx, valAddr).GetConsensusPower(srApp.StakingKeeper.PowerReduction(ctx))
+
+	slashFactor := srApp.SlashingKeeper.SlashFractionDowntime(ctx)
+
+	valBurnedTokens := slashFactor.MulInt(srApp.StakingKeeper.TokensFromConsensusPower(ctx, consPower)).TruncateInt()
+
+	slashEventDT := sdk.NewEvent(
+		slashingtypes.EventTypeSlash,
+		sdk.NewAttribute(slashingtypes.AttributeKeyAddress, consAddr.String()),
+		sdk.NewAttribute(slashingtypes.AttributeKeyPower, fmt.Sprintf("%d", consPower)),
+		sdk.NewAttribute(slashingtypes.AttributeKeyReason, slashingtypes.AttributeValueMissingSignature),
+		sdk.NewAttribute(slashingtypes.AttributeKeyJailed, consAddr.String()),
+		sdk.NewAttribute(slashingtypes.AttributeKeyBurnedCoins, valBurnedTokens.String()),
+		sdk.NewAttribute(slashingtypes.AttributeKeyInfractionHeight, fmt.Sprintf("%d", infractionHeight)),
+	)
+
+	burnedUbdel := slashFactor.MulInt(ubdelAmt).TruncateInt()
+	burnedRedel := slashFactor.MulInt(redelAmt).TruncateInt()
+	burnedTokens := valBurnedTokens.Add(burnedUbdel).Add(burnedRedel)
+
+	// call slash refund
+	ctx = ctx.WithBlockHeader(tmproto.Header{Height: infractionHeight + 2, Time: slashTime})
+	refAmt, err := srApp.SlashrefundKeeper.HandleRefundsFromSlash(ctx, slashEventDT)
+	require.NoError(t, err)
+	require.Equal(t, burnedTokens, refAmt)
+
+	// check refunds
+	refund0 := s.RequireRefund(testAddrs[0], valAddr, slashFactor.MulInt(selfDelegation))
+	refund2 := s.RequireRefund(testAddrs[2], valAddr, slashFactor.MulInt(delAmt))
+	refund3 := s.RequireRefund(testAddrs[3], valAddr, slashFactor.MulInt(ubdelAmt))
+	refund4 := s.RequireRefund(testAddrs[4], valAddr, slashFactor.MulInt(redelAmt))
+	s.RequireNoRefund(testAddrs[1], valAddr)
+
+	// check refund pool
+	s.RequireRefundPool(valAddr, burnedTokens, sdk.NewDecFromInt(burnedTokens), []types.Refund{refund0, refund2, refund3, refund4})
+
+	// check deposits
+	deposit0 := s.RequireDeposit(testAddrs[0], valAddr, sdk.NewDecFromInt(depAmt))
+	s.RequireNoDeposit(testAddrs[1], valAddr)
+
+	depTotal := depAmt.Add(ubdepAmt)
+	drawFactor := sdk.NewDecFromInt(burnedTokens).QuoInt(depTotal)
+	drawnFromUbdep := drawFactor.MulInt(ubdepAmt).TruncateInt()
+	drawnFromPool := drawFactor.MulInt(depAmt).TruncateInt()
+	require.Equal(t, drawnFromPool.Add(drawnFromUbdep), refAmt)
+
+	// check unbonding deposits
+	ubd, found := srApp.SlashrefundKeeper.GetUnbondingDeposit(ctx, testAddrs[1], valAddr)
+	require.True(t, found)
+	require.Equal(t, ubdepAmt, ubd.Entries[0].InitialBalance)
+	require.Equal(t, ubdepAmt.Sub(drawnFromUbdep), ubd.Entries[0].Balance)
+	require.Equal(t, ubdepAmt, ubd.Entries[1].InitialBalance)
+	require.Equal(t, ubdepAmt, ubd.Entries[1].Balance)
+
+	// check deposit pool
+	s.RequireDepositPool(valAddr, depAmt.Sub(drawnFromPool), sdk.NewDecFromInt(depAmt), []types.Deposit{deposit0})
 }

@@ -12,6 +12,7 @@ import (
 type KeeperTestSuite struct {
 	srApp          *app.App
 	ctx            sdk.Context
+	units          int64
 	testAddrs      []sdk.AccAddress
 	valAddrs       []sdk.ValAddress
 	selfDelegation sdk.Int
