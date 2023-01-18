@@ -9,11 +9,10 @@ const TypeMsgClaim = "claim"
 
 var _ sdk.Msg = &MsgClaim{}
 
-func NewMsgClaim(delegatorAddress string, validatorAddress string, amount sdk.Coin) *MsgClaim {
+func NewMsgClaim(delegatorAddress string, validatorAddress string) *MsgClaim {
 	return &MsgClaim{
 		DelegatorAddress: delegatorAddress,
 		ValidatorAddress: validatorAddress,
-		Amount:           amount,
 	}
 }
 
