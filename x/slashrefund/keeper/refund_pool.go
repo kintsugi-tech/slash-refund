@@ -86,6 +86,7 @@ func (k Keeper) AddRefPoolTokensAndShares(
 	return issuedShares
 }
 
+// TODO: generalize it considering AllowedTokens param
 func (k Keeper) RemoveRefPoolTokensAndShares(
 	ctx sdk.Context,
 	refundPool types.RefundPool,
@@ -99,15 +100,14 @@ func (k Keeper) RemoveRefPoolTokensAndShares(
 	if remainingShares.IsZero() {
 		// last share gets any trimmings
 		issuedTokensAmt = refundPool.Tokens.Amount
-		// TODO: generalize it considering AllowedTokens param
 		refundPool.Tokens.Amount = sdk.ZeroInt()
+
 	} else {
-		// leave excess tokens in the deposit pool
-		// however fully use all the depositor shares
+		// leave excess tokens in the refund pool
 		issuedTokensAmt = refundPool.TokensFromShares(sharesToRemove).TruncateInt()
 		refundPool.Tokens.Amount = refundPool.Tokens.Amount.Sub(issuedTokensAmt)
 		if refundPool.Tokens.Amount.IsNegative() {
-			panic("attempting to remove more tokens than available in validator")
+			panic("attempting to remove more tokens than available in refund pool")
 		}
 	}
 
