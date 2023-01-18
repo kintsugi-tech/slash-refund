@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"fmt"
-
 	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -106,9 +104,6 @@ func (k Keeper) Deposit(
 	validator stakingtypes.Validator,
 ) (newShares sdk.Dec, err error) {
 
-	logger := k.Logger(ctx)
-	logger.Error("creating/updating deposit:")
-
 	// Check if a validator has zero token but shares. This situation can arise due to slashing
 	// of the considered validator.
 	if validator.InvalidExRate() {
@@ -151,10 +146,6 @@ func (k Keeper) Deposit(
 
 	deposit.Shares = deposit.Shares.Add(newShares)
 	k.SetDeposit(ctx, deposit)
-
-	// logger
-	logger.Error(fmt.Sprintf("  deposit pool: added tokens=%s%s , added shares=%s", depCoin.Amount.String(), depCoin.Denom, newShares.String()))
-	logger.Error(fmt.Sprintf("  deposit: added shares=%s , depositor=%s , validator=%s", newShares.String(), deposit.DepositorAddress, deposit.ValidatorAddress))
 
 	return sdk.NewDec(depCoin.Amount.Int64()), nil
 }
