@@ -19,7 +19,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// bootstrapRefundTest creates a validator with given power and bootstrap the app
+// Default initial state for all test. It creates two validators with a specified power. 
 func bootstrapRefundTest(t *testing.T, power int64) *KeeperTestSuite {
 
 	srApp, ctx := testsuite.CreateTestApp(false)
@@ -96,6 +96,7 @@ func TestProcessSlashEvent_DoubleSign(t *testing.T) {
 	require.Equal(t, expectedBurned.String(), valBurnedAmt.String())
 }
 
+// Test the proper processing of a downtime slashing event.
 func TestProcessSlashEvent_DownTime(t *testing.T) {
 
 	s := bootstrapRefundTest(t, 100)
