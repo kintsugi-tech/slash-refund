@@ -83,7 +83,6 @@ func (k Keeper) AddDepPoolTokensAndShares(
 			panic(err)
 		}
 		issuedShares = shares
-
 	}
 
 	depositPool.Tokens = depositPool.Tokens.Add(tokensToAdd)

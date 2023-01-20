@@ -105,7 +105,7 @@ func (k Keeper) Deposit(
 ) (newShares sdk.Dec, err error) {
 
 	// Check if a validator has zero token but shares. This situation can arise due to slashing
-	// of the considered validator.
+	// of the considered validator. Deposit for these validators are allowed.
 	if validator.InvalidExRate() {
 		// Return zero shares and an error
 		return sdk.ZeroDec(), types.ErrDepositorShareExRateInvalid
@@ -135,7 +135,7 @@ func (k Keeper) Deposit(
 		}
 	}
 
-	// Send the deposited tokens to the slashrefund module
+	// Send deposited tokens to the slashrefund module
 	coins := sdk.NewCoins(sdk.NewCoin(depCoin.Denom, depCoin.Amount))
 	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, depAddr, types.ModuleName, coins); err != nil {
 		return sdk.Dec{}, err
