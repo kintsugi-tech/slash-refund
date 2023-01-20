@@ -86,14 +86,20 @@ The module's `msgServer` is composed of the following methods:
 
 ## `Keeper`
 
-Here are described the method of the slash refund module's keeper:
+The slash refund module's staking keeper expects the following Cosmos SDK keeper:
+
+* `types.BankKeeper`;
+
+* `stakingKeeper`;
+
+* `slashingKeeper`;
+
+Here are described the provided methods:
 
 * `Deposit`: this methods implements the state transition logic of funds added to a pool and shares emitted for the sender. The function creates a new deposit pool if there isn't already one for the target validator. Shares to be emitted are computed from deposited tokens. After computing shares the `types.Deposit` and `types.DepositPool` are updated accordingly. Given the deposit pool total tokens $poolTokens$, deposit pool total emitted shares $poolShares$, and the input $inputTokens$, the emitted shares $emittedShares$ are computed using the following equation:
 
 $$ emittedShares = \frac{poolShares}{inputTokens} \cdot poolTokens $$
 
-## TODO
+* `Withdraw`: this method deefines the state transition logic for a user that wants to withdraw its previously deposited tokens if still available. The user inputs the amount of shares it would like to withdraw. Given an amount of shares to be withdrawn, it insert the associated tokens into an unbonding deposit queue.
 
-Here is a list of functionalities or modification arising from the review of the code:
-
-* [] modify the `DepositPool` structure to account for different tokens.
+* `ComputeAssociatedShares`: this method is used to compute the amount of tokens associated to a specific amount of shares for a particular `types.DepositPool`. This method is almost entirely copied from the [staking module](https://github.com/cosmos/cosmos-sdk/blob/d74d0e4e8cd57d77de9590892ef89584765251c8/x/staking/keeper/delegation.go#L995).

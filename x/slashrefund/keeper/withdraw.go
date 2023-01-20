@@ -42,14 +42,7 @@ func (k Keeper) ComputeAssociatedShares(
 	tokens sdk.Coin,
 ) (shares sdk.Dec, err error) {
 
-	isValid, err := k.CheckAllowedTokens(ctx, tokens.Denom)
-	if !isValid {
-		return sdk.NewDec(0), err
-	}
 
-	if tokens.Amount.IsZero() {
-		return sdk.NewDec(0), types.ErrZeroWithdraw
-	}
 
 	deposit, found := k.GetDeposit(ctx, depAddr, valAddr)
 	if !found {

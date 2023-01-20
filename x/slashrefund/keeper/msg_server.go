@@ -99,6 +99,15 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 		return nil, err
 	}
 
+	isValid, err := k.CheckAllowedTokens(ctx, msg.Amount.Denom)
+	if !isValid {
+		return nil, err
+	}
+
+	if msg.Amount.Amount.IsZero() {
+		return nil, types.ErrZeroWithdraw
+	}
+
 	// Check if requested amount is valid and returns associated shares.
 	shares, err := k.ComputeAssociatedShares(ctx, depositorAddress, validatorAddress, msg.Amount)
 	if err != nil {
