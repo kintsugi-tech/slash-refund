@@ -1,9 +1,10 @@
 package keeper
 
 import (
-	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 	"context"
 	"time"
+
+	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -79,9 +80,9 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 	return &types.MsgDepositResponse{}, nil
 }
 
-// Manages the request of a user to withdraw previously deposited token from the module. The amount 
-// received will be based on the amount of shares the user holds and the amount of tokens associated 
-// to a validator. The tokens associated to a validator and the shares ration can change due to 
+// Manages the request of a user to withdraw previously deposited token from the module. The amount
+// received will be based on the amount of shares the user holds and the amount of tokens associated
+// to a validator. The tokens associated to a validator and the shares ration can change due to
 // slashing events.
 func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*types.MsgWithdrawResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
@@ -134,9 +135,9 @@ func (k msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.Msg
 
 	// === VALIDATION CHECKS ===
 	//Check if valid validator address
-	validatorAddress, valErr := sdk.ValAddressFromBech32(msg.ValidatorAddress)
-	if valErr != nil {
-		return nil, valErr
+	validatorAddress, err := sdk.ValAddressFromBech32(msg.ValidatorAddress)
+	if err != nil {
+		return nil, err
 	}
 
 	// Check if valid depositor address
@@ -145,31 +146,27 @@ func (k msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.Msg
 		return nil, err
 	}
 
-	// Check if requested amount is valid
-	shares, err := k.ValidateClaimAmount(ctx, delegatorAddress, validatorAddress, msg.Amount)
-	if err != nil {
-		return nil, err
-	}
-
 	// === STATE TRANSITION ===
-	_, err = k.Keeper.Claim(ctx, delegatorAddress, validatorAddress, shares)
+	coins, err := k.Keeper.Claim(ctx, delegatorAddress, validatorAddress)
 	if err != nil {
 		return nil, err
 	}
 
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeWithdraw,
-			sdk.NewAttribute(types.AttributeKeyDelegator, msg.DelegatorAddress),
-			sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress),
-			sdk.NewAttribute(types.AttributeKeyToken, msg.Amount.Denom),
-			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.String()),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-		),
-	})
+	for _, coin := range coins {
+		ctx.EventManager().EmitEvents(sdk.Events{
+			sdk.NewEvent(
+				types.EventTypeWithdraw,
+				sdk.NewAttribute(types.AttributeKeyDelegator, msg.DelegatorAddress),
+				sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress),
+				sdk.NewAttribute(types.AttributeKeyToken, coin.Denom),
+				sdk.NewAttribute(sdk.AttributeKeyAmount, coin.Amount.String()),
+			),
+			sdk.NewEvent(
+				sdk.EventTypeMessage,
+				sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			),
+		})
+	}
 
 	return &types.MsgClaimResponse{}, nil
 }

@@ -122,8 +122,8 @@ slash-refundd tx slashrefund claim $valaddr2 --from alice \
     --broadcast-mode block -y | grep raw_log 
 
 # BOB: must not be present a refund for bob (already claimed)
-echo "-------- carl claim:"
-slash-refundd tx slashrefund claim $valaddr2 --from carl \
+echo "-------- bob claim:"
+slash-refundd tx slashrefund claim $valaddr2 --from bob \
     --broadcast-mode block -y | grep raw_log 
 
 # CARL: must not be present a refund for carl (already claimed)

@@ -202,4 +202,4 @@ require (
 
 replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 
-replace github.com/cosmos/cosmos-sdk v0.46.1 => /Users/stepyt/Blockchains/Cosmos/madeinblock/cosmos-sdk
+replace github.com/cosmos/cosmos-sdk v0.46.1 => /home/nil/chains/mib-cosmos-sdk/cosmos-sdk
