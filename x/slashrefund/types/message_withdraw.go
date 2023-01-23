@@ -39,9 +39,20 @@ func (msg *MsgWithdraw) GetSignBytes() []byte {
 }
 
 func (msg *MsgWithdraw) ValidateBasic() error {
+
 	_, err := sdk.AccAddressFromBech32(msg.DepositorAddress)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid depositor address (%s)", err)
 	}
+
+	_, err = sdk.ValAddressFromBech32(msg.ValidatorAddress)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid validator address (%s)", err)
+	}
+
+	if !msg.Amount.IsValid() || msg.Amount.Amount.IsZero() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid denom or non-positive amount: (%s)", msg.Amount.String())
+	}
+
 	return nil
 }
