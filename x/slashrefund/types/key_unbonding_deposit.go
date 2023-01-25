@@ -15,59 +15,6 @@ var UnbondingDepositsKeyPrefix = []byte{0x32}          // prefix for each key fo
 var UnbondingDepositByValIndexKeyPrefix = []byte{0x33} // prefix for each key for an unbonding-deposit, by validator operator
 var UnbondingQueueKey = []byte{0x41}                   // key for the timestamps in unbonding queue
 
-/*
-const (
-	// UnbondingDepositKeyPrefix is the prefix to retrieve all UnbondingDeposit
-	UnbondingDepositKeyPrefix = "UnbondingDeposit/value/"
-)
-
-// UnbondingDepositKey returns the store key to retrieve a UnbondingDeposit from the index fields
-func UnbondingDepositKeyBKP(
-	depositorAddress string,
-	validatorAddress string,
-) []byte {
-	var key []byte
-
-	depositorAddressBytes := []byte(depositorAddress)
-	key = append(key, depositorAddressBytes...)
-	key = append(key, []byte("/")...)
-
-	validatorAddressBytes := []byte(validatorAddress)
-	key = append(key, validatorAddressBytes...)
-	key = append(key, []byte("/")...)
-
-	return key
-}
-
-func UnbondingDepositKeyByValIndexBKP(
-	depositorAddress string,
-	validatorAddress string,
-) []byte {
-	var key []byte
-
-	validatorAddressBytes := []byte(validatorAddress)
-	key = append(key, validatorAddressBytes...)
-	key = append(key, []byte("/")...)
-
-	depositorAddressBytes := []byte(depositorAddress)
-	key = append(key, depositorAddressBytes...)
-	key = append(key, []byte("/")...)
-
-	return key
-}
-
-// GetUBDsByValIndexKey creates the prefix keyspace for the indexes of unbonding deposits for a validator
-func GetUBDsByValIndexKeyBKP(validatorAddress string) []byte {
-
-	var key []byte
-	validatorAddressBytes := []byte(validatorAddress)
-	key = append(key, validatorAddressBytes...)
-	key = append(key, []byte("/")...)
-	return key
-}
-
-*/
-
 // GetUBDsKey creates the prefix for all unbonding deposits
 func GetUBDsKeyPrefix() []byte {
 	return UnbondingDepositsKeyPrefix
