@@ -35,7 +35,6 @@ export interface MsgClaim {
    */
   delegatorAddress: string;
   validatorAddress: string;
-  amount: Coin | undefined;
 }
 
 export interface MsgClaimResponse {
@@ -266,7 +265,7 @@ export const MsgWithdrawResponse = {
 };
 
 function createBaseMsgClaim(): MsgClaim {
-  return { delegatorAddress: "", validatorAddress: "", amount: undefined };
+  return { delegatorAddress: "", validatorAddress: "" };
 }
 
 export const MsgClaim = {
@@ -276,9 +275,6 @@ export const MsgClaim = {
     }
     if (message.validatorAddress !== "") {
       writer.uint32(18).string(message.validatorAddress);
-    }
-    if (message.amount !== undefined) {
-      Coin.encode(message.amount, writer.uint32(26).fork()).ldelim();
     }
     return writer;
   },
@@ -296,9 +292,6 @@ export const MsgClaim = {
         case 2:
           message.validatorAddress = reader.string();
           break;
-        case 3:
-          message.amount = Coin.decode(reader, reader.uint32());
-          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -311,7 +304,6 @@ export const MsgClaim = {
     return {
       delegatorAddress: isSet(object.delegatorAddress) ? String(object.delegatorAddress) : "",
       validatorAddress: isSet(object.validatorAddress) ? String(object.validatorAddress) : "",
-      amount: isSet(object.amount) ? Coin.fromJSON(object.amount) : undefined,
     };
   },
 
@@ -319,7 +311,6 @@ export const MsgClaim = {
     const obj: any = {};
     message.delegatorAddress !== undefined && (obj.delegatorAddress = message.delegatorAddress);
     message.validatorAddress !== undefined && (obj.validatorAddress = message.validatorAddress);
-    message.amount !== undefined && (obj.amount = message.amount ? Coin.toJSON(message.amount) : undefined);
     return obj;
   },
 
@@ -327,9 +318,6 @@ export const MsgClaim = {
     const message = createBaseMsgClaim();
     message.delegatorAddress = object.delegatorAddress ?? "";
     message.validatorAddress = object.validatorAddress ?? "";
-    message.amount = (object.amount !== undefined && object.amount !== null)
-      ? Coin.fromPartial(object.amount)
-      : undefined;
     return message;
   },
 };

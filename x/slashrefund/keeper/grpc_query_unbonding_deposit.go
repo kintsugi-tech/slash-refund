@@ -11,7 +11,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (k Keeper) UnbondingDepositAll(c context.Context, req *types.QueryAllUnbondingDepositRequest) (*types.QueryAllUnbondingDepositResponse, error) {
+func (k Querier) UnbondingDepositAll(c context.Context, req *types.QueryAllUnbondingDepositRequest) (*types.QueryAllUnbondingDepositResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -39,7 +39,7 @@ func (k Keeper) UnbondingDepositAll(c context.Context, req *types.QueryAllUnbond
 	return &types.QueryAllUnbondingDepositResponse{UnbondingDeposit: unbondingDeposits, Pagination: pageRes}, nil
 }
 
-func (k Keeper) UnbondingDeposit(c context.Context, req *types.QueryGetUnbondingDepositRequest) (*types.QueryGetUnbondingDepositResponse, error) {
+func (k Querier) UnbondingDeposit(c context.Context, req *types.QueryGetUnbondingDepositRequest) (*types.QueryGetUnbondingDepositResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}

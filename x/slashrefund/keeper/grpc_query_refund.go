@@ -11,7 +11,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (k Keeper) RefundAll(c context.Context, req *types.QueryAllRefundRequest) (*types.QueryAllRefundResponse, error) {
+func (k Querier) RefundAll(c context.Context, req *types.QueryAllRefundRequest) (*types.QueryAllRefundResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -39,9 +39,9 @@ func (k Keeper) RefundAll(c context.Context, req *types.QueryAllRefundRequest) (
 	return &types.QueryAllRefundResponse{Refund: refunds, Pagination: pageRes}, nil
 }
 
-func (k Keeper) Refund(c context.Context, req *types.QueryGetRefundRequest) (*types.QueryGetRefundResponse, error) {
+func (k Querier) Refund(c context.Context, req *types.QueryGetRefundRequest) (*types.QueryGetRefundResponse, error) {
 	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "empty request")
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
 	if req.Delegator == "" {

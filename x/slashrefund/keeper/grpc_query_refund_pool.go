@@ -11,7 +11,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (k Keeper) RefundPoolAll(c context.Context, req *types.QueryAllRefundPoolRequest) (*types.QueryAllRefundPoolResponse, error) {
+func (k Querier) RefundPoolAll(c context.Context, req *types.QueryAllRefundPoolRequest) (*types.QueryAllRefundPoolResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -39,7 +39,7 @@ func (k Keeper) RefundPoolAll(c context.Context, req *types.QueryAllRefundPoolRe
 	return &types.QueryAllRefundPoolResponse{RefundPool: refundPools, Pagination: pageRes}, nil
 }
 
-func (k Keeper) RefundPool(c context.Context, req *types.QueryGetRefundPoolRequest) (*types.QueryGetRefundPoolResponse, error) {
+func (k Querier) RefundPool(c context.Context, req *types.QueryGetRefundPoolRequest) (*types.QueryGetRefundPoolResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}

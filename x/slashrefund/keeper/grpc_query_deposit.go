@@ -41,7 +41,7 @@ func (k Querier) DepositAll(c context.Context, req *types.QueryAllDepositRequest
 
 func (k Querier) Deposit(c context.Context, req *types.QueryGetDepositRequest) (*types.QueryGetDepositResponse, error) {
 	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "empty request")
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
 	if req.DepositorAddress == "" {
