@@ -40,8 +40,8 @@ screen -ls
 
 
 
-VALKEY1="alice"
-VALKEY2="carl"
+VALKEY1="alice"  # genesis validator from config.yaml, won't be slashed
+VALKEY2="carl"   # new generated validator, will be slashed
 valaddr1=$(slash-refundd keys show $VALKEY1 -a --bech val)
 valaddr2=$(slash-refundd keys show $VALKEY2 -a --bech val)
 
@@ -59,7 +59,7 @@ slash-refundd q staking delegations-to $valaddr2
 
 
 # DEPOSIT 
-#=================================================================== 10000000stake
+#===================================================================
 slash-refundd tx slashrefund deposit $valaddr2 10000000stake --from alice -y \
     --broadcast-mode block \
     | grep raw_log
@@ -81,7 +81,6 @@ sleep 1
 #===================================================================
 for j in {0..19}
 do
-    echo -----------------------------------------------------
     echo ========
     echo BLOCK:
     echo $(expr 1 + $(slash-refundd q block | jq '.block.header.height | tonumber'))
@@ -95,20 +94,40 @@ done
 #===================================================================
 
 
-# CLAIM
+
+# CLAIM 
 #===================================================================
+
+# BOB: with slashFactor=0.05 must receive 4'500'000
 echo "-------- Balance of bob:" 
 slash-refundd q bank balances $(slash-refundd keys show bob -a)
-echo "-------- Claim:"
-slash-refundd tx slashrefund claim $valaddr2 500stake --from bob \
+echo "-------- bob claim:"
+slash-refundd tx slashrefund claim $valaddr2 --from bob \
     --broadcast-mode block -y | grep raw_log 
 echo "-------- Balance of bob:"
 slash-refundd q bank balances $(slash-refundd keys show bob -a)
-#===================================================================
 
-# CLAIM
-#===================================================================
+# CARL: with slashFactor=0.05 must receive 500'000
+echo "-------- Balance of carl:" 
+slash-refundd q bank balances $(slash-refundd keys show carl -a)
+echo "-------- carl claim:"
+slash-refundd tx slashrefund claim $valaddr2 --from carl \
+    --broadcast-mode block -y | grep raw_log 
+echo "-------- Balance of bob:"
+slash-refundd q bank balances $(slash-refundd keys show carl -a)
+
+# ALICE: must not be present a refund for alice.
 echo "-------- Claim (wrong: alice has no deposits):"
-slash-refundd tx slashrefund claim $valaddr2 500stake --from alice \
+slash-refundd tx slashrefund claim $valaddr2 --from alice \
+    --broadcast-mode block -y | grep raw_log 
+
+# BOB: must not be present a refund for bob (already claimed)
+echo "-------- bob claim:"
+slash-refundd tx slashrefund claim $valaddr2 --from bob \
+    --broadcast-mode block -y | grep raw_log 
+
+# CARL: must not be present a refund for carl (already claimed)
+echo "-------- carl claim:"
+slash-refundd tx slashrefund claim $valaddr2 --from carl \
     --broadcast-mode block -y | grep raw_log 
 #===================================================================

@@ -14,7 +14,7 @@ import (
 var _ paramtypes.ParamSet = (*Params)(nil)
 
 var (
-	KeyAllowedTokens = []byte("AllowedTokens")
+	KeyAllowedTokens     = []byte("AllowedTokens")
 	DefaultAllowedTokens = []string{"stake"}
 )
 
@@ -68,8 +68,12 @@ func validateAllowedTokens(v interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", v)
 	}
 
+	if len(allowedTokens) == 0 {
+		return fmt.Errorf("no allowed token has been set.")
+	}
+
 	// TODO: remove this line when multiple tokens are allowed
-	if len(allowedTokens) != 1 {
+	if len(allowedTokens) > 1 {
 		return fmt.Errorf("only one allowed token is currently accepted.")
 	}
 
