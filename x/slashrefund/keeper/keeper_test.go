@@ -8,6 +8,7 @@ import (
 
 	"github.com/made-in-block/slash-refund/app"
 	"github.com/made-in-block/slash-refund/testutil/testsuite"
+	"github.com/made-in-block/slash-refund/x/slashrefund/keeper"
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 
 	"github.com/stretchr/testify/require"
@@ -20,6 +21,7 @@ type KeeperTestSuite struct {
 	testAddrs      []sdk.AccAddress
 	valAddrs       []sdk.ValAddress
 	selfDelegation sdk.Int
+	querier        keeper.Querier
 	t              *testing.T
 }
 
@@ -52,7 +54,7 @@ func SetupTestSuite(t *testing.T, power int64) *KeeperTestSuite {
 	}
 
 	s := KeeperTestSuite{}
-	s.srApp, s.ctx, s.units, s.testAddrs, s.valAddrs, s.selfDelegation, s.t = srApp, ctx, units, testAddrs, valAddrs, selfDelegation, t
+	s.srApp, s.ctx, s.units, s.testAddrs, s.valAddrs, s.selfDelegation, s.querier, s.t = srApp, ctx, units, testAddrs, valAddrs, selfDelegation, keeper.Querier{Keeper: srApp.SlashrefundKeeper}, t
 
 	return &s
 }

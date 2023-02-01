@@ -52,7 +52,7 @@ func (k Querier) RefundPool(c context.Context, req *types.QueryGetRefundPoolRequ
 
 	refPool, found := k.GetRefundPool(ctx, valAddr)
 	if !found {
-		return nil, status.Error(codes.NotFound, "refund pool not found")
+		return nil, status.Error(codes.NotFound, "not found")
 	}
 
 	return &types.QueryGetRefundPoolResponse{RefundPool: refPool}, nil

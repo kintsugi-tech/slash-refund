@@ -60,7 +60,7 @@ func (k Querier) UnbondingDeposit(c context.Context, req *types.QueryGetUnbondin
 		valAddr,
 	)
 	if !found {
-		return nil, status.Error(codes.NotFound, "unbonding deposit not found")
+		return nil, status.Error(codes.NotFound, "not found")
 	}
 
 	return &types.QueryGetUnbondingDepositResponse{UnbondingDeposit: val}, nil

@@ -6,8 +6,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/made-in-block/slash-refund/testutil/nullify"
-	"github.com/made-in-block/slash-refund/x/slashrefund/keeper"
-	"github.com/made-in-block/slash-refund/x/slashrefund/testslashrefund"
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
@@ -15,18 +13,15 @@ import (
 )
 
 func TestDepositQuerySingle(t *testing.T) {
-	s := bootstrapRefundTest(t, 100)
-	srApp, ctx, testAddrs, valAddrs := s.srApp, s.ctx, s.testAddrs, s.valAddrs
-
-	k := srApp.SlashrefundKeeper
-	querier := keeper.Querier{Keeper: k}
+	s := SetupTestSuite(t, 100)
+	srApp, ctx, testAddrs, valAddrs, querier := s.srApp, s.ctx, s.testAddrs, s.valAddrs, s.querier
 	wctx := sdk.WrapSDKContext(ctx)
 
 	dep1 := types.NewDeposit(testAddrs[0], valAddrs[0], sdk.NewDec(100))
-	k.SetDeposit(ctx, dep1)
+	srApp.SlashrefundKeeper.SetDeposit(ctx, dep1)
 
 	dep2 := types.NewDeposit(testAddrs[1], valAddrs[0], sdk.NewDec(100))
-	k.SetDeposit(ctx, dep2)
+	srApp.SlashrefundKeeper.SetDeposit(ctx, dep2)
 
 	for _, tc := range []struct {
 		desc     string
@@ -37,16 +32,16 @@ func TestDepositQuerySingle(t *testing.T) {
 		{
 			desc: "First",
 			request: &types.QueryGetDepositRequest{
-				DepositorAddress: dep1.DepositorAddress,
-				ValidatorAddress: dep1.ValidatorAddress,
+				DepositorAddress: testAddrs[0].String(),
+				ValidatorAddress: valAddrs[0].String(),
 			},
 			response: &types.QueryGetDepositResponse{Deposit: dep1},
 		},
 		{
 			desc: "Second",
 			request: &types.QueryGetDepositRequest{
-				DepositorAddress: dep2.DepositorAddress,
-				ValidatorAddress: dep2.ValidatorAddress,
+				DepositorAddress: testAddrs[1].String(),
+				ValidatorAddress: valAddrs[0].String(),
 			},
 			response: &types.QueryGetDepositResponse{Deposit: dep2},
 		},
@@ -80,12 +75,12 @@ func TestDepositQuerySingle(t *testing.T) {
 	}
 }
 func TestDepositQueryPaginated(t *testing.T) {
-	k, ctx := testslashrefund.NewTestKeeper(t)
+	s := SetupTestSuite(t, 100)
+	srApp, ctx, querier := s.srApp, s.ctx, s.querier
 
-	querier := keeper.Querier{Keeper: *k}
 	wctx := sdk.WrapSDKContext(ctx)
 
-	deposits := createNDeposit(k, ctx, 5)
+	deposits := createNDeposit(&srApp.SlashrefundKeeper, ctx, 5)
 
 	request := func(next []byte, offset, limit uint64, total bool) *types.QueryAllDepositRequest {
 		return &types.QueryAllDepositRequest{
