@@ -9,7 +9,6 @@ import (
 )
 
 func TestParamsQuery(t *testing.T) {
-
 	s := SetupTestSuite(t, 100)
 	srApp, ctx, querier := s.srApp, s.ctx, s.querier
 	wctx := sdk.WrapSDKContext(ctx)

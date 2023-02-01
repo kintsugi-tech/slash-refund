@@ -10,7 +10,6 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/made-in-block/slash-refund/testutil/nullify"
-	//"github.com/made-in-block/slash-refund/x/slashrefund/testslashrefund"
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 )
 
@@ -78,8 +77,8 @@ func TestDepositPoolQuerySingle(t *testing.T) {
 func TestDepositPoolQueryPaginated(t *testing.T) {
 	s := SetupTestSuite(t, 100)
 	srApp, ctx, querier := s.srApp, s.ctx, s.querier
-
 	wctx := sdk.WrapSDKContext(ctx)
+
 	depPools := createNDepositPool(&srApp.SlashrefundKeeper, ctx, 5)
 
 	request := func(next []byte, offset, limit uint64, total bool) *types.QueryAllDepositPoolRequest {

@@ -16,7 +16,6 @@ import (
 func TestRefundQuerySingle(t *testing.T) {
 	s := SetupTestSuite(t, 100)
 	srApp, ctx, testAddrs, valAddrs, querier := s.srApp, s.ctx, s.testAddrs, s.valAddrs, s.querier
-
 	wctx := sdk.WrapSDKContext(ctx)
 
 	ref1 := types.NewRefund(testAddrs[0], valAddrs[0], sdk.NewDec(100))

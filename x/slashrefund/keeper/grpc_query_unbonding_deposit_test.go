@@ -15,7 +15,6 @@ import (
 )
 
 func TestUnbondingDepositQuerySingle(t *testing.T) {
-
 	s := SetupTestSuite(t, 100)
 	srApp, ctx, testAddrs, valAddrs, querier := s.srApp, s.ctx, s.testAddrs, s.valAddrs, s.querier
 	wctx := sdk.WrapSDKContext(ctx)
@@ -81,7 +80,6 @@ func TestUnbondingDepositQuerySingle(t *testing.T) {
 }
 
 func TestUnbondingDepositQueryPaginated(t *testing.T) {
-
 	s := SetupTestSuite(t, 100)
 	srApp, ctx, querier := s.srApp, s.ctx, s.querier
 	wctx := sdk.WrapSDKContext(ctx)
