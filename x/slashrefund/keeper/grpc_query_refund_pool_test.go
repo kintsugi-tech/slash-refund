@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"strconv"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -11,17 +10,23 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/made-in-block/slash-refund/testutil/nullify"
-	"github.com/made-in-block/slash-refund/x/slashrefund/testslashrefund"
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 )
 
-// Prevent strconv unused error
-var _ = strconv.IntSize
-
 func TestRefundPoolQuerySingle(t *testing.T) {
-	keeper, ctx := testslashrefund.NewTestKeeper(t)
+	s := SetupTestSuite(t, 100)
+	srApp, ctx, testAddrs, valAddrs, querier := s.srApp, s.ctx, s.testAddrs, s.valAddrs, s.querier
 	wctx := sdk.WrapSDKContext(ctx)
-	msgs := createNRefundPool(keeper, ctx, 2)
+
+	refPool1 := types.NewRefundPool(valAddrs[0], sdk.NewCoin("stake", sdk.NewInt(100)), sdk.NewDec(100))
+	srApp.SlashrefundKeeper.SetRefundPool(ctx, refPool1)
+
+	refPool2 := types.NewRefundPool(valAddrs[1], sdk.NewCoin("stake", sdk.NewInt(200)), sdk.NewDec(200))
+	srApp.SlashrefundKeeper.SetRefundPool(ctx, refPool2)
+
+	val, err := sdk.ValAddressFromBech32(sdk.ValAddress(testAddrs[2]).String())
+	require.NoError(t, err)
+
 	for _, tc := range []struct {
 		desc     string
 		request  *types.QueryGetRefundPoolRequest
@@ -31,21 +36,21 @@ func TestRefundPoolQuerySingle(t *testing.T) {
 		{
 			desc: "First",
 			request: &types.QueryGetRefundPoolRequest{
-				OperatorAddress: msgs[0].OperatorAddress,
+				OperatorAddress: valAddrs[0].String(),
 			},
-			response: &types.QueryGetRefundPoolResponse{RefundPool: msgs[0]},
+			response: &types.QueryGetRefundPoolResponse{RefundPool: refPool1},
 		},
 		{
 			desc: "Second",
 			request: &types.QueryGetRefundPoolRequest{
-				OperatorAddress: msgs[1].OperatorAddress,
+				OperatorAddress: valAddrs[1].String(),
 			},
-			response: &types.QueryGetRefundPoolResponse{RefundPool: msgs[1]},
+			response: &types.QueryGetRefundPoolResponse{RefundPool: refPool2},
 		},
 		{
 			desc: "KeyNotFound",
 			request: &types.QueryGetRefundPoolRequest{
-				OperatorAddress: strconv.Itoa(100000),
+				OperatorAddress: val.String(),
 			},
 			err: status.Error(codes.NotFound, "not found"),
 		},
@@ -55,7 +60,7 @@ func TestRefundPoolQuerySingle(t *testing.T) {
 		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
-			response, err := keeper.RefundPool(wctx, tc.request)
+			response, err := querier.RefundPool(wctx, tc.request)
 			if tc.err != nil {
 				require.ErrorIs(t, err, tc.err)
 			} else {
@@ -70,9 +75,11 @@ func TestRefundPoolQuerySingle(t *testing.T) {
 }
 
 func TestRefundPoolQueryPaginated(t *testing.T) {
-	keeper, ctx := testslashrefund.NewTestKeeper(t)
+	s := SetupTestSuite(t, 100)
+	srApp, ctx, querier := s.srApp, s.ctx, s.querier
 	wctx := sdk.WrapSDKContext(ctx)
-	msgs := createNRefundPool(keeper, ctx, 5)
+
+	refPools := createNRefundPool(&srApp.SlashrefundKeeper, ctx, 5)
 
 	request := func(next []byte, offset, limit uint64, total bool) *types.QueryAllRefundPoolRequest {
 		return &types.QueryAllRefundPoolRequest{
@@ -86,12 +93,12 @@ func TestRefundPoolQueryPaginated(t *testing.T) {
 	}
 	t.Run("ByOffset", func(t *testing.T) {
 		step := 2
-		for i := 0; i < len(msgs); i += step {
-			resp, err := keeper.RefundPoolAll(wctx, request(nil, uint64(i), uint64(step), false))
+		for i := 0; i < len(refPools); i += step {
+			resp, err := querier.RefundPoolAll(wctx, request(nil, uint64(i), uint64(step), false))
 			require.NoError(t, err)
 			require.LessOrEqual(t, len(resp.RefundPool), step)
 			require.Subset(t,
-				nullify.Fill(msgs),
+				nullify.Fill(refPools),
 				nullify.Fill(resp.RefundPool),
 			)
 		}
@@ -99,28 +106,28 @@ func TestRefundPoolQueryPaginated(t *testing.T) {
 	t.Run("ByKey", func(t *testing.T) {
 		step := 2
 		var next []byte
-		for i := 0; i < len(msgs); i += step {
-			resp, err := keeper.RefundPoolAll(wctx, request(next, 0, uint64(step), false))
+		for i := 0; i < len(refPools); i += step {
+			resp, err := querier.RefundPoolAll(wctx, request(next, 0, uint64(step), false))
 			require.NoError(t, err)
 			require.LessOrEqual(t, len(resp.RefundPool), step)
 			require.Subset(t,
-				nullify.Fill(msgs),
+				nullify.Fill(refPools),
 				nullify.Fill(resp.RefundPool),
 			)
 			next = resp.Pagination.NextKey
 		}
 	})
 	t.Run("Total", func(t *testing.T) {
-		resp, err := keeper.RefundPoolAll(wctx, request(nil, 0, 0, true))
+		resp, err := querier.RefundPoolAll(wctx, request(nil, 0, 0, true))
 		require.NoError(t, err)
-		require.Equal(t, len(msgs), int(resp.Pagination.Total))
+		require.Equal(t, len(refPools), int(resp.Pagination.Total))
 		require.ElementsMatch(t,
-			nullify.Fill(msgs),
+			nullify.Fill(refPools),
 			nullify.Fill(resp.RefundPool),
 		)
 	})
 	t.Run("InvalidRequest", func(t *testing.T) {
-		_, err := keeper.RefundPoolAll(wctx, nil)
+		_, err := querier.RefundPoolAll(wctx, nil)
 		require.ErrorIs(t, err, status.Error(codes.InvalidArgument, "invalid request"))
 	})
 }

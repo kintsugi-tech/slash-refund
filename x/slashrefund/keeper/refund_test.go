@@ -2,7 +2,6 @@ package keeper_test
 
 import (
 	//"fmt"
-	"strconv"
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
@@ -14,9 +13,6 @@ import (
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 	"github.com/stretchr/testify/require"
 )
-
-// Prevent strconv unused error
-var _ = strconv.IntSize
 
 func createNRefund(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.Refund {
 
