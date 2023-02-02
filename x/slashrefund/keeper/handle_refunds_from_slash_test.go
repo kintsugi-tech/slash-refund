@@ -19,38 +19,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// Default initial state for all test. It creates two validators with a specified power. 
+// Default initial state for all test. It creates two validators with a specified power.
 func bootstrapRefundTest(t *testing.T, power int64) *KeeperTestSuite {
-
-	srApp, ctx := testsuite.CreateTestApp(false)
-
-	units := srApp.StakingKeeper.PowerReduction(ctx).Int64()
-
-	initAmt := sdk.NewInt(int64(1000 * units))
-	testAddrs, pubks := CreateNTestAccounts(srApp, ctx, 5, initAmt)
-
-	selfDelegation := sdk.NewInt(power * units)
-
-	// create 2 validators with consensous power equal to input power
-	sth := teststaking.NewHelper(t, ctx, srApp.StakingKeeper)
-
-	valAddrs := make([]sdk.ValAddress, 0, 2)
-
-	for i := 0; i < 2; i++ {
-		sth.CreateValidatorWithValPower(sdk.ValAddress(testAddrs[i]), pubks[i], selfDelegation.QuoRaw(units).Int64(), true)
-		validator, found := srApp.StakingKeeper.GetValidatorByConsAddr(ctx, sdk.ConsAddress(testAddrs[i]))
-		require.True(t, found)
-		valAddr := validator.GetOperator()
-		sd, found := srApp.StakingKeeper.GetDelegation(ctx, testAddrs[i], valAddr)
-		require.True(t, found)
-		require.Equal(t, selfDelegation, sd.Shares.TruncateInt())
-		valAddrs = append(valAddrs, valAddr)
-	}
-
-	s := KeeperTestSuite{}
-	s.srApp, s.ctx, s.units, s.testAddrs, s.valAddrs, s.selfDelegation, s.t = srApp, ctx, units, testAddrs, valAddrs, selfDelegation, t
-
-	return &s
+	return SetupTestSuite(t, power)
 }
 
 func defaultTestValues() (power int64, slashFactor sdk.Dec, slashAmt sdk.Int, depositAmt sdk.Int, infractionHeight int64, slashTime time.Time) {

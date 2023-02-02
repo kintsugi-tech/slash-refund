@@ -11,7 +11,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (k Keeper) DepositPoolAll(c context.Context, req *types.QueryAllDepositPoolRequest) (*types.QueryAllDepositPoolResponse, error) {
+func (k Querier) DepositPoolAll(c context.Context, req *types.QueryAllDepositPoolRequest) (*types.QueryAllDepositPoolResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -39,9 +39,9 @@ func (k Keeper) DepositPoolAll(c context.Context, req *types.QueryAllDepositPool
 	return &types.QueryAllDepositPoolResponse{DepositPool: depositPools, Pagination: pageRes}, nil
 }
 
-func (k Keeper) DepositPool(c context.Context, req *types.QueryGetDepositPoolRequest) (*types.QueryGetDepositPoolResponse, error) {
+func (k Querier) DepositPool(c context.Context, req *types.QueryGetDepositPoolRequest) (*types.QueryGetDepositPoolResponse, error) {
 	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "empty request")
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 	valOperAddr, err := sdk.ValAddressFromBech32(req.OperatorAddress)
 	if err != nil {
