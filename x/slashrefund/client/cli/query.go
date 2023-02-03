@@ -31,8 +31,6 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 	cmd.AddCommand(CmdShowUnbondingDeposit())
 	cmd.AddCommand(CmdListDepositPool())
 	cmd.AddCommand(CmdShowDepositPool())
-	cmd.AddCommand(CmdListUnbondingDeposit())
-	cmd.AddCommand(CmdShowUnbondingDeposit())
 	cmd.AddCommand(CmdListRefundPool())
 	cmd.AddCommand(CmdShowRefundPool())
 	cmd.AddCommand(CmdListRefund())
