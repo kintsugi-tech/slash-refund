@@ -109,14 +109,13 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 		return nil, types.ErrZeroWithdraw
 	}
 
-	// Check if requested amount is valid and returns associated shares.
-	shares, err := k.ComputeAssociatedShares(ctx, depositorAddress, validatorAddress, msg.Amount)
-	if err != nil {
-		return nil, err
-	}
-
 	// === STATE TRANSITION ===
-	_, completionTime, err := k.Keeper.Withdraw(ctx, depositorAddress, validatorAddress, msg.Amount.Denom, shares)
+	_, completionTime, err := k.Keeper.Withdraw(
+		ctx, 
+		depositorAddress, 
+		validatorAddress, 
+		msg.Amount,
+	)
 	if err != nil {
 		return nil, err
 	}

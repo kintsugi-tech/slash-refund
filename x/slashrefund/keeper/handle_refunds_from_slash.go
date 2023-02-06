@@ -153,8 +153,7 @@ func (k Keeper) RefundFromSlash(
 		unbondingDeposits := k.GetUnbondingDepositsFromValidator(ctx, valAddr)
 
 		// compute pool+ubds amount
-		var availableRefundTokens sdk.Int
-		availableRefundTokens = sdk.ZeroInt()
+		var availableRefundTokens = sdk.ZeroInt()
 
 		unbondingRefunds := sdk.ZeroInt()
 		if len(unbondingDeposits) > 0 {

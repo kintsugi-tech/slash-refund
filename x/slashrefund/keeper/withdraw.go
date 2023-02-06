@@ -14,13 +14,20 @@ func (k Keeper) Withdraw(
 	ctx sdk.Context,
 	depAddr sdk.AccAddress,
 	valAddr sdk.ValAddress,
-	denom string,
-	witShares sdk.Dec,
+	tokens sdk.Coin,
 ) (sdk.Coin, time.Time, error) {
+
+	// Check if requested amount is valid and returns associated shares.
+	// TODO: we check for the deposit both in ComputeAssociatedShares and Unbond. We can optimize it
+	// including COmputeAssociatedShares inside Unbond.
+	witShares, err := k.ComputeAssociatedShares(ctx, depAddr, valAddr, tokens)
+	if err != nil {
+		return sdk.NewCoin(tokens.Denom, sdk.NewInt(0)), time.Time{}, err
+	}
 
 	witAmt, err := k.Unbond(ctx, depAddr, valAddr, witShares)
 	if err != nil {
-		return sdk.NewCoin(denom, sdk.NewInt(0)), time.Time{}, err
+		return sdk.NewCoin(tokens.Denom, sdk.NewInt(0)), time.Time{}, err
 	}
 
 	// Time at which the withdrawn tokens become available.
@@ -41,8 +48,6 @@ func (k Keeper) ComputeAssociatedShares(
 	valAddr sdk.ValAddress,
 	tokens sdk.Coin,
 ) (shares sdk.Dec, err error) {
-
-
 
 	deposit, found := k.GetDeposit(ctx, depAddr, valAddr)
 	if !found {
@@ -88,7 +93,7 @@ func (k Keeper) Unbond(
 	shares sdk.Dec,
 ) (issuedTokensAmt sdk.Int, err error) {
 
-	// Check if the deposit exists in the store.
+	// Check if a deposit exists in the store.
 	deposit, found := k.GetDeposit(ctx, delAddr, valAddr)
 	if !found {
 		return issuedTokensAmt, types.ErrNoDepositForAddress
