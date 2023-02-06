@@ -103,3 +103,11 @@ $$ emittedShares = \frac{poolShares}{inputTokens} \cdot poolTokens $$
 * `Withdraw`: this method deefines the state transition logic for a user that wants to withdraw its previously deposited tokens if still available. The user inputs the amount of shares it would like to withdraw. Given an amount of shares to be withdrawn, it insert the associated tokens into an unbonding deposit queue.
 
 * `ComputeAssociatedShares`: this method is used to compute the amount of tokens associated to a specific amount of shares for a particular `types.DepositPool`. This method is almost entirely copied from the [staking module](https://github.com/cosmos/cosmos-sdk/blob/d74d0e4e8cd57d77de9590892ef89584765251c8/x/staking/keeper/delegation.go#L995).
+
+## Important note
+
+The module is based on a slightly modified version of the Cosmos SDK v0.46.8 in which we added the infraction height to slash events. This is imposed in the `go.mod` as a replacement:
+
+```go
+replace github.com/cosmos/cosmos-sdk v0.46.1 => github.com/made-in-block/cosmos-sdk v0.46.8-infraction-height
+```
