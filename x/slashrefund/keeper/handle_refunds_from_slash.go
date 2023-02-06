@@ -86,12 +86,13 @@ func (k Keeper) RefundFromSlash(
 	valAddr sdk.ValAddress,
 	valBurnedTokens sdk.Int,
 	infractionHeight int64,
-	slashFactor sdk.Dec) (refundAmount sdk.Int, err error) {
+	slashFactor sdk.Dec,
+) (refundAmount sdk.Int, err error) {
 
 	// If the deposit pool is not found it is not an error because there could be eligible unbonding deposits.
 	depPool, isFoundDepositPool := k.GetDepositPool(ctx, valAddr)
 
-	// Check if the deposit pool exists or create it
+	// Check if the refund pool exists or create it
 	refPool, found := k.GetRefundPool(ctx, valAddr)
 	if !found {
 		// TODO: should be initialized with actual Coins allowed. Now the hp is of just one allowed token.
@@ -274,10 +275,9 @@ func (k Keeper) UpdateValidatorDepositPool(ctx sdk.Context, amt sdk.Int, depPool
 ) (refundTokens sdk.Int) {
 
 	if amt.GTE(depPool.Tokens.Amount) {
-
 		refundTokens = depPool.Tokens.Amount
 
-		// remove validator deposit pool and associated deposits
+		// Remove validator deposit pool and associated deposits
 		valAddr, _ := sdk.ValAddressFromBech32(depPool.OperatorAddress)
 		k.RemoveDepositPool(ctx, valAddr)
 		for _, d := range k.GetValidatorDeposits(ctx, valAddr) {
@@ -285,11 +285,9 @@ func (k Keeper) UpdateValidatorDepositPool(ctx sdk.Context, amt sdk.Int, depPool
 		}
 
 	} else {
-
 		refundTokens = amt
 		depPool.Tokens.Amount = depPool.Tokens.Amount.Sub(amt)
 		k.SetDepositPool(ctx, depPool)
-
 	}
 
 	return refundTokens
@@ -549,12 +547,12 @@ func (k Keeper) RefundSlashedDelegations(
 	refund sdk.Int,
 	poolShTkRatio sdk.Dec,
 ) (totalRefundedAmt sdk.Int, totalRefundShares sdk.Dec) {
-
-	delegations := k.stakingKeeper.GetValidatorDelegations(ctx, valAddr)
+	
 	validator, found := k.stakingKeeper.GetValidator(ctx, valAddr)
 	if !found {
 		panic(fmt.Sprintf("validator record not found for address: %X\n", valAddr))
 	}
+	delegations := k.stakingKeeper.GetValidatorDelegations(ctx, valAddr)
 
 	refundPerShare := sdk.NewDecFromInt(refund).Quo(validator.GetDelegatorShares())
 	totalRefundedAmt = sdk.ZeroInt()

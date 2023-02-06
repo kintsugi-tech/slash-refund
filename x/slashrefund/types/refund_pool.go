@@ -12,6 +12,7 @@ func NewRefundPool(validatorAddr sdk.ValAddress, tokens sdk.Coin, shares sdk.Dec
 	}
 }
 
+// Compute shares to tokens ratio.
 func (p RefundPool) GetSharesOverTokensRatio() (sdk.Dec, error) {
 	if p.Tokens.IsZero() {
 		return sdk.ZeroDec(), ErrZeroTokensQuotient
