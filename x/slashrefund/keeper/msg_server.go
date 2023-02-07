@@ -80,9 +80,9 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 	return &types.MsgDepositResponse{}, nil
 }
 
-// Manages the request of a user to withdraw previously deposited token from the module. The amount
+// Manages the request of a user to withdraw previously deposited tokens from the module. The amount
 // received will be based on the amount of shares the user holds and the amount of tokens associated
-// to a validator. The tokens associated to a validator and the shares ration can change due to
+// to a validator. The tokens associated to a validator and the shares ratio can change due to
 // slashing events.
 func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*types.MsgWithdrawResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)

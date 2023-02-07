@@ -16,16 +16,24 @@ func (k Keeper) Withdraw(
 	valAddr sdk.ValAddress,
 	tokens sdk.Coin,
 ) (sdk.Coin, time.Time, error) {
+	
+	deposit, found := k.GetDeposit(ctx, depAddr, valAddr)
+	if !found {
+		return sdk.NewCoin(tokens.Denom, sdk.NewInt(0)), time.Time{}, types.ErrNoDepositForAddress
+	}
+
+	depPool, found := k.GetDepositPool(ctx, valAddr)
+	if !found {
+		return sdk.NewCoin(tokens.Denom, sdk.NewInt(0)), time.Time{}, types.ErrNoDepositPoolForValidator
+	}
 
 	// Check if requested amount is valid and returns associated shares.
-	// TODO: we check for the deposit both in ComputeAssociatedShares and Unbond. We can optimize it
-	// including COmputeAssociatedShares inside Unbond.
-	witShares, err := k.ComputeAssociatedShares(ctx, depAddr, valAddr, tokens)
+	witShares, err := k.ComputeAssociatedShares(ctx, deposit, depPool, tokens)
 	if err != nil {
 		return sdk.NewCoin(tokens.Denom, sdk.NewInt(0)), time.Time{}, err
 	}
 
-	witAmt, err := k.Unbond(ctx, depAddr, valAddr, witShares)
+	witAmt, err := k.Unbond(ctx, deposit, depPool, valAddr, witShares)
 	if err != nil {
 		return sdk.NewCoin(tokens.Denom, sdk.NewInt(0)), time.Time{}, err
 	}
@@ -44,20 +52,10 @@ func (k Keeper) Withdraw(
 // or an error.
 func (k Keeper) ComputeAssociatedShares(
 	ctx sdk.Context,
-	depAddr sdk.AccAddress,
-	valAddr sdk.ValAddress,
+	deposit types.Deposit,
+	depPool types.DepositPool,
 	tokens sdk.Coin,
 ) (shares sdk.Dec, err error) {
-
-	deposit, found := k.GetDeposit(ctx, depAddr, valAddr)
-	if !found {
-		return sdk.NewDec(0), types.ErrNoDepositForAddress
-	}
-
-	depPool, found := k.GetDepositPool(ctx, valAddr)
-	if !found {
-		return sdk.NewDec(0), types.ErrNoDepositPoolForValidator
-	}
 
 	// Compute shares from desired withdrawal tokens.
 	shares, err = depPool.SharesFromTokens(tokens)
@@ -82,33 +80,22 @@ func (k Keeper) ComputeAssociatedShares(
 	if shares.GT(depositorShares) {
 		shares = depositorShares
 	}
+	
+	// Ensure that the pool has enough shares to be removed.
+	if depPool.Shares.LT(shares) {
+		return sdk.NewDec(0), sdkerrors.Wrap(types.ErrNotEnoughDepositShares, deposit.Shares.String())
+	}
 
 	return shares, nil
 }
 
 func (k Keeper) Unbond(
 	ctx sdk.Context,
-	delAddr sdk.AccAddress,
+	deposit types.Deposit,
+	depPool types.DepositPool,
 	valAddr sdk.ValAddress,
 	shares sdk.Dec,
 ) (issuedTokensAmt sdk.Int, err error) {
-
-	// Check if a deposit exists in the store.
-	deposit, found := k.GetDeposit(ctx, delAddr, valAddr)
-	if !found {
-		return issuedTokensAmt, types.ErrNoDepositForAddress
-	}
-
-	// Check if deposit pool exists in the store.
-	depPool, found := k.GetDepositPool(ctx, valAddr)
-	if !found {
-		return issuedTokensAmt, types.ErrNoDepositPoolForValidator
-	}
-
-	// Ensure that we have enough shares to remove.
-	if deposit.Shares.LT(shares) {
-		return issuedTokensAmt, sdkerrors.Wrap(types.ErrNotEnoughDepositShares, deposit.Shares.String())
-	}
 
 	// Subtract shares from deposit.
 	deposit.Shares = deposit.Shares.Sub(shares)

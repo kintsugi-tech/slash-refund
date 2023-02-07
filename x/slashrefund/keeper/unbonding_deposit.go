@@ -102,7 +102,10 @@ func (k Keeper) GetUnbondingDepositByValIndexKey(
 
 // GetUnbondingDelegationsFromValidator returns all unbonding delegations from a
 // particular validator.
-func (k Keeper) GetUnbondingDepositsFromValidator(ctx sdk.Context, valAddr sdk.ValAddress) (ubds []types.UnbondingDeposit) {
+func (k Keeper) GetUnbondingDepositsFromValidator(
+	ctx sdk.Context, 
+	valAddr sdk.ValAddress,
+	) (ubds []types.UnbondingDeposit) {
 
 	store := ctx.KVStore(k.storeKey)
 	keyspace := types.GetUBDsByValIndexKey(valAddr)
@@ -130,8 +133,12 @@ func (k Keeper) GetUnbondingDepositsFromValidator(ctx sdk.Context, valAddr sdk.V
 // Adds an entry to the unbonding deposit at the given addresses.
 // It creates the unbonding deposit if it does not exist.
 func (k Keeper) SetUnbondingDepositEntry(
-	ctx sdk.Context, depositorAddr sdk.AccAddress, validatorAddr sdk.ValAddress,
-	creationHeight int64, minTime time.Time, balance math.Int,
+	ctx sdk.Context, 
+	depositorAddr sdk.AccAddress, 
+	validatorAddr sdk.ValAddress,
+	creationHeight int64, 
+	minTime time.Time, 
+	balance math.Int,
 ) types.UnbondingDeposit {
 	ubd, found := k.GetUnbondingDeposit(ctx, depositorAddr, validatorAddr)
 	if found {
