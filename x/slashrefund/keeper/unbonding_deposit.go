@@ -112,11 +112,11 @@ func (k Keeper) GetUnbondingDepositsFromValidator(
 	iterator := sdk.KVStorePrefixIterator(store, keyspace)
 	defer iterator.Close()
 
-	var ubd types.UnbondingDeposit
-
-	defer iterator.Close()
-
 	for ; iterator.Valid(); iterator.Next() {
+
+		//reset ubd
+		var ubd types.UnbondingDeposit
+
 		// rearrange key
 		key2 := iterator.Key()
 		key := types.GetUBDKeyFromValIndexKey(key2)
