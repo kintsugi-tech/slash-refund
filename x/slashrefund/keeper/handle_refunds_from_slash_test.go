@@ -431,6 +431,60 @@ func TestRefundFromSlash_EligibleUnbondingDeposit(t *testing.T) {
 	require.Equal(t, sdk.NewInt(5*units), ubd.Entries[0].Balance)
 }
 
+func TestRefundFromSlash_MultipleEligibleUnbondingDeposit(t *testing.T) {
+
+	power, slashFactor, slashAmt, _, infractionHeight, slashTime := defaultTestValues()
+	s := bootstrapRefundTest(t, power)
+	srApp, ctx, testAddrs, selfDelegation, valAddr, units := s.srApp, s.ctx, s.testAddrs, s.selfDelegation, s.valAddrs[0], s.units
+	entryAmt := sdk.NewInt(2 * units)
+
+	// Eligible Unbonding Deposits
+	ctx = ctx.WithBlockHeight(infractionHeight + 1)
+
+	// first unbonding deposit has two entries with initial balance of 2 units each
+	ubd := types.NewUnbondingDeposit(testAddrs[0], valAddr, ctx.BlockHeight(), slashTime.Add(100), entryAmt)
+	ubd.Entries = append(ubd.Entries, types.NewUnbondingDepositEntry(ctx.BlockHeight(), slashTime.Add(100), entryAmt))
+	srApp.SlashrefundKeeper.SetUnbondingDeposit(ctx, ubd)
+
+	// second unbonding deposit has three entries with initial balance of 2 units each
+	ubd = types.NewUnbondingDeposit(testAddrs[1], valAddr, ctx.BlockHeight(), slashTime.Add(100), entryAmt)
+	ubd.Entries = append(ubd.Entries, types.NewUnbondingDepositEntry(ctx.BlockHeight(), slashTime.Add(100), entryAmt))
+	ubd.Entries = append(ubd.Entries, types.NewUnbondingDepositEntry(ctx.BlockHeight(), slashTime.Add(100), entryAmt))
+	srApp.SlashrefundKeeper.SetUnbondingDeposit(ctx, ubd)
+
+	// call refund from slash
+	ctx = ctx.WithBlockHeader(tmproto.Header{Height: infractionHeight + 2, Time: slashTime})
+	refAmt, err := srApp.SlashrefundKeeper.RefundFromSlash(ctx, valAddr, slashAmt, infractionHeight, slashFactor)
+	require.NoError(t, err)
+	require.Equal(t, slashAmt, refAmt)
+
+	// check refunds
+	s.RequireNoRefund(testAddrs[1], valAddr)
+	refund0 := s.RequireRefund(testAddrs[0], valAddr, slashFactor.MulInt(selfDelegation))
+
+	// check refund pool
+	s.RequireRefundPool(valAddr, refAmt, sdk.NewDecFromInt(slashAmt), []types.Refund{refund0})
+
+	//  check unbonding deposits
+	ubd, found := srApp.SlashrefundKeeper.GetUnbondingDeposit(ctx, testAddrs[0], valAddr)
+	require.True(t, found)
+	require.Equal(t, 2, len(ubd.Entries))
+	require.Equal(t, entryAmt, ubd.Entries[0].InitialBalance)
+	require.Equal(t, entryAmt, ubd.Entries[1].InitialBalance)
+	require.Equal(t, sdk.NewInt(1*units), ubd.Entries[0].Balance)
+	require.Equal(t, sdk.NewInt(1*units), ubd.Entries[1].Balance)
+
+	ubd, found = srApp.SlashrefundKeeper.GetUnbondingDeposit(ctx, testAddrs[1], valAddr)
+	require.True(t, found)
+	require.Equal(t, 3, len(ubd.Entries))
+	require.Equal(t, entryAmt, ubd.Entries[0].InitialBalance)
+	require.Equal(t, entryAmt, ubd.Entries[1].InitialBalance)
+	require.Equal(t, entryAmt, ubd.Entries[2].InitialBalance)
+	require.Equal(t, sdk.NewInt(1*units), ubd.Entries[0].Balance)
+	require.Equal(t, sdk.NewInt(1*units), ubd.Entries[1].Balance)
+	require.Equal(t, sdk.NewInt(1*units), ubd.Entries[2].Balance)
+}
+
 func TestRefundFromSlash_NotEligibleUnbondingDelegations(t *testing.T) {
 
 	power, slashFactor, valSlashAmt, depAmt, infractionHeight, slashTime := defaultTestValues()

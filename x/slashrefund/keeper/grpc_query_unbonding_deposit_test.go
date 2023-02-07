@@ -19,13 +19,13 @@ func TestUnbondingDepositQuerySingle(t *testing.T) {
 	srApp, ctx, testAddrs, valAddrs, querier := s.srApp, s.ctx, s.testAddrs, s.valAddrs, s.querier
 	wctx := sdk.WrapSDKContext(ctx)
 
-	ubdep1 := types.NewUnbondingDeposit(testAddrs[0], valAddrs[0], 10, time.Unix(10, 0), sdk.NewInt(100))
-	entry2 := types.NewUnbondingDepositEntry(20, time.Unix(20, 0), sdk.NewInt(200))
+	ubdep1 := types.NewUnbondingDeposit(testAddrs[0], valAddrs[0], 10, time.Unix(10, 0).UTC(), sdk.NewInt(100))
+	entry2 := types.NewUnbondingDepositEntry(20, time.Unix(20, 0).UTC(), sdk.NewInt(200))
 	ubdep1.Entries = append(ubdep1.Entries, entry2)
 	srApp.SlashrefundKeeper.SetUnbondingDeposit(ctx, ubdep1)
 
-	ubdep2 := types.NewUnbondingDeposit(testAddrs[1], valAddrs[0], 0, time.Unix(30, 0), sdk.NewInt(300))
-	entry2 = types.NewUnbondingDepositEntry(40, time.Unix(40, 0), sdk.NewInt(400))
+	ubdep2 := types.NewUnbondingDeposit(testAddrs[1], valAddrs[0], 0, time.Unix(30, 0).UTC(), sdk.NewInt(300))
+	entry2 = types.NewUnbondingDepositEntry(40, time.Unix(40, 0).UTC(), sdk.NewInt(400))
 	ubdep2.Entries = append(ubdep2.Entries, entry2)
 	srApp.SlashrefundKeeper.SetUnbondingDeposit(ctx, ubdep2)
 
