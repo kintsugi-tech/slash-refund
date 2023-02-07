@@ -5,7 +5,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/made-in-block/slash-refund/testutil/nullify"
 	"github.com/made-in-block/slash-refund/x/slashrefund/keeper"
 	"github.com/made-in-block/slash-refund/x/slashrefund/testslashrefund"
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
@@ -50,10 +49,7 @@ func TestDepositGet(t *testing.T) {
 		valAddr, _ := sdk.ValAddressFromBech32(deposit.ValidatorAddress)
 		rst, found := keeper.GetDeposit(ctx, depAddr, valAddr)
 		require.True(t, found)
-		require.Equal(t,
-			nullify.Fill(&deposit),
-			nullify.Fill(&rst),
-		)
+		require.Equal(t, deposit, rst)
 	}
 }
 func TestDepositRemove(t *testing.T) {
@@ -71,24 +67,13 @@ func TestDepositRemove(t *testing.T) {
 func TestDepositGetAll(t *testing.T) {
 	keeper, ctx := testslashrefund.NewTestKeeper(t)
 	items := createNDeposit(keeper, ctx, 10)
-	require.ElementsMatch(t,
-		nullify.Fill(items),
-		nullify.Fill(keeper.GetAllDeposit(ctx)),
-	)
+	require.ElementsMatch(t, items, keeper.GetAllDeposit(ctx))
 }
 
 func TestGetValidatorDeposits(t *testing.T) {
 	keeper, ctx := testslashrefund.NewTestKeeper(t)
-	items, valAddr := createNDepositForValidator(keeper, ctx, 10)
-	require.ElementsMatch(t,
-		nullify.Fill(items),
-		nullify.Fill(keeper.GetValidatorDeposits(ctx, valAddr)),
-	)
-	_ = createNDeposit(keeper, ctx, 20)
-	deposits := keeper.GetValidatorDeposits(ctx, valAddr)
-	require.ElementsMatch(t,
-		nullify.Fill(items),
-		nullify.Fill(deposits),
-	)
-
+	items0, valAddr0 := createNDepositForValidator(keeper, ctx, 10)
+	items1, valAddr1 := createNDepositForValidator(keeper, ctx, 10)
+	require.ElementsMatch(t, items0, keeper.GetValidatorDeposits(ctx, valAddr0))
+	require.ElementsMatch(t, items1, keeper.GetValidatorDeposits(ctx, valAddr1))
 }

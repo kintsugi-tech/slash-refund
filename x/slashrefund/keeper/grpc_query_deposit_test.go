@@ -5,7 +5,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
-	"github.com/made-in-block/slash-refund/testutil/nullify"
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
@@ -66,10 +65,7 @@ func TestDepositQuerySingle(t *testing.T) {
 				require.ErrorIs(t, err, tc.err)
 			} else {
 				require.NoError(t, err)
-				require.Equal(t,
-					nullify.Fill(tc.response),
-					nullify.Fill(response),
-				)
+				require.Equal(t, tc.response, response)
 			}
 		})
 	}
@@ -98,10 +94,7 @@ func TestDepositQueryPaginated(t *testing.T) {
 			resp, err := querier.DepositAll(wctx, request(nil, uint64(i), uint64(step), false))
 			require.NoError(t, err)
 			require.LessOrEqual(t, len(resp.Deposit), step)
-			require.Subset(t,
-				nullify.Fill(deposits),
-				nullify.Fill(resp.Deposit),
-			)
+			require.Subset(t, deposits, resp.Deposit)
 		}
 	})
 	t.Run("ByKey", func(t *testing.T) {
@@ -111,10 +104,7 @@ func TestDepositQueryPaginated(t *testing.T) {
 			resp, err := querier.DepositAll(wctx, request(next, 0, uint64(step), false))
 			require.NoError(t, err)
 			require.LessOrEqual(t, len(resp.Deposit), step)
-			require.Subset(t,
-				nullify.Fill(deposits),
-				nullify.Fill(resp.Deposit),
-			)
+			require.Subset(t, deposits, resp.Deposit)
 			next = resp.Pagination.NextKey
 		}
 	})
@@ -122,10 +112,7 @@ func TestDepositQueryPaginated(t *testing.T) {
 		resp, err := querier.DepositAll(wctx, request(nil, 0, 0, true))
 		require.NoError(t, err)
 		require.Equal(t, len(deposits), int(resp.Pagination.Total))
-		require.ElementsMatch(t,
-			nullify.Fill(deposits),
-			nullify.Fill(resp.Deposit),
-		)
+		require.ElementsMatch(t, deposits, resp.Deposit)
 	})
 	t.Run("InvalidRequest", func(t *testing.T) {
 		_, err := querier.DepositAll(wctx, nil)
