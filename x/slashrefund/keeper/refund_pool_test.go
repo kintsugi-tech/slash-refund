@@ -5,7 +5,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/made-in-block/slash-refund/testutil/nullify"
 	"github.com/made-in-block/slash-refund/x/slashrefund/keeper"
 	"github.com/made-in-block/slash-refund/x/slashrefund/testslashrefund"
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
@@ -18,9 +17,8 @@ func createNRefundPool(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.Re
 		valPubk := secp256k1.GenPrivKey().PubKey()
 		valAddr := sdk.ValAddress(valPubk.Address())
 		items[i].OperatorAddress = valAddr.String()
-		items[i].Shares = sdk.ZeroDec()
-		items[i].Tokens.Amount = sdk.ZeroInt()
-		items[i].Tokens.Denom = keeper.AllowedTokens(ctx)[0]
+		items[i].Shares = sdk.NewDec(int64(1000 * i))
+		items[i].Tokens = sdk.NewInt64Coin("stake", int64(1000*i))
 		keeper.SetRefundPool(ctx, items[i])
 	}
 	return items
@@ -33,10 +31,7 @@ func TestRefundPoolGet(t *testing.T) {
 		valAddr, _ := sdk.ValAddressFromBech32(item.OperatorAddress)
 		rst, found := keeper.GetRefundPool(ctx, valAddr)
 		require.True(t, found)
-		require.Equal(t,
-			nullify.Fill(&item),
-			nullify.Fill(&rst),
-		)
+		require.Equal(t, item, rst)
 	}
 }
 
@@ -52,10 +47,7 @@ func TestUpdateRefundPool(t *testing.T) {
 
 		rst, found := keeper.GetRefundPool(ctx, valAddr)
 		require.True(t, found)
-		require.Equal(t,
-			nullify.Fill(&refPool),
-			nullify.Fill(&rst),
-		)
+		require.Equal(t, refPool, rst)
 	}
 }
 
@@ -73,8 +65,5 @@ func TestRefundPoolRemove(t *testing.T) {
 func TestRefundPoolGetAll(t *testing.T) {
 	keeper, ctx := testslashrefund.NewTestKeeper(t)
 	items := createNRefundPool(keeper, ctx, 10)
-	require.ElementsMatch(t,
-		nullify.Fill(items),
-		nullify.Fill(keeper.GetAllRefundPool(ctx)),
-	)
+	require.ElementsMatch(t, items, keeper.GetAllRefundPool(ctx))
 }

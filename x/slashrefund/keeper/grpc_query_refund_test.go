@@ -9,7 +9,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/made-in-block/slash-refund/testutil/nullify"
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 )
 
@@ -65,10 +64,7 @@ func TestRefundQuerySingle(t *testing.T) {
 				require.ErrorIs(t, err, tc.err)
 			} else {
 				require.NoError(t, err)
-				require.Equal(t,
-					nullify.Fill(tc.response),
-					nullify.Fill(response),
-				)
+				require.Equal(t, tc.response, response)
 			}
 		})
 	}
@@ -97,10 +93,7 @@ func TestRefundQueryPaginated(t *testing.T) {
 			resp, err := querier.RefundAll(wctx, request(nil, uint64(i), uint64(step), false))
 			require.NoError(t, err)
 			require.LessOrEqual(t, len(resp.Refund), step)
-			require.Subset(t,
-				nullify.Fill(refunds),
-				nullify.Fill(resp.Refund),
-			)
+			require.Subset(t, refunds, resp.Refund)
 		}
 	})
 	t.Run("ByKey", func(t *testing.T) {
@@ -110,10 +103,7 @@ func TestRefundQueryPaginated(t *testing.T) {
 			resp, err := querier.RefundAll(wctx, request(next, 0, uint64(step), false))
 			require.NoError(t, err)
 			require.LessOrEqual(t, len(resp.Refund), step)
-			require.Subset(t,
-				nullify.Fill(refunds),
-				nullify.Fill(resp.Refund),
-			)
+			require.Subset(t, refunds, resp.Refund)
 			next = resp.Pagination.NextKey
 		}
 	})
@@ -121,10 +111,7 @@ func TestRefundQueryPaginated(t *testing.T) {
 		resp, err := querier.RefundAll(wctx, request(nil, 0, 0, true))
 		require.NoError(t, err)
 		require.Equal(t, len(refunds), int(resp.Pagination.Total))
-		require.ElementsMatch(t,
-			nullify.Fill(refunds),
-			nullify.Fill(resp.Refund),
-		)
+		require.ElementsMatch(t, refunds, resp.Refund)
 	})
 	t.Run("InvalidRequest", func(t *testing.T) {
 		_, err := querier.RefundAll(wctx, nil)

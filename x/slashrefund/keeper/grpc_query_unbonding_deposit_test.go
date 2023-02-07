@@ -10,7 +10,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/made-in-block/slash-refund/testutil/nullify"
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 )
 
@@ -70,10 +69,7 @@ func TestUnbondingDepositQuerySingle(t *testing.T) {
 				require.ErrorIs(t, err, tc.err)
 			} else {
 				require.NoError(t, err)
-				require.Equal(t,
-					nullify.Fill(tc.response),
-					nullify.Fill(response),
-				)
+				require.Equal(t, tc.response, response)
 			}
 		})
 	}
@@ -102,10 +98,7 @@ func TestUnbondingDepositQueryPaginated(t *testing.T) {
 			resp, err := querier.UnbondingDepositAll(wctx, request(nil, uint64(i), uint64(step), false))
 			require.NoError(t, err)
 			require.LessOrEqual(t, len(resp.UnbondingDeposit), step)
-			require.Subset(t,
-				nullify.Fill(ubds),
-				nullify.Fill(resp.UnbondingDeposit),
-			)
+			require.Subset(t, ubds, resp.UnbondingDeposit)
 		}
 	})
 	t.Run("ByKey", func(t *testing.T) {
@@ -115,10 +108,7 @@ func TestUnbondingDepositQueryPaginated(t *testing.T) {
 			resp, err := querier.UnbondingDepositAll(wctx, request(next, 0, uint64(step), false))
 			require.NoError(t, err)
 			require.LessOrEqual(t, len(resp.UnbondingDeposit), step)
-			require.Subset(t,
-				nullify.Fill(ubds),
-				nullify.Fill(resp.UnbondingDeposit),
-			)
+			require.Subset(t, ubds, resp.UnbondingDeposit)
 			next = resp.Pagination.NextKey
 		}
 	})
@@ -126,10 +116,7 @@ func TestUnbondingDepositQueryPaginated(t *testing.T) {
 		resp, err := querier.UnbondingDepositAll(wctx, request(nil, 0, 0, true))
 		require.NoError(t, err)
 		require.Equal(t, len(ubds), int(resp.Pagination.Total))
-		require.ElementsMatch(t,
-			nullify.Fill(ubds),
-			nullify.Fill(resp.UnbondingDeposit),
-		)
+		require.ElementsMatch(t, ubds, resp.UnbondingDeposit)
 	})
 	t.Run("InvalidRequest", func(t *testing.T) {
 		_, err := querier.UnbondingDepositAll(wctx, nil)
