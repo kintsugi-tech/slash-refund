@@ -18,7 +18,7 @@ func (ubd *UnbondingDeposit) AddEntry(creationHeight int64, minTime time.Time, b
 			break
 		}
 	}
-	// If the eentry exists, update the balance
+	// If the entry exists, update the balance
 	if entryIndex != -1 {
 		ubdEntry := ubd.Entries[entryIndex]
 		ubdEntry.Balance = ubdEntry.Balance.Add(balance)

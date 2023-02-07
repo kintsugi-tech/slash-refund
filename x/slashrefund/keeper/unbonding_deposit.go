@@ -152,12 +152,18 @@ func (k Keeper) SetUnbondingDepositEntry(
 	return ubd
 }
 
-// InsertUBDQueue inserts an unbonding deposit to the appropriate timeslice
-// in the unbonding queue.
-func (k Keeper) InsertUBDQueue(ctx sdk.Context, ubd types.UnbondingDeposit, completionTime time.Time) {
+// InsertUBDQueue inserts an unbonding deposit to the appropriate timeslice in the unbonding queue.
+func (k Keeper) InsertUBDQueue(
+	ctx sdk.Context, 
+	ubd types.UnbondingDeposit, 
+	completionTime time.Time,
+	) {
 
 	// dvPair indicates the pair of delegator and validator
-	dvPair := types.DVPair{DepositorAddress: ubd.DepositorAddress, ValidatorAddress: ubd.ValidatorAddress}
+	dvPair := types.DVPair{
+		DepositorAddress: ubd.DepositorAddress, 
+		ValidatorAddress: ubd.ValidatorAddress,
+	}
 
 	// timeSlice is a slice of dvPair elements, linked to a given unbonding completionTime
 	timeSlice := k.GetUBDQueueTimeSlice(ctx, completionTime)

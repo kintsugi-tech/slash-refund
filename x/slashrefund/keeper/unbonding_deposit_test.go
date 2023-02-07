@@ -74,7 +74,6 @@ func TestUnbondingDepositRemove(t *testing.T) {
 		require.False(t, found)
 		_, found = keeper.GetUnbondingDepositByValIndexKey(ctx, valAddr, depAddr)
 		require.False(t, found)
-
 	}
 }
 
