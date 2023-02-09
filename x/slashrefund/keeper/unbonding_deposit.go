@@ -35,7 +35,6 @@ func (k Keeper) GetUnbondingDeposit(
 	ctx sdk.Context,
 	depAddr sdk.AccAddress,
 	valAddr sdk.ValAddress,
-
 ) (ubd types.UnbondingDeposit, found bool) {
 	store := ctx.KVStore(k.storeKey)
 	key := types.GetUBDKey(depAddr, valAddr)

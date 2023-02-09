@@ -27,4 +27,5 @@ var (
 	ErrCantGetValidatorBurnedTokensFromSlashEvent = sdkerrors.Register(ModuleName, 27, "cannot get validator burned tokens from slash event")
 	ErrCantGetInfractionHeightFromSlashEvent      = sdkerrors.Register(ModuleName, 28, "cannot get infraction height from slash event")
 	ErrZeroDepositAvailable                       = sdkerrors.Register(ModuleName, 29, "cannot refund: zero total deposit available for validator")
+	ErrMaxUnbondingDepositEntries                 = sdkerrors.Register(ModuleName, 30, "maximum number of unbonding deposits for the pair (depositr, validator) reached")
 )

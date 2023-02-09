@@ -30,23 +30,24 @@ func createNEntries(n int) []types.UnbondingDepositEntry {
 	return entries
 }
 
-func createNUnbondingDeposit(keeper *keeper.Keeper, ctx sdk.Context, n int, nentries int) []types.UnbondingDeposit {
+// Creates n different unbonding deposit in the store, each with nEntries entries.
+func createNUnbondingDeposit(keeper *keeper.Keeper, ctx sdk.Context, n int, nEntries int) []types.UnbondingDeposit {
 	items := make([]types.UnbondingDeposit, n)
 	for i := range items {
 		items[i].DepositorAddress = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 		items[i].ValidatorAddress = sdk.ValAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
-		items[i].Entries = createNEntries(nentries)
+		items[i].Entries = createNEntries(nEntries)
 		keeper.SetUnbondingDeposit(ctx, items[i])
 	}
 	return items
 }
 
-func createNUnbondingDepositForValidator(keeper *keeper.Keeper, ctx sdk.Context, n int, nentries int, valAddress string) []types.UnbondingDeposit {
+func createNUnbondingDepositForValidator(keeper *keeper.Keeper, ctx sdk.Context, n int, nEntries int, valAddress string) []types.UnbondingDeposit {
 	items := make([]types.UnbondingDeposit, n)
 	for i := range items {
 		items[i].DepositorAddress = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 		items[i].ValidatorAddress = valAddress
-		items[i].Entries = createNEntries(nentries)
+		items[i].Entries = createNEntries(nEntries)
 		keeper.SetUnbondingDeposit(ctx, items[i])
 	}
 	return items
