@@ -2,14 +2,10 @@ package cli
 
 import (
 	"fmt"
-	// "strings"
 
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	// "github.com/cosmos/cosmos-sdk/client/flags"
-	// sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 )
 
@@ -31,8 +27,6 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 	cmd.AddCommand(CmdShowUnbondingDeposit())
 	cmd.AddCommand(CmdListDepositPool())
 	cmd.AddCommand(CmdShowDepositPool())
-	cmd.AddCommand(CmdListUnbondingDeposit())
-	cmd.AddCommand(CmdShowUnbondingDeposit())
 	cmd.AddCommand(CmdListRefundPool())
 	cmd.AddCommand(CmdShowRefundPool())
 	cmd.AddCommand(CmdListRefund())
