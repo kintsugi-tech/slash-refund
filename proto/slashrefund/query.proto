@@ -4,12 +4,8 @@ package madeinblock.slashrefund.slashrefund;
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
-import "slashrefund/params.proto";
-import "slashrefund/deposit.proto";
-import "slashrefund/deposit_pool.proto";
-import "slashrefund/unbonding_deposit.proto";
-import "slashrefund/refund_pool.proto";
-import "slashrefund/refund.proto";
+import "slashrefund/slashrefund.proto";
+
 // this line is used by starport scaffolding # 1
 
 option go_package = "github.com/made-in-block/slash-refund/x/slashrefund/types";
