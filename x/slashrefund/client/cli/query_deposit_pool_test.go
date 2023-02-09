@@ -2,24 +2,21 @@ package cli_test
 
 import (
 	"fmt"
-	"strconv"
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	clitestutil "github.com/cosmos/cosmos-sdk/testutil/cli"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 	tmcli "github.com/tendermint/tendermint/libs/cli"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	"github.com/made-in-block/slash-refund/testutil/network"
-	"github.com/made-in-block/slash-refund/testutil/nullify"
+	"github.com/made-in-block/slash-refund/testutil/sample"
 	"github.com/made-in-block/slash-refund/x/slashrefund/client/cli"
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 )
-
-// Prevent strconv unused error
-var _ = strconv.IntSize
 
 func networkWithDepositPoolObjects(t *testing.T, n int) (*network.Network, []types.DepositPool) {
 	t.Helper()
@@ -29,9 +26,10 @@ func networkWithDepositPoolObjects(t *testing.T, n int) (*network.Network, []typ
 
 	for i := 0; i < n; i++ {
 		depositPool := types.DepositPool{
-			OperatorAddress: strconv.Itoa(i),
+			OperatorAddress: sample.ValAddress(),
+			Tokens:          sdk.NewCoin("stake", sdk.NewInt(int64(100*(i+1)))),
+			Shares:          sdk.NewDec(int64(100 * (i + 1))),
 		}
-		nullify.Fill(&depositPool)
 		state.DepositPoolList = append(state.DepositPoolList, depositPool)
 	}
 	buf, err := cfg.Codec.MarshalJSON(&state)
@@ -40,64 +38,10 @@ func networkWithDepositPoolObjects(t *testing.T, n int) (*network.Network, []typ
 	return network.New(t, cfg), state.DepositPoolList
 }
 
-func TestShowDepositPool(t *testing.T) {
-	net, objs := networkWithDepositPoolObjects(t, 2)
-
-	ctx := net.Validators[0].ClientCtx
-	common := []string{
-		fmt.Sprintf("--%s=json", tmcli.OutputFlag),
-	}
-	for _, tc := range []struct {
-		desc              string
-		idOperatorAddress string
-
-		args []string
-		err  error
-		obj  types.DepositPool
-	}{
-		{
-			desc:              "found",
-			idOperatorAddress: objs[0].OperatorAddress,
-
-			args: common,
-			obj:  objs[0],
-		},
-		{
-			desc:              "not found",
-			idOperatorAddress: strconv.Itoa(100000),
-
-			args: common,
-			err:  status.Error(codes.NotFound, "not found"),
-		},
-	} {
-		t.Run(tc.desc, func(t *testing.T) {
-			args := []string{
-				tc.idOperatorAddress,
-			}
-			args = append(args, tc.args...)
-			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdShowDepositPool(), args)
-			if tc.err != nil {
-				stat, ok := status.FromError(tc.err)
-				require.True(t, ok)
-				require.ErrorIs(t, stat.Err(), tc.err)
-			} else {
-				require.NoError(t, err)
-				var resp types.QueryGetDepositPoolResponse
-				require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
-				require.NotNil(t, resp.DepositPool)
-				require.Equal(t,
-					nullify.Fill(&tc.obj),
-					nullify.Fill(&resp.DepositPool),
-				)
-			}
-		})
-	}
-}
-
-func TestListDepositPool(t *testing.T) {
+func TestQueryDepositPool(t *testing.T) {
 	net, objs := networkWithDepositPoolObjects(t, 5)
-
 	ctx := net.Validators[0].ClientCtx
+
 	request := func(next []byte, offset, limit uint64, total bool) []string {
 		args := []string{
 			fmt.Sprintf("--%s=json", tmcli.OutputFlag),
@@ -122,10 +66,7 @@ func TestListDepositPool(t *testing.T) {
 			var resp types.QueryAllDepositPoolResponse
 			require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
 			require.LessOrEqual(t, len(resp.DepositPool), step)
-			require.Subset(t,
-				nullify.Fill(objs),
-				nullify.Fill(resp.DepositPool),
-			)
+			require.Subset(t, objs, resp.DepositPool)
 		}
 	})
 	t.Run("ByKey", func(t *testing.T) {
@@ -138,10 +79,7 @@ func TestListDepositPool(t *testing.T) {
 			var resp types.QueryAllDepositPoolResponse
 			require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
 			require.LessOrEqual(t, len(resp.DepositPool), step)
-			require.Subset(t,
-				nullify.Fill(objs),
-				nullify.Fill(resp.DepositPool),
-			)
+			require.Subset(t, objs, resp.DepositPool)
 			next = resp.Pagination.NextKey
 		}
 	})
@@ -153,9 +91,118 @@ func TestListDepositPool(t *testing.T) {
 		require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
 		require.NoError(t, err)
 		require.Equal(t, len(objs), int(resp.Pagination.Total))
-		require.ElementsMatch(t,
-			nullify.Fill(objs),
-			nullify.Fill(resp.DepositPool),
-		)
+		require.ElementsMatch(t, objs, resp.DepositPool)
+	})
+
+	// TESTS: SHOW SINGLE - VALID
+	t.Run("Show-Valid", func(t *testing.T) {
+		common := []string{fmt.Sprintf("--%s=json", tmcli.OutputFlag)}
+		for _, tc := range []struct {
+			desc               string
+			idValidatorAddress string
+			extraArgs          []string
+			obj                types.DepositPool
+		}{
+			{
+				desc:               "Found0",
+				idValidatorAddress: objs[0].OperatorAddress,
+				extraArgs:          common,
+				obj:                objs[0],
+			},
+			{
+				desc:               "Found1",
+				idValidatorAddress: objs[1].OperatorAddress,
+				extraArgs:          common,
+				obj:                objs[1],
+			},
+			{
+				desc:               "Found2",
+				idValidatorAddress: objs[2].OperatorAddress,
+				extraArgs:          common,
+				obj:                objs[2],
+			},
+			{
+				desc:               "Found3",
+				idValidatorAddress: objs[3].OperatorAddress,
+				extraArgs:          common,
+				obj:                objs[3],
+			},
+			{
+				desc:               "Found4",
+				idValidatorAddress: objs[4].OperatorAddress,
+				extraArgs:          common,
+				obj:                objs[4],
+			},
+		} {
+			t.Run(tc.desc, func(t *testing.T) {
+				args := append([]string{tc.idValidatorAddress}, tc.extraArgs...)
+				out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdShowDepositPool(), args)
+				require.NoError(t, err)
+				var resp types.QueryGetDepositPoolResponse
+				require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
+				require.NotNil(t, resp.DepositPool)
+				require.Equal(t, tc.obj, resp.DepositPool)
+			})
+		}
+	})
+
+	// TESTS: SHOW SINGLE - ERRORS
+	t.Run("Show-Errors", func(t *testing.T) {
+		common := []string{fmt.Sprintf("--%s=json", tmcli.OutputFlag)}
+		for _, tc := range []struct {
+			desc               string
+			idValidatorAddress string
+			extraArgs          []string
+			expErrMsg          string
+			expErrCode         codes.Code
+		}{
+			{
+				desc:               "NotFound",
+				idValidatorAddress: sample.ValAddress(),
+				extraArgs:          common,
+				expErrMsg:          "key not found",
+				expErrCode:         codes.NotFound,
+			},
+			{
+				desc:               "Bech32Failed-Decoding",
+				idValidatorAddress: sample.MockAddress(),
+				extraArgs:          common,
+				expErrMsg:          "invalid request",
+				expErrCode:         codes.InvalidArgument,
+			},
+			{
+				desc:               "Bech32Failed-InvalidValidator",
+				idValidatorAddress: sample.AccAddress(),
+				extraArgs:          common,
+				expErrMsg:          "invalid request",
+				expErrCode:         codes.InvalidArgument,
+			},
+			{
+				desc:               "Bech32Failed-EmptyValidator",
+				idValidatorAddress: "",
+				extraArgs:          common,
+				expErrMsg:          "invalid request",
+				expErrCode:         codes.InvalidArgument,
+			},
+		} {
+			t.Run(tc.desc, func(t *testing.T) {
+				args := append([]string{tc.idValidatorAddress}, tc.extraArgs...)
+
+				// ensure the execution returns an error with expErrMsg in its description
+				out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdShowDepositPool(), args)
+				require.Contains(t, err.Error(), tc.expErrMsg)
+
+				// ensure the output cannot be unmarshaled
+				var resp, nullresp types.QueryGetDepositPoolResponse
+				require.Error(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
+				require.Equal(t, nullresp.DepositPool, resp.DepositPool)
+
+				// ensure the error is compatible with package grpc/status, results in status with proper code and with expErrMsg in its description
+				stat, ok := status.FromError(err)
+				require.True(t, ok)
+				require.Equal(t, tc.expErrCode, stat.Code())
+				require.Contains(t, stat.Message(), tc.expErrMsg)
+			})
+		}
 	})
 }

@@ -45,7 +45,7 @@ func (k Querier) DepositPool(c context.Context, req *types.QueryGetDepositPoolRe
 	}
 	valOperAddr, err := sdk.ValAddressFromBech32(req.OperatorAddress)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
