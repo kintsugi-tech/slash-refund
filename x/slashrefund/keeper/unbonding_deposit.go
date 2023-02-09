@@ -81,26 +81,7 @@ func (k Keeper) GetAllUnbondingDeposit(ctx sdk.Context) (ubds []types.UnbondingD
 	return ubds
 }
 
-// GetUnbondingDeposit returns a unbondingDeposit from its index
-func (k Keeper) GetUnbondingDepositByValIndexKey(
-	ctx sdk.Context,
-	valAddr sdk.ValAddress,
-	depAddr sdk.AccAddress,
-) (ubd types.UnbondingDeposit, found bool) {
-
-	store := ctx.KVStore(k.storeKey)
-	key := types.GetUBDByValIndexKey(valAddr, depAddr)
-	b := store.Get(key)
-	if b == nil {
-		return ubd, false
-	}
-
-	k.cdc.MustUnmarshal(b, &ubd)
-	return ubd, true
-}
-
-// GetUnbondingDelegationsFromValidator returns all unbonding delegations from a
-// particular validator.
+// Returns all unbonding deposits associated to a particular validator.
 func (k Keeper) GetUnbondingDepositsFromValidator(
 	ctx sdk.Context, 
 	valAddr sdk.ValAddress,

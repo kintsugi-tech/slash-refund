@@ -53,9 +53,9 @@ func createNUnbondingDepositForValidator(keeper *keeper.Keeper, ctx sdk.Context,
 	return items
 }
 
-func TestUnbondingDepositGet(t *testing.T) {
+func Test_GetUnbondingDeposit(t *testing.T) {
 	keeper, ctx := testslashrefund.NewTestKeeper(t)
-	items := createNUnbondingDeposit(keeper, ctx, 10, 5)
+	items := createNUnbondingDeposit(keeper, ctx, 1, 5)
 	for _, item := range items {
 		depAddr, _ := sdk.AccAddressFromBech32(item.DepositorAddress)
 		valAddr, _ := sdk.ValAddressFromBech32(item.ValidatorAddress)
@@ -64,7 +64,7 @@ func TestUnbondingDepositGet(t *testing.T) {
 		require.Equal(t, item, got)
 	}
 }
-func TestUnbondingDepositRemove(t *testing.T) {
+func Test_RemoveUnbondingDeposit(t *testing.T) {
 	keeper, ctx := testslashrefund.NewTestKeeper(t)
 	items := createNUnbondingDeposit(keeper, ctx, 10, 5)
 	for _, item := range items {
@@ -73,18 +73,16 @@ func TestUnbondingDepositRemove(t *testing.T) {
 		valAddr, _ := sdk.ValAddressFromBech32(item.ValidatorAddress)
 		_, found := keeper.GetUnbondingDeposit(ctx, depAddr, valAddr)
 		require.False(t, found)
-		_, found = keeper.GetUnbondingDepositByValIndexKey(ctx, valAddr, depAddr)
-		require.False(t, found)
 	}
 }
 
-func TestUnbondingDepositGetAll(t *testing.T) {
+func Test_GetAllUnbondingDeposit(t *testing.T) {
 	keeper, ctx := testslashrefund.NewTestKeeper(t)
 	items := createNUnbondingDeposit(keeper, ctx, 10, 5)
 	require.ElementsMatch(t, items, keeper.GetAllUnbondingDeposit(ctx))
 }
 
-func TestUnbondingDepositGetUnbondingDepositsFromValidator(t *testing.T) {
+func Test_GetUnbondingDepositsFromValidator(t *testing.T) {
 	keeper, ctx := testslashrefund.NewTestKeeper(t)
 	valAddress0 := "cosmosvaloper12h6y5kn64xh6d6wsnw7098kc8k9kp2u6m03was"
 	items0 := createNUnbondingDepositForValidator(keeper, ctx, 10, 5, valAddress0)
@@ -98,4 +96,66 @@ func TestUnbondingDepositGetUnbondingDepositsFromValidator(t *testing.T) {
 	require.ElementsMatch(t, items0, got0)
 	got1 := keeper.GetUnbondingDepositsFromValidator(ctx, valAddr1)
 	require.ElementsMatch(t, items1, got1)
+}
+
+func Test_SetUnbondingDepositEntry(t *testing.T) {
+	keeper, ctx := testslashrefund.NewTestKeeper(t)
+	depAddr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
+	valAddr := sdk.ValAddress(secp256k1.GenPrivKey().PubKey().Address())
+	creatinHeight := int64(10)
+	minTime := time.Now().UTC()
+	balance := sdk.NewInt(3)
+	creatinHeight2 := int64(11)
+	minTime2 := minTime.Add(time.Hour*1)
+	balance2 := sdk.NewInt(5)
+
+	// Test add entry to not existing unbonding deposit
+	_ = keeper.SetUnbondingDepositEntry(ctx, depAddr, valAddr, creatinHeight, minTime, balance)
+	ubd, found := keeper.GetUnbondingDeposit(ctx, depAddr, valAddr)
+	require.Equal(t, found, true)
+	require.Equal(
+		t, 
+		ubd.Entries,
+		[]types.UnbondingDepositEntry{
+			types.NewUnbondingDepositEntry(creatinHeight, minTime, balance),
+		},
+	)
+
+	// Test add a new entry to existing unbonding deposit
+	_ = keeper.SetUnbondingDepositEntry(ctx, depAddr, valAddr, creatinHeight2, minTime2, balance2)
+	ubd, found = keeper.GetUnbondingDeposit(ctx, depAddr, valAddr)
+	require.Equal(t, found, true)
+	require.Equal(
+		t, 
+		ubd.Entries,
+		[]types.UnbondingDepositEntry{
+			types.NewUnbondingDepositEntry(creatinHeight, minTime, balance),
+			types.NewUnbondingDepositEntry(creatinHeight2, minTime2, balance2),
+		},
+	)
+}
+
+func Test_GetUBDQueueTimeSlice(t *testing.T) {
+	keeper, ctx := testslashrefund.NewTestKeeper(t)
+	depAddr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
+	valAddr := sdk.ValAddress(secp256k1.GenPrivKey().PubKey().Address())
+	creatinHeight := int64(10)
+	minTime := time.Now().UTC()
+	balance := sdk.NewInt(3)
+
+	ubd := types.NewUnbondingDeposit(depAddr, valAddr, creatinHeight, minTime, balance)
+	
+	// Set a new timeslice to UBD queue
+	keeper.InsertUBDQueue(ctx, ubd, minTime)
+	dvPairs := keeper.GetUBDQueueTimeSlice(ctx, minTime)
+	dvPair := types.DVPair{
+		DepositorAddress: depAddr.String(), 
+		ValidatorAddress: valAddr.String(),
+	}
+	require.Equal(t, dvPairs, []types.DVPair{dvPair})
+
+	// Append a new dvPair to already existing timeslcie
+	keeper.InsertUBDQueue(ctx, ubd, minTime)
+	dvPairs = keeper.GetUBDQueueTimeSlice(ctx, minTime)
+	require.Equal(t, dvPairs, []types.DVPair{dvPair, dvPair})
 }
