@@ -10,4 +10,6 @@ message Params {
   option (gogoproto.goproto_stringer) = false;
   
   repeated string allowedTokens = 1 [(gogoproto.moretags) = "yaml:\"allowed_tokens\""];
+  uint32 max_entries = 2;
+
 }
