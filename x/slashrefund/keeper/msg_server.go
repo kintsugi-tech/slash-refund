@@ -56,8 +56,8 @@ func (ms msgServer) Deposit(
 	}
 
 	// Check if is non-zero deposit
-	if msg.Amount.Amount.IsZero() {
-		return nil, types.ErrZeroDeposit
+	if !msg.Amount.Amount.IsPositive() {
+		return nil, types.ErrNonPositiveDeposit
 	}
 
 	// === STATE TRANSITION ===
@@ -96,6 +96,12 @@ func (ms msgServer) Withdraw(
 		return nil, valErr
 	}
 
+	// Check if validatorAddress corresponds to a validator
+	_, found := ms.k.stakingKeeper.GetValidator(ctx, validatorAddress)
+	if !found {
+		return nil, stakingtypes.ErrNoValidatorFound
+	}
+
 	// Check if valid depositor address.
 	depositorAddress, err := sdk.AccAddressFromBech32(msg.DepositorAddress)
 	if err != nil {
@@ -107,15 +113,15 @@ func (ms msgServer) Withdraw(
 		return nil, err
 	}
 
-	if msg.Amount.Amount.IsZero() {
-		return nil, types.ErrZeroWithdraw
+	if !msg.Amount.Amount.IsPositive() {
+		return nil, types.ErrNonPositiveWithdraw
 	}
 
 	// === STATE TRANSITION ===
 	witTokens, completionTime, err := ms.k.Withdraw(
-		ctx, 
-		depositorAddress, 
-		validatorAddress, 
+		ctx,
+		depositorAddress,
+		validatorAddress,
 		msg.Amount,
 	)
 	if err != nil {
@@ -146,6 +152,12 @@ func (ms msgServer) Claim(
 	validatorAddress, err := sdk.ValAddressFromBech32(msg.ValidatorAddress)
 	if err != nil {
 		return nil, err
+	}
+
+	// Check if validatorAddress corresponds to a validator
+	_, found := ms.k.stakingKeeper.GetValidator(ctx, validatorAddress)
+	if !found {
+		return nil, stakingtypes.ErrNoValidatorFound
 	}
 
 	// Check if valid depositor address

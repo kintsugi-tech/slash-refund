@@ -14,7 +14,6 @@ import (
 
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-
 	"github.com/stretchr/testify/require"
 )
 
@@ -25,9 +24,9 @@ var (
 )
 
 func SetupMsgServerTest() (
-	*app.App, 
-	sdk.Context, 
-	[]sdk.AccAddress, 
+	*app.App,
+	sdk.Context,
+	[]sdk.AccAddress,
 	[]sdk.ValAddress,
 	[]sdk.AccAddress,
 ) {
@@ -64,7 +63,7 @@ func TestDepositValid(t *testing.T) {
 	msg := &types.MsgDeposit{
 		DepositorAddress: depositors[0].String(),
 		ValidatorAddress: validators[0].String(),
-		Amount: sdk.NewCoin(types.DefaultAllowedTokens[0], sdk.NewInt(1)),
+		Amount:           sdk.NewCoin(types.DefaultAllowedTokens[0], sdk.NewInt(1)),
 	}
 	_, err := msgServer.Deposit(ctx, msg)
 	require.NoError(t, err)
@@ -78,7 +77,7 @@ func TestDepositNotValidatorBech32(t *testing.T) {
 	msg := &types.MsgDeposit{
 		DepositorAddress: depositors[0].String(),
 		ValidatorAddress: depositors[0].String(),
-		Amount: sdk.NewCoin(types.DefaultAllowedTokens[0], sdk.NewInt(1)),
+		Amount:           sdk.NewCoin(types.DefaultAllowedTokens[0], sdk.NewInt(1)),
 	}
 	_, err := msgServer.Deposit(ctx, msg)
 	require.Error(t, err)
@@ -96,7 +95,7 @@ func TestDepositNotValidator(t *testing.T) {
 	msg := &types.MsgDeposit{
 		DepositorAddress: depositors[0].String(),
 		ValidatorAddress: val,
-		Amount: sdk.NewCoin(types.DefaultAllowedTokens[0], sdk.NewInt(1)),
+		Amount:           sdk.NewCoin(types.DefaultAllowedTokens[0], sdk.NewInt(1)),
 	}
 	_, err := msgServer.Deposit(ctx, msg)
 	require.ErrorIs(t, err, stakingtypes.ErrNoValidatorFound)
@@ -110,7 +109,7 @@ func TestDepositNotAccountBech32(t *testing.T) {
 	msg := &types.MsgDeposit{
 		DepositorAddress: validators[0].String(),
 		ValidatorAddress: validators[0].String(),
-		Amount: sdk.NewCoin(types.DefaultAllowedTokens[0], sdk.NewInt(1)),
+		Amount:           sdk.NewCoin(types.DefaultAllowedTokens[0], sdk.NewInt(1)),
 	}
 	_, err := msgServer.Deposit(ctx, msg)
 	require.Error(t, err)
@@ -124,7 +123,7 @@ func TestDepositNotAllowedTokens(t *testing.T) {
 	msg := &types.MsgDeposit{
 		DepositorAddress: depositors[0].String(),
 		ValidatorAddress: validators[0].String(),
-		Amount: sdk.NewCoin("mib", sdk.NewInt(1)),
+		Amount:           sdk.NewCoin("mib", sdk.NewInt(1)),
 	}
 	_, err := msgServer.Deposit(ctx, msg)
 	require.ErrorIs(t, err, sdkerrors.ErrInvalidRequest)
@@ -138,14 +137,14 @@ func TestDepositZeroAmount(t *testing.T) {
 	msg := &types.MsgDeposit{
 		DepositorAddress: depositors[0].String(),
 		ValidatorAddress: validators[0].String(),
-		Amount: sdk.NewCoin(types.DefaultAllowedTokens[0], sdk.NewInt(0)),
+		Amount:           sdk.NewCoin(types.DefaultAllowedTokens[0], sdk.NewInt(0)),
 	}
 	_, err := msgServer.Deposit(ctx, msg)
-	require.ErrorIs(t, err, types.ErrZeroDeposit)
+	require.ErrorIs(t, err, types.ErrNonPositiveDeposit)
 }
 
 // -------------------------------------------------------------------------------------------------
-// Withdraw 
+// Withdraw
 // -------------------------------------------------------------------------------------------------
 func TestWithdrawNotValidatorBech32(t *testing.T) {
 	app, ctx, _, _, depositors := SetupMsgServerTest()
@@ -155,7 +154,7 @@ func TestWithdrawNotValidatorBech32(t *testing.T) {
 	msg := &types.MsgWithdraw{
 		DepositorAddress: depositors[0].String(),
 		ValidatorAddress: depositors[0].String(),
-		Amount: sdk.NewCoin(types.DefaultAllowedTokens[0], sdk.NewInt(1)),
+		Amount:           sdk.NewCoin(types.DefaultAllowedTokens[0], sdk.NewInt(1)),
 	}
 	_, err := msgServer.Withdraw(ctx, msg)
 	require.Error(t, err)
@@ -169,7 +168,7 @@ func TestWithdrawNotAccountBech32(t *testing.T) {
 	msg := &types.MsgWithdraw{
 		DepositorAddress: validators[0].String(),
 		ValidatorAddress: validators[0].String(),
-		Amount: sdk.NewCoin(types.DefaultAllowedTokens[0], sdk.NewInt(1)),
+		Amount:           sdk.NewCoin(types.DefaultAllowedTokens[0], sdk.NewInt(1)),
 	}
 	_, err := msgServer.Withdraw(ctx, msg)
 	require.Error(t, err)
@@ -184,7 +183,7 @@ func TestWithdrawNotAllowedTokens(t *testing.T) {
 	msg := &types.MsgWithdraw{
 		DepositorAddress: depositors[0].String(),
 		ValidatorAddress: validators[0].String(),
-		Amount: sdk.NewCoin("mib", sdk.NewInt(1)),
+		Amount:           sdk.NewCoin("mib", sdk.NewInt(1)),
 	}
 	_, err := msgServer.Withdraw(ctx, msg)
 	require.ErrorIs(t, err, sdkerrors.ErrInvalidRequest)
@@ -198,14 +197,14 @@ func TestWithdrawZeroAmount(t *testing.T) {
 	msg := &types.MsgWithdraw{
 		DepositorAddress: depositors[0].String(),
 		ValidatorAddress: validators[0].String(),
-		Amount: sdk.NewCoin(types.DefaultAllowedTokens[0], sdk.NewInt(0)),
+		Amount:           sdk.NewCoin(types.DefaultAllowedTokens[0], sdk.NewInt(0)),
 	}
 	_, err := msgServer.Withdraw(ctx, msg)
-	require.ErrorIs(t, err, types.ErrZeroDeposit)
+	require.ErrorIs(t, err, types.ErrNonPositiveDeposit)
 }
 
 // -------------------------------------------------------------------------------------------------
-// Claim 
+// Claim
 // -------------------------------------------------------------------------------------------------
 func TestClaimNotValidatorBech32(t *testing.T) {
 	app, ctx, _, _, depositors := SetupMsgServerTest()

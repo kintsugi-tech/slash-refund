@@ -21,7 +21,7 @@ func (k Keeper) Claim(
 
 	refundPool, found := k.GetRefundPool(ctx, valAddr)
 	if !found {
-		panic("Found refund but not the refund pool")
+		panic("found refund but not the refund pool")
 	}
 
 	shares := refund.Shares

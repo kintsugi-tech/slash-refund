@@ -27,7 +27,7 @@ func (k Keeper) Withdraw(
 
 	depPool, found := k.GetDepositPool(ctx, valAddr)
 	if !found {
-		return sdk.NewCoin(tokens.Denom, sdk.NewInt(0)), time.Time{}, types.ErrNoDepositPoolForValidator
+		panic("found deposit but not the deposit pool")
 	}
 
 	// Check if requested amount is valid and returns associated shares.
