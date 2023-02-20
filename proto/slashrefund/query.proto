@@ -29,7 +29,7 @@ service Query {
 // Queries a DepositPool by index.
 	rpc DepositPool(QueryGetDepositPoolRequest) returns (QueryGetDepositPoolResponse) {
 		option (google.api.http).get = "/made-in-block/slash-refund/slashrefund/deposit_pool/{operatorAddress}";
-	}
+    }
 
 	// Queries a list of DepositPool items.
 	rpc DepositPoolAll(QueryAllDepositPoolRequest) returns (QueryAllDepositPoolResponse) {

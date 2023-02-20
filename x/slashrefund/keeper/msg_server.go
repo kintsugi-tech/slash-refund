@@ -27,7 +27,7 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// === VALIDATION CHECKS ===
-	//Check if valid validator address
+	// Check if valid validator address
 	valAddr, valErr := sdk.ValAddressFromBech32(msg.ValidatorAddress)
 	if valErr != nil {
 		return nil, valErr
@@ -142,7 +142,7 @@ func (k msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.Msg
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// === VALIDATION CHECKS ===
-	//Check if valid validator address
+	// Check if valid validator address
 	validatorAddress, err := sdk.ValAddressFromBech32(msg.ValidatorAddress)
 	if err != nil {
 		return nil, err

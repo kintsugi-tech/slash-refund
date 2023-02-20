@@ -83,7 +83,7 @@ func (k Keeper) GetAllUnbondingDeposit(ctx sdk.Context) (ubds []types.UnbondingD
 
 // Returns all unbonding deposits associated to a particular validator.
 func (k Keeper) GetUnbondingDepositsFromValidator(
-	ctx sdk.Context, 
+	ctx sdk.Context,
 	valAddr sdk.ValAddress,
 ) (ubds []types.UnbondingDeposit) {
 
@@ -94,7 +94,7 @@ func (k Keeper) GetUnbondingDepositsFromValidator(
 
 	for ; iterator.Valid(); iterator.Next() {
 
-		//reset ubd
+		// reset ubd
 		var ubd types.UnbondingDeposit
 
 		// rearrange key
@@ -113,11 +113,11 @@ func (k Keeper) GetUnbondingDepositsFromValidator(
 // Adds an entry to the unbonding deposit at the given addresses.
 // It creates the unbonding deposit if it does not exist.
 func (k Keeper) SetUnbondingDepositEntry(
-	ctx sdk.Context, 
-	depositorAddr sdk.AccAddress, 
+	ctx sdk.Context,
+	depositorAddr sdk.AccAddress,
 	validatorAddr sdk.ValAddress,
 	creationHeight int64,
-	minTime time.Time, 
+	minTime time.Time,
 	balance math.Int,
 ) types.UnbondingDeposit {
 	ubd, found := k.GetUnbondingDeposit(ctx, depositorAddr, validatorAddr)
@@ -134,14 +134,14 @@ func (k Keeper) SetUnbondingDepositEntry(
 
 // InsertUBDQueue inserts an unbonding deposit to the appropriate timeslice in the unbonding queue.
 func (k Keeper) InsertUBDQueue(
-	ctx sdk.Context, 
-	ubd types.UnbondingDeposit, 
+	ctx sdk.Context,
+	ubd types.UnbondingDeposit,
 	completionTime time.Time,
-	) {
+) {
 
 	// dvPair indicates the pair of delegator and validator
 	dvPair := types.DVPair{
-		DepositorAddress: ubd.DepositorAddress, 
+		DepositorAddress: ubd.DepositorAddress,
 		ValidatorAddress: ubd.ValidatorAddress,
 	}
 
@@ -187,7 +187,7 @@ func (k Keeper) UBDQueueIterator(ctx sdk.Context, endTime time.Time) sdk.Iterato
 	)
 }
 
-// Returns a concatenated list of all timeslices inclusively previous to currTime, and deletes the 
+// Returns a concatenated list of all timeslices inclusively previous to currTime, and deletes the
 // timeslices from the queue.
 func (k Keeper) DequeueAllMatureUBDQueue(ctx sdk.Context, currTime time.Time) (matureUnbonds []types.DVPair) {
 	store := ctx.KVStore(k.storeKey)

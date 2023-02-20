@@ -34,15 +34,15 @@ func NewTestKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	storeKey := sdk.NewKVStoreKey(types.StoreKey)
 	memStoreKey := storetypes.NewMemoryStoreKey(types.MemStoreKey)
 
-	memStoreKey_auth := storetypes.NewMemoryStoreKey("mem_acc")
-	memStoreKey_bank := storetypes.NewMemoryStoreKey("mem_bank")
-	memStoreKey_slashing := storetypes.NewMemoryStoreKey("mem_slashing")
-	memStoreKey_staking := storetypes.NewMemoryStoreKey("mem_staking")
+	memStoreKeyAuth := storetypes.NewMemoryStoreKey("mem_acc")
+	memStoreKeyBank := storetypes.NewMemoryStoreKey("mem_bank")
+	memStoreKeySlashing := storetypes.NewMemoryStoreKey("mem_slashing")
+	memStoreKeyStaking := storetypes.NewMemoryStoreKey("mem_staking")
 
-	storeKey_auth := sdk.NewKVStoreKey(authtypes.StoreKey)
-	storeKey_bank := sdk.NewKVStoreKey(banktypes.StoreKey)
-	storeKey_staking := sdk.NewKVStoreKey(stakingtypes.StoreKey)
-	storeKey_slashing := sdk.NewKVStoreKey(slashingtypes.StoreKey)
+	storeKeyAuth := sdk.NewKVStoreKey(authtypes.StoreKey)
+	storeKeyBank := sdk.NewKVStoreKey(banktypes.StoreKey)
+	storeKeyStaking := sdk.NewKVStoreKey(stakingtypes.StoreKey)
+	storeKeySlashing := sdk.NewKVStoreKey(slashingtypes.StoreKey)
 
 	db := tmdb.NewMemDB()
 	stateStore := store.NewCommitMultiStore(db)
@@ -59,28 +59,28 @@ func NewTestKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		memStoreKey,
 		"SlashrefundParams",
 	)
-	paramsSubspace_auth := typesparams.NewSubspace(cdc,
+	paramsSubspaceAuth := typesparams.NewSubspace(cdc,
 		types.Amino,
-		storeKey_auth,
-		memStoreKey_auth,
+		storeKeyAuth,
+		memStoreKeyAuth,
 		"AuthParams",
 	)
-	paramsSubspace_bank := typesparams.NewSubspace(cdc,
+	paramsSubspaceBank := typesparams.NewSubspace(cdc,
 		types.Amino,
-		storeKey_bank,
-		memStoreKey_bank,
+		storeKeyBank,
+		memStoreKeyBank,
 		"BankParams",
 	)
-	paramsSubspace_slashing := typesparams.NewSubspace(cdc,
+	paramsSubspaceSlashing := typesparams.NewSubspace(cdc,
 		types.Amino,
-		storeKey_slashing,
-		memStoreKey_slashing,
+		storeKeySlashing,
+		memStoreKeySlashing,
 		"SlashingParams",
 	)
-	paramsSubspace_staking := typesparams.NewSubspace(cdc,
+	paramsSubspaceStaking := typesparams.NewSubspace(cdc,
 		types.Amino,
-		storeKey_staking,
-		memStoreKey_staking,
+		storeKeyStaking,
+		memStoreKeyStaking,
 		"StakingParams",
 	)
 
@@ -103,7 +103,7 @@ func NewTestKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	authKeeper := authkeeper.NewAccountKeeper(
 		cdc,
 		keys[authtypes.StoreKey],
-		paramsSubspace_auth,
+		paramsSubspaceAuth,
 		authtypes.ProtoBaseAccount,
 		maccPerms,
 		sdk.Bech32PrefixAccAddr,
@@ -113,7 +113,7 @@ func NewTestKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		cdc,
 		keys[banktypes.StoreKey],
 		authKeeper,
-		paramsSubspace_bank,
+		paramsSubspaceBank,
 		BlockedModuleAccountAddrs(maccPerms),
 	)
 
@@ -122,14 +122,14 @@ func NewTestKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		keys[stakingtypes.StoreKey],
 		authKeeper,
 		bankKeeper,
-		paramsSubspace_staking,
+		paramsSubspaceStaking,
 	)
 
 	slashingKeeper := slashingkeeper.NewKeeper(
 		cdc,
 		keys[slashingtypes.StoreKey],
 		stakingKeeper,
-		paramsSubspace_slashing,
+		paramsSubspaceSlashing,
 	)
 
 	k := keeper.NewKeeper(

@@ -79,12 +79,12 @@ func validateAllowedTokens(v interface{}) error {
 	}
 
 	if len(allowedTokens) == 0 {
-		return fmt.Errorf("no allowed token has been set.")
+		return fmt.Errorf("no allowed token has been set")
 	}
 
 	// TODO: remove this line when multiple tokens are allowed
 	if len(allowedTokens) > 1 {
-		return fmt.Errorf("only one allowed token is currently accepted.")
+		return fmt.Errorf("only one allowed token is currently accepted")
 	}
 
 	// ensure each denom is only registered one time.
@@ -106,7 +106,7 @@ func validateAllowedTokens(v interface{}) error {
 func validateAllowedToken(t interface{}) error {
 	token, ok := t.(string)
 	if !ok {
-		return fmt.Errorf("invalid paramter type: %T", t)
+		return fmt.Errorf("invalid parameter type: %T", t)
 	}
 
 	if strings.TrimSpace(token) == "" {

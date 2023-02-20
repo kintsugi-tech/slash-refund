@@ -1,8 +1,0 @@
-run:
-  tests: false
-  timeout: 5m # timeout for analysis, e.g. 30s, 5m, default is 1m
-
-linters:
-  disable-all: true
-  enable:
-    - unused

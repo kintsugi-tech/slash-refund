@@ -39,12 +39,12 @@ func (gs GenesisState) Validate() error {
 		}
 		index := string(DepositKey(depositor, validator))
 		if _, ok := depositIndexMap[index]; ok {
-			return fmt.Errorf("duplicated index in genesis state for deposit (acc: %s / val: %s).", elem.DepositorAddress, elem.ValidatorAddress)
+			return fmt.Errorf("duplicated index in genesis state for deposit (acc: %s / val: %s)", elem.DepositorAddress, elem.ValidatorAddress)
 		}
 		depositIndexMap[index] = struct{}{}
 
 		if elem.Shares.IsNil() || !elem.Shares.IsPositive() {
-			return fmt.Errorf("non-positive shares in genesis state for deposit (acc: %s / val: %s).", elem.DepositorAddress, elem.ValidatorAddress)
+			return fmt.Errorf("non-positive shares in genesis state for deposit (acc: %s / val: %s)", elem.DepositorAddress, elem.ValidatorAddress)
 		}
 	}
 
@@ -57,15 +57,15 @@ func (gs GenesisState) Validate() error {
 		}
 		index := string(DepositPoolKey(valOperAddr))
 		if _, ok := depositPoolIndexMap[index]; ok {
-			return fmt.Errorf("duplicated index in genesis state for depositPool (val: %s).", elem.OperatorAddress)
+			return fmt.Errorf("duplicated index in genesis state for depositPool (val: %s)", elem.OperatorAddress)
 		}
 		depositPoolIndexMap[index] = struct{}{}
 
 		if elem.Tokens.IsNil() || !elem.Tokens.IsValid() || elem.Tokens.Amount.IsZero() {
-			return fmt.Errorf("invalid denom or non-positive tokens amount in genesis state for depositPool (val: %s).", elem.OperatorAddress)
+			return fmt.Errorf("invalid denom or non-positive tokens amount in genesis state for depositPool (val: %s)", elem.OperatorAddress)
 		}
 		if elem.Shares.IsNil() || !elem.Shares.IsPositive() {
-			return fmt.Errorf("non-positive shares in genesis state for depositPool (val: %s).", elem.OperatorAddress)
+			return fmt.Errorf("non-positive shares in genesis state for depositPool (val: %s)", elem.OperatorAddress)
 		}
 	}
 
@@ -86,10 +86,10 @@ func (gs GenesisState) Validate() error {
 		//TODO: check for max entries if implemented in withdraw logic
 		for i, entry := range elem.Entries {
 			if entry.InitialBalance.IsNil() || !entry.InitialBalance.IsPositive() {
-				return fmt.Errorf("non-positive initial balance in genesis state for unbonding deposit entry (acc: %s / val: %s / entry: %d).", elem.DepositorAddress, elem.ValidatorAddress, i)
+				return fmt.Errorf("non-positive initial balance in genesis state for unbonding deposit entry (acc: %s / val: %s / entry: %d)", elem.DepositorAddress, elem.ValidatorAddress, i)
 			}
 			if entry.Balance.IsNil() || entry.Balance.IsNegative() {
-				return fmt.Errorf("unset or negative balance in genesis state for unbonding deposit entry (acc: %s / val: %s / entry: %d).", elem.DepositorAddress, elem.ValidatorAddress, i)
+				return fmt.Errorf("unset or negative balance in genesis state for unbonding deposit entry (acc: %s / val: %s / entry: %d)", elem.DepositorAddress, elem.ValidatorAddress, i)
 			}
 		}
 	}
@@ -103,15 +103,15 @@ func (gs GenesisState) Validate() error {
 		}
 		index := string(RefundPoolKey(valOperAddr))
 		if _, ok := refundPoolIndexMap[index]; ok {
-			return fmt.Errorf("duplicated index in genesis state for refundPool (val: %s).", elem.OperatorAddress)
+			return fmt.Errorf("duplicated index in genesis state for refundPool (val: %s)", elem.OperatorAddress)
 		}
 		refundPoolIndexMap[index] = struct{}{}
 
 		if elem.Tokens.IsNil() || !elem.Tokens.IsValid() || elem.Tokens.Amount.IsZero() {
-			return fmt.Errorf("invalid denom or non-positive tokens amount in genesis state for refundPool (val: %s).", elem.OperatorAddress)
+			return fmt.Errorf("invalid denom or non-positive tokens amount in genesis state for refundPool (val: %s)", elem.OperatorAddress)
 		}
 		if elem.Shares.IsNil() || !elem.Shares.IsPositive() {
-			return fmt.Errorf("non-positive shares in genesis state for refundPool (val: %s).", elem.OperatorAddress)
+			return fmt.Errorf("non-positive shares in genesis state for refundPool (val: %s)", elem.OperatorAddress)
 		}
 	}
 
@@ -128,12 +128,12 @@ func (gs GenesisState) Validate() error {
 		}
 		index := string(RefundKey(delegator, validator))
 		if _, ok := refundIndexMap[index]; ok {
-			return fmt.Errorf("duplicated index in genesis state for refund (acc: %s / val: %s).", elem.DelegatorAddress, elem.ValidatorAddress)
+			return fmt.Errorf("duplicated index in genesis state for refund (acc: %s / val: %s)", elem.DelegatorAddress, elem.ValidatorAddress)
 		}
 		refundIndexMap[index] = struct{}{}
 
 		if elem.Shares.IsNil() || !elem.Shares.IsPositive() {
-			return fmt.Errorf("non-positive shares in genesis state for refund (acc: %s / val: %s).", elem.DelegatorAddress, elem.ValidatorAddress)
+			return fmt.Errorf("non-positive shares in genesis state for refund (acc: %s / val: %s)", elem.DelegatorAddress, elem.ValidatorAddress)
 		}
 	}
 	// this line is used by starport scaffolding # genesis/types/validate
