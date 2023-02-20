@@ -11,6 +11,7 @@ import (
 func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 	return types.NewParams(
 		k.AllowedTokens(ctx),
+		k.MaxEntries(ctx),
 	)
 }
 
@@ -25,6 +26,13 @@ func (k Keeper) AllowedTokens(ctx sdk.Context) (res []string) {
 	return
 }
 
+// Returns the maxmimum number of unbnding deposit entries.
+func (k Keeper) MaxEntries(ctx sdk.Context) (res uint32) {
+	k.paramstore.Get(ctx, types.KeyMaxEntries, &res)
+	return 
+}
+
+// Checks if a specific denom is among module's allowed tokens. Returns true or false with an error.
 func (k Keeper) CheckAllowedTokens(ctx sdk.Context, denom string) (bool, error) {
 	for _, validToken := range k.AllowedTokens(ctx) {
 		if denom == validToken {

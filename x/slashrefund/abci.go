@@ -11,7 +11,7 @@ import (
 
 func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k keeper.Keeper) {
 
-	//Handle slashing event
+	// Handle slashing event
 	events := ctx.EventManager().Events()
 
 	// Iterate all events in this block
@@ -19,14 +19,17 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k keeper.Keeper) 
 		// Check if we have a slashing event and that the event is not coming from a jail action
 		if event.Type == slashingtypes.EventTypeSlash && string(event.Attributes[0].GetKey()) != "jailed" {
 			// TODO: handle jail slash event better.
-			k.HandleRefundsFromSlash(ctx, event)
+			_, err := k.HandleRefundsFromSlash(ctx, event)
+			if err != nil {
+				// TODO: handle the error
+			}
 		}
 	}
 }
 
 func EndBlocker(ctx sdk.Context, req abci.RequestEndBlock, k keeper.Keeper) []types.DVPair {
 
-	//Handle unbonding dequeue
+	// Handle unbonding dequeue
 	matureUnbonds := k.BlockUnbondingDepositUpdates(ctx)
 
 	// TODO: Handle removed validator's deposit

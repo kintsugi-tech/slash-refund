@@ -33,6 +33,10 @@ func (k Keeper) Withdraw(
 		return sdk.NewCoin(tokens.Denom, sdk.NewInt(0)), time.Time{}, err
 	}
 
+	if k.HasMaxUnbondingDepositEntries(ctx, depAddr, valAddr) {
+		return sdk.NewCoin(tokens.Denom, sdk.NewInt(0)), time.Time{}, types.ErrMaxUnbondingDepositEntries
+	}
+
 	witAmt, err := k.Unbond(ctx, deposit, depPool, valAddr, witShares)
 	if err != nil {
 		return sdk.NewCoin(tokens.Denom, sdk.NewInt(0)), time.Time{}, err
@@ -115,3 +119,14 @@ func (k Keeper) Unbond(
 
 	return issuedTokensAmt, nil
 }
+
+// Checks if a user has already requested the maximum number of allowed unbonding deposits for a 
+// specific validator in the considered timeframe
+func(k Keeper) HasMaxUnbondingDepositEntries(ctx sdk.Context, depAddr sdk.AccAddress, valAddr sdk.ValAddress) bool {
+	ubd, found := k.GetUnbondingDeposit(ctx, depAddr, valAddr)
+	if !found {
+		return true
+	}
+
+	return len(ubd.Entries) > int(k.MaxEntries(ctx))
+} 

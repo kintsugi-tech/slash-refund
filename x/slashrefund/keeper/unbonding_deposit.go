@@ -35,7 +35,6 @@ func (k Keeper) GetUnbondingDeposit(
 	ctx sdk.Context,
 	depAddr sdk.AccAddress,
 	valAddr sdk.ValAddress,
-
 ) (ubd types.UnbondingDeposit, found bool) {
 	store := ctx.KVStore(k.storeKey)
 	key := types.GetUBDKey(depAddr, valAddr)
@@ -82,30 +81,11 @@ func (k Keeper) GetAllUnbondingDeposit(ctx sdk.Context) (ubds []types.UnbondingD
 	return ubds
 }
 
-// GetUnbondingDeposit returns a unbondingDeposit from its index
-func (k Keeper) GetUnbondingDepositByValIndexKey(
+// Returns all unbonding deposits associated to a particular validator.
+func (k Keeper) GetUnbondingDepositsFromValidator(
 	ctx sdk.Context,
 	valAddr sdk.ValAddress,
-	depAddr sdk.AccAddress,
-) (ubd types.UnbondingDeposit, found bool) {
-
-	store := ctx.KVStore(k.storeKey)
-	key := types.GetUBDByValIndexKey(valAddr, depAddr)
-	b := store.Get(key)
-	if b == nil {
-		return ubd, false
-	}
-
-	k.cdc.MustUnmarshal(b, &ubd)
-	return ubd, true
-}
-
-// GetUnbondingDelegationsFromValidator returns all unbonding delegations from a
-// particular validator.
-func (k Keeper) GetUnbondingDepositsFromValidator(
-	ctx sdk.Context, 
-	valAddr sdk.ValAddress,
-	) (ubds []types.UnbondingDeposit) {
+) (ubds []types.UnbondingDeposit) {
 
 	store := ctx.KVStore(k.storeKey)
 	keyspace := types.GetUBDsByValIndexKey(valAddr)
@@ -114,7 +94,7 @@ func (k Keeper) GetUnbondingDepositsFromValidator(
 
 	for ; iterator.Valid(); iterator.Next() {
 
-		//reset ubd
+		// reset ubd
 		var ubd types.UnbondingDeposit
 
 		// rearrange key
@@ -133,11 +113,11 @@ func (k Keeper) GetUnbondingDepositsFromValidator(
 // Adds an entry to the unbonding deposit at the given addresses.
 // It creates the unbonding deposit if it does not exist.
 func (k Keeper) SetUnbondingDepositEntry(
-	ctx sdk.Context, 
-	depositorAddr sdk.AccAddress, 
+	ctx sdk.Context,
+	depositorAddr sdk.AccAddress,
 	validatorAddr sdk.ValAddress,
-	creationHeight int64, 
-	minTime time.Time, 
+	creationHeight int64,
+	minTime time.Time,
 	balance math.Int,
 ) types.UnbondingDeposit {
 	ubd, found := k.GetUnbondingDeposit(ctx, depositorAddr, validatorAddr)
@@ -152,12 +132,18 @@ func (k Keeper) SetUnbondingDepositEntry(
 	return ubd
 }
 
-// InsertUBDQueue inserts an unbonding deposit to the appropriate timeslice
-// in the unbonding queue.
-func (k Keeper) InsertUBDQueue(ctx sdk.Context, ubd types.UnbondingDeposit, completionTime time.Time) {
+// InsertUBDQueue inserts an unbonding deposit to the appropriate timeslice in the unbonding queue.
+func (k Keeper) InsertUBDQueue(
+	ctx sdk.Context,
+	ubd types.UnbondingDeposit,
+	completionTime time.Time,
+) {
 
 	// dvPair indicates the pair of delegator and validator
-	dvPair := types.DVPair{DepositorAddress: ubd.DepositorAddress, ValidatorAddress: ubd.ValidatorAddress}
+	dvPair := types.DVPair{
+		DepositorAddress: ubd.DepositorAddress,
+		ValidatorAddress: ubd.ValidatorAddress,
+	}
 
 	// timeSlice is a slice of dvPair elements, linked to a given unbonding completionTime
 	timeSlice := k.GetUBDQueueTimeSlice(ctx, completionTime)
@@ -192,19 +178,21 @@ func (k Keeper) SetUBDQueueTimeSlice(ctx sdk.Context, timestamp time.Time, dvpai
 	store.Set(types.GetUnbondingDepositTimeKey(timestamp), bz)
 }
 
-// UBDQueueIterator returns all the unbonding queue timeslices from time 0 until endTime.
+// Returns all unbonding queue timeslices from time 0 until endTime.
 func (k Keeper) UBDQueueIterator(ctx sdk.Context, endTime time.Time) sdk.Iterator {
 	store := ctx.KVStore(k.storeKey)
-	return store.Iterator(types.UnbondingQueueKey,
-		sdk.InclusiveEndBytes(types.GetUnbondingDepositTimeKey(endTime)))
+	return store.Iterator(
+		types.UnbondingQueueKey,
+		sdk.InclusiveEndBytes(types.GetUnbondingDepositTimeKey(endTime)),
+	)
 }
 
-// DequeueAllMatureUBDQueue returns a concatenated list of all the timeslices inclusively previous to
-// currTime, and deletes the timeslices from the queue.
+// Returns a concatenated list of all timeslices inclusively previous to currTime, and deletes the
+// timeslices from the queue.
 func (k Keeper) DequeueAllMatureUBDQueue(ctx sdk.Context, currTime time.Time) (matureUnbonds []types.DVPair) {
 	store := ctx.KVStore(k.storeKey)
 
-	// gets an iterator for all timeslices from time 0 until the current Blockheader time
+	// Gets an iterator for all timeslices from time 0 until the current Blockheader time
 	unbondingTimesliceIterator := k.UBDQueueIterator(ctx, currTime)
 	defer unbondingTimesliceIterator.Close()
 
@@ -221,10 +209,10 @@ func (k Keeper) DequeueAllMatureUBDQueue(ctx sdk.Context, currTime time.Time) (m
 	return matureUnbonds
 }
 
-// CompleteUnbonding completes the unbonding of all mature entries in the
+// Completes the unbonding of all mature entries in the
 // retrieved unbonding deposit object and returns the total unbonding balance
 // or an error upon failure.
-func (k Keeper) CompleteUnbonding(ctx sdk.Context, depAddr sdk.AccAddress, valAddr sdk.ValAddress) (sdk.Coins, error) {
+func (k Keeper) CompleteUnbonding(ctx sdk.Context, currTime time.Time, depAddr sdk.AccAddress, valAddr sdk.ValAddress) (sdk.Coins, error) {
 	ubd, found := k.GetUnbondingDeposit(ctx, depAddr, valAddr)
 	if !found {
 		return nil, types.ErrNoUnbondingDeposit
@@ -233,25 +221,19 @@ func (k Keeper) CompleteUnbonding(ctx sdk.Context, depAddr sdk.AccAddress, valAd
 	//TODO: generalize refundDenom with all the AllowedTokens
 	refundDenom := k.AllowedTokens(ctx)[0]
 	balances := sdk.NewCoins()
-	ctxTime := ctx.BlockHeader().Time
 
-	depositorAddress, err := sdk.AccAddressFromBech32(ubd.DepositorAddress)
-	if err != nil {
-		return nil, err
-	}
-
-	// loop through all the entries and complete unbonding mature entries
+	// Loop through all entries and complete mature unbonding entries
 	for i := 0; i < len(ubd.Entries); i++ {
 		entry := ubd.Entries[i]
-		if entry.IsMature(ctxTime) {
+		if entry.IsMature(currTime) {
 			ubd.RemoveEntry(int64(i))
 			i--
 
-			// track withdraw only when remaining or truncated shares are non-zero
+			// Track withdraw only when remaining or truncated shares are non-zero
 			if !entry.Balance.IsZero() {
 				amt := sdk.NewCoin(refundDenom, entry.Balance)
 				if err := k.bankKeeper.SendCoinsFromModuleToAccount(
-					ctx, types.ModuleName, depositorAddress, sdk.NewCoins(amt),
+					ctx, types.ModuleName, depAddr, sdk.NewCoins(amt),
 				); err != nil {
 					return nil, err
 				}
@@ -261,7 +243,7 @@ func (k Keeper) CompleteUnbonding(ctx sdk.Context, depAddr sdk.AccAddress, valAd
 		}
 	}
 
-	// set the unbonding deposit or remove it if there are no more entries
+	// Set the unbonding deposit or remove it if there are no more entries
 	if len(ubd.Entries) == 0 {
 		k.RemoveUnbondingDeposit(ctx, ubd)
 	} else {

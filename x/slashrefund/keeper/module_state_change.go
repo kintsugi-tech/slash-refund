@@ -3,14 +3,17 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
-	//abci "github.com/tendermint/tendermint/abci/types"
+	// abci "github.com/tendermint/tendermint/abci/types"
 )
 
-// BlockUnbondingDepositUpdates check state of unbonding deposits in the UBDQueue
+// This function checks the state of unbonding deposits in the UBDQueue and complete the unbonding
+// if the unbodning time is reached.
 func (k Keeper) BlockUnbondingDepositUpdates(ctx sdk.Context) []types.DVPair {
 
+	ctxTime := ctx.BlockHeader().Time
+
 	// Remove all mature unbonding delegations from the ubd queue.
-	matureUnbonds := k.DequeueAllMatureUBDQueue(ctx, ctx.BlockHeader().Time)
+	matureUnbonds := k.DequeueAllMatureUBDQueue(ctx, ctxTime)
 	for _, dvPair := range matureUnbonds {
 		validatorAddress, err := sdk.ValAddressFromBech32(dvPair.ValidatorAddress)
 		if err != nil {
@@ -18,7 +21,7 @@ func (k Keeper) BlockUnbondingDepositUpdates(ctx sdk.Context) []types.DVPair {
 		}
 		depositorAddress := sdk.MustAccAddressFromBech32(dvPair.DepositorAddress)
 
-		balances, err := k.CompleteUnbonding(ctx, depositorAddress, validatorAddress)
+		balances, err := k.CompleteUnbonding(ctx, ctxTime, depositorAddress, validatorAddress)
 		if err != nil {
 			continue
 		}

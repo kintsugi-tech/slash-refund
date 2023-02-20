@@ -10,6 +10,7 @@ import (
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 )
 
+// TODO: remove the error from the output
 func (k Keeper) HandleRefundsFromSlash(ctx sdk.Context, slashEvent sdk.Event) (refundAmount sdk.Int, err error) {
 
 	// Iterate attributes to find which validator has been slashed
@@ -59,7 +60,6 @@ func (k Keeper) ProcessSlashEvent(ctx sdk.Context, event sdk.Event) (
 			default:
 				err = types.ErrUnknownSlashingReasonFromSlashEvent
 				break
-
 			}
 
 		case "burned_coins":
@@ -167,7 +167,6 @@ func (k Keeper) RefundFromSlash(
 		}
 
 		// compute percentage to draw from pool and ubdeps
-		drawFactor := sdk.NewDec(0)
 		if availableRefundTokens.IsZero() {
 			return sdk.NewInt(0), nil
 		}
@@ -180,7 +179,7 @@ func (k Keeper) RefundFromSlash(
 		// ====== DRAW ======
 		// drawFactor is not capped at 1 because deposit and unbonding deposit update methods
 		// handles the cap on the maximum available amount to draw.
-		drawFactor = sdk.NewDecFromInt(burnedTokens).QuoInt(availableRefundTokens)
+		drawFactor := sdk.NewDecFromInt(burnedTokens).QuoInt(availableRefundTokens)
 
 		drawnFromPool := sdk.NewInt(0)
 		if isFoundDepositPool {
@@ -233,13 +232,13 @@ func (k Keeper) RefundFromSlash(
 	return refundAmount, err
 }
 
-func (keeper Keeper) GetValidatorByConsAddrBytes(ctx sdk.Context, consAddrByte []byte) (validator stakingtypes.Validator, found bool) {
+func (k Keeper) GetValidatorByConsAddrBytes(ctx sdk.Context, consAddrByte []byte) (validator stakingtypes.Validator, found bool) {
 	// Decode address
 	consAddr, err := sdk.ConsAddressFromBech32(string(consAddrByte))
 	if err != nil {
 		return validator, false
 	}
-	validator, found = keeper.stakingKeeper.GetValidatorByConsAddr(ctx, consAddr)
+	validator, found = k.stakingKeeper.GetValidatorByConsAddr(ctx, consAddr)
 	return validator, found
 }
 
@@ -265,7 +264,7 @@ func (k Keeper) ComputeEligibleRefundFromUnbondingDeposits(ctx sdk.Context, unbo
 			totalUBDSAmount = totalUBDSAmount.Add(entry.Balance)
 		}
 	}
-	//TODO make a list of indexes to ease the refund procedure
+	// TODO make a list of indexes to ease the refund procedure
 	return totalUBDSAmount
 }
 
@@ -335,7 +334,7 @@ func (k Keeper) UpdateUnbondingDepositEntries(ctx sdk.Context, unbondingDeposit 
 			unbondingDeposit.Entries[i] = entry
 			k.SetUnbondingDeposit(ctx, unbondingDeposit)
 		}
-		//TODO remove the entry if entry balance is zero
+		// TODO remove the entry if entry balance is zero
 		refundAmount = refundAmount.Add(entryRefundAmount)
 	}
 

@@ -27,7 +27,7 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// === VALIDATION CHECKS ===
-	//Check if valid validator address
+	// Check if valid validator address
 	valAddr, valErr := sdk.ValAddressFromBech32(msg.ValidatorAddress)
 	if valErr != nil {
 		return nil, valErr
@@ -110,7 +110,7 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 	}
 
 	// === STATE TRANSITION ===
-	_, completionTime, err := k.Keeper.Withdraw(
+	witTokens, completionTime, err := k.Keeper.Withdraw(
 		ctx, 
 		depositorAddress, 
 		validatorAddress, 
@@ -124,8 +124,8 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 		sdk.NewEvent(
 			types.EventTypeWithdraw,
 			sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress),
-			sdk.NewAttribute(types.AttributeKeyToken, msg.Amount.Denom),
-			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.String()),
+			sdk.NewAttribute(types.AttributeKeyToken, witTokens.Denom),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, witTokens.Amount.String()),
 			sdk.NewAttribute(types.AttributeKeyCompletionTime, completionTime.Format(time.RFC3339)),
 		),
 		sdk.NewEvent(
@@ -142,7 +142,7 @@ func (k msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.Msg
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// === VALIDATION CHECKS ===
-	//Check if valid validator address
+	// Check if valid validator address
 	validatorAddress, err := sdk.ValAddressFromBech32(msg.ValidatorAddress)
 	if err != nil {
 		return nil, err
