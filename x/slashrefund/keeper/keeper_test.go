@@ -25,7 +25,7 @@ type KeeperTestSuite struct {
 	t              *testing.T
 }
 
-// Default initial state for all test. It creates two validators with a specified power.
+// Default initial state for all tests. It creates two validators with a specified power.
 func SetupTestSuite(t *testing.T, power int64) *KeeperTestSuite {
 
 	srApp, ctx := testsuite.CreateTestApp(false)
