@@ -13,7 +13,7 @@ import (
 )
 
 type Querier struct {
-	Keeper
+	K Keeper
 }
 
 var _ types.QueryServer = Querier{}
@@ -21,7 +21,7 @@ var _ types.QueryServer = Querier{}
 // -------------------------------------------------------------------------------------------------
 // Params
 // -------------------------------------------------------------------------------------------------
-func (k Querier) Params(
+func (q Querier) Params(
 	c context.Context,
 	req *types.QueryParamsRequest,
 ) (*types.QueryParamsResponse, error) {
@@ -30,14 +30,14 @@ func (k Querier) Params(
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	return &types.QueryParamsResponse{Params: k.GetParams(ctx)}, nil
+	return &types.QueryParamsResponse{Params: q.K.GetParams(ctx)}, nil
 }
 
 // -------------------------------------------------------------------------------------------------
 // Deposit
 // -------------------------------------------------------------------------------------------------
 // Query to get a single deposit associated to the tuple (depositor, validator).
-func (k Querier) Deposit(
+func (q Querier) Deposit(
 	c context.Context,
 	req *types.QueryGetDepositRequest,
 ) (*types.QueryGetDepositResponse, error) {
@@ -63,7 +63,7 @@ func (k Querier) Deposit(
 		return nil, err
 	}
 
-	val, found := k.Keeper.GetDeposit(ctx, depAddr, valAddr)
+	val, found := q.K.GetDeposit(ctx, depAddr, valAddr)
 	if !found {
 		return nil, status.Errorf(
 			codes.NotFound, "deposit with depositor %s not found for validator %s",
@@ -75,7 +75,7 @@ func (k Querier) Deposit(
 }
 
 // Query to get all stored deposits.
-func (k Querier) DepositAll(
+func (q Querier) DepositAll(
 	c context.Context,
 	req *types.QueryAllDepositRequest,
 ) (*types.QueryAllDepositResponse, error) {
@@ -86,7 +86,7 @@ func (k Querier) DepositAll(
 	var deposits []types.Deposit
 	ctx := sdk.UnwrapSDKContext(c)
 
-	store := ctx.KVStore(k.storeKey)
+	store := ctx.KVStore(q.K.storeKey)
 	depositStore := prefix.NewStore(store, types.KeyPrefix(types.DepositKeyPrefix))
 
 	pageRes, err := query.Paginate(
@@ -94,7 +94,7 @@ func (k Querier) DepositAll(
 		req.Pagination,
 		func(key []byte, value []byte) error {
 			var deposit types.Deposit
-			if err := k.cdc.Unmarshal(value, &deposit); err != nil {
+			if err := q.K.cdc.Unmarshal(value, &deposit); err != nil {
 				return err
 			}
 			deposits = append(deposits, deposit)
@@ -113,7 +113,7 @@ func (k Querier) DepositAll(
 // DepositPool
 // -------------------------------------------------------------------------------------------------
 // Query to get, if exists, the deposit pool associated to a single validator.
-func (k Querier) DepositPool(
+func (q Querier) DepositPool(
 	c context.Context,
 	req *types.QueryGetDepositPoolRequest,
 ) (*types.QueryGetDepositPoolResponse, error) {
@@ -126,7 +126,7 @@ func (k Querier) DepositPool(
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	val, found := k.GetDepositPool(ctx, valAddr)
+	val, found := q.K.GetDepositPool(ctx, valAddr)
 	if !found {
 		return nil, status.Errorf(
 			codes.NotFound,
@@ -138,7 +138,7 @@ func (k Querier) DepositPool(
 }
 
 // Query to get all stored deposit pools.
-func (k Querier) DepositPoolAll(
+func (q Querier) DepositPoolAll(
 	c context.Context,
 	req *types.QueryAllDepositPoolRequest,
 ) (*types.QueryAllDepositPoolResponse, error) {
@@ -149,14 +149,14 @@ func (k Querier) DepositPoolAll(
 	var depositPools []types.DepositPool
 	ctx := sdk.UnwrapSDKContext(c)
 
-	store := ctx.KVStore(k.storeKey)
+	store := ctx.KVStore(q.K.storeKey)
 	depositPoolStore := prefix.NewStore(store, types.KeyPrefix(types.DepositPoolKeyPrefix))
 
 	pageRes, err := query.Paginate(
 		depositPoolStore,
 		req.Pagination, func(key []byte, value []byte) error {
 			var depositPool types.DepositPool
-			if err := k.cdc.Unmarshal(value, &depositPool); err != nil {
+			if err := q.K.cdc.Unmarshal(value, &depositPool); err != nil {
 				return err
 			}
 			depositPools = append(depositPools, depositPool)
@@ -175,7 +175,7 @@ func (k Querier) DepositPoolAll(
 // UnbondingDeposit
 // -------------------------------------------------------------------------------------------------
 // Query to get a single unbonding deposit associated to the tuple (depositor, validator).
-func (k Querier) UnbondingDeposit(
+func (q Querier) UnbondingDeposit(
 	c context.Context,
 	req *types.QueryGetUnbondingDepositRequest,
 ) (*types.QueryGetUnbondingDepositResponse, error) {
@@ -193,7 +193,7 @@ func (k Querier) UnbondingDeposit(
 		return nil, err
 	}
 
-	val, found := k.GetUnbondingDeposit(ctx, depAddr, valAddr)
+	val, found := q.K.GetUnbondingDeposit(ctx, depAddr, valAddr)
 	if !found {
 		return nil, status.Error(codes.NotFound, "not found")
 	}
@@ -202,7 +202,7 @@ func (k Querier) UnbondingDeposit(
 }
 
 // Query to get all stored unbonding deposits.
-func (k Querier) UnbondingDepositAll(
+func (q Querier) UnbondingDepositAll(
 	c context.Context,
 	req *types.QueryAllUnbondingDepositRequest,
 ) (*types.QueryAllUnbondingDepositResponse, error) {
@@ -213,7 +213,7 @@ func (k Querier) UnbondingDepositAll(
 	var unbondingDeposits []types.UnbondingDeposit
 	ctx := sdk.UnwrapSDKContext(c)
 
-	store := ctx.KVStore(k.storeKey)
+	store := ctx.KVStore(q.K.storeKey)
 	unbondingDepositStore := prefix.NewStore(
 		store,
 		types.KeyPrefix(string(types.GetUBDsKeyPrefix())),
@@ -224,7 +224,7 @@ func (k Querier) UnbondingDepositAll(
 		req.Pagination,
 		func(key []byte, value []byte) error {
 			var unbondingDeposit types.UnbondingDeposit
-			if err := k.cdc.Unmarshal(value, &unbondingDeposit); err != nil {
+			if err := q.K.cdc.Unmarshal(value, &unbondingDeposit); err != nil {
 				return err
 			}
 			unbondingDeposits = append(unbondingDeposits, unbondingDeposit)
@@ -246,7 +246,7 @@ func (k Querier) UnbondingDepositAll(
 // Refund
 // -------------------------------------------------------------------------------------------------
 // Query to get the refund associated to the touple (delegator, validator).
-func (k Querier) Refund(
+func (q Querier) Refund(
 	c context.Context,
 	req *types.QueryGetRefundRequest,
 ) (*types.QueryGetRefundResponse, error) {
@@ -272,7 +272,7 @@ func (k Querier) Refund(
 		return nil, err
 	}
 
-	val, found := k.GetRefund(ctx, delAddr, valAddr)
+	val, found := q.K.GetRefund(ctx, delAddr, valAddr)
 	if !found {
 		return nil, status.Error(codes.NotFound, "not found")
 	}
@@ -281,7 +281,7 @@ func (k Querier) Refund(
 }
 
 // Query to get all the stored refund.
-func (k Querier) RefundAll(
+func (q Querier) RefundAll(
 	c context.Context,
 	req *types.QueryAllRefundRequest,
 ) (*types.QueryAllRefundResponse, error) {
@@ -292,7 +292,7 @@ func (k Querier) RefundAll(
 	var refunds []types.Refund
 	ctx := sdk.UnwrapSDKContext(c)
 
-	store := ctx.KVStore(k.storeKey)
+	store := ctx.KVStore(q.K.storeKey)
 	refundStore := prefix.NewStore(store, types.KeyPrefix(types.RefundKeyPrefix))
 
 	pageRes, err := query.Paginate(
@@ -300,7 +300,7 @@ func (k Querier) RefundAll(
 		req.Pagination,
 		func(key []byte, value []byte) error {
 			var refund types.Refund
-			if err := k.cdc.Unmarshal(value, &refund); err != nil {
+			if err := q.K.cdc.Unmarshal(value, &refund); err != nil {
 				return err
 			}
 
@@ -320,7 +320,7 @@ func (k Querier) RefundAll(
 // RefundPool
 // -------------------------------------------------------------------------------------------------
 // Query to get the refund pool associated to a validator.
-func (k Querier) RefundPool(
+func (q Querier) RefundPool(
 	c context.Context,
 	req *types.QueryGetRefundPoolRequest,
 ) (*types.QueryGetRefundPoolResponse, error) {
@@ -334,7 +334,7 @@ func (k Querier) RefundPool(
 		return nil, err
 	}
 
-	refPool, found := k.GetRefundPool(ctx, valAddr)
+	refPool, found := q.K.GetRefundPool(ctx, valAddr)
 	if !found {
 		return nil, status.Error(codes.NotFound, "not found")
 	}
@@ -343,7 +343,7 @@ func (k Querier) RefundPool(
 }
 
 // Query to get all stored refund pools.
-func (k Querier) RefundPoolAll(
+func (q Querier) RefundPoolAll(
 	c context.Context,
 	req *types.QueryAllRefundPoolRequest,
 ) (*types.QueryAllRefundPoolResponse, error) {
@@ -354,7 +354,7 @@ func (k Querier) RefundPoolAll(
 	var refundPools []types.RefundPool
 	ctx := sdk.UnwrapSDKContext(c)
 
-	store := ctx.KVStore(k.storeKey)
+	store := ctx.KVStore(q.K.storeKey)
 	refundPoolStore := prefix.NewStore(store, types.KeyPrefix(types.RefundPoolKeyPrefix))
 
 	pageRes, err := query.Paginate(
@@ -362,7 +362,7 @@ func (k Querier) RefundPoolAll(
 		req.Pagination,
 		func(key []byte, value []byte) error {
 			var refundPool types.RefundPool
-			if err := k.cdc.Unmarshal(value, &refundPool); err != nil {
+			if err := q.K.cdc.Unmarshal(value, &refundPool); err != nil {
 				return err
 			}
 
