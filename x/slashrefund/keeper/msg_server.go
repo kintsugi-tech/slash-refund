@@ -11,19 +11,19 @@ import (
 )
 
 type msgServer struct {
-	Keeper
+	k Keeper
 }
 
 // NewMsgServerImpl returns an implementation of the MsgServer interface
 // for the provided Keeper.
-func NewMsgServerImpl(keeper Keeper) types.MsgServer {
-	return &msgServer{Keeper: keeper}
+func NewMsgServerImpl(k Keeper) types.MsgServer {
+	return &msgServer{k}
 }
 
 var _ types.MsgServer = msgServer{}
 
 // Manages the deposit of funds from a user to a particular validator into the module KVStore.
-func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types.MsgDepositResponse, error) {
+func (ms msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types.MsgDepositResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// === VALIDATION CHECKS ===
@@ -34,7 +34,7 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 	}
 
 	// Check if valAddr correspond to a validator
-	validator, found := k.stakingKeeper.GetValidator(ctx, valAddr)
+	validator, found := ms.k.stakingKeeper.GetValidator(ctx, valAddr)
 	if !found {
 		return nil, stakingtypes.ErrNoValidatorFound
 	}
@@ -46,7 +46,7 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 	}
 
 	// Check if allowed token
-	isValid, err := k.CheckAllowedTokens(ctx, msg.Amount.Denom)
+	isValid, err := ms.k.CheckAllowedTokens(ctx, msg.Amount.Denom)
 	if !isValid {
 		return nil, err
 	}
@@ -57,7 +57,7 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 	}
 
 	// === STATE TRANSITION ===
-	newShares, err := k.Keeper.Deposit(ctx, depositorAddress, msg.Amount, validator)
+	newShares, err := ms.k.Deposit(ctx, depositorAddress, msg.Amount, validator)
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +84,7 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 // received will be based on the amount of shares the user holds and the amount of tokens associated
 // to a validator. The tokens associated to a validator and the shares ratio can change due to
 // slashing events.
-func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*types.MsgWithdrawResponse, error) {
+func (ms msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*types.MsgWithdrawResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// === VALIDATION CHECKS ===
@@ -100,7 +100,7 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 		return nil, err
 	}
 
-	isValid, err := k.CheckAllowedTokens(ctx, msg.Amount.Denom)
+	isValid, err := ms.k.CheckAllowedTokens(ctx, msg.Amount.Denom)
 	if !isValid {
 		return nil, err
 	}
@@ -110,7 +110,7 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 	}
 
 	// === STATE TRANSITION ===
-	witTokens, completionTime, err := k.Keeper.Withdraw(
+	witTokens, completionTime, err := ms.k.Withdraw(
 		ctx, 
 		depositorAddress, 
 		validatorAddress, 
@@ -138,7 +138,7 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 	return &types.MsgWithdrawResponse{CompletionTime: completionTime}, nil
 }
 
-func (k msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.MsgClaimResponse, error) {
+func (ms msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.MsgClaimResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// === VALIDATION CHECKS ===
@@ -155,7 +155,7 @@ func (k msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.Msg
 	}
 
 	// === STATE TRANSITION ===
-	coins, err := k.Keeper.Claim(ctx, delegatorAddress, validatorAddress)
+	coins, err := ms.k.Claim(ctx, delegatorAddress, validatorAddress)
 	if err != nil {
 		return nil, err
 	}
