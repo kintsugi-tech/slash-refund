@@ -8,7 +8,6 @@ import (
 	"os"
 	"path/filepath"
 
-
 	// External lib
 	"github.com/spf13/cast"
 
@@ -94,7 +93,7 @@ import (
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	
+
 	// IBC
 	ica "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts"
 	icahost "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/host"
@@ -117,10 +116,10 @@ import (
 	"github.com/ignite/cli/ignite/pkg/openapiconsole"
 
 	// Slash refund module
+	"github.com/made-in-block/slash-refund/docs"
 	slashrefundmodule "github.com/made-in-block/slash-refund/x/slashrefund"
 	slashrefundmodulekeeper "github.com/made-in-block/slash-refund/x/slashrefund/keeper"
 	slashrefundmoduletypes "github.com/made-in-block/slash-refund/x/slashrefund/types"
-	"github.com/made-in-block/slash-refund/docs"
 )
 
 const (
@@ -260,39 +259,39 @@ func New(
 	encodingConfig cosmoscmd.EncodingConfig,
 	appOpts servertypes.AppOptions,
 	baseAppOptions ...func(*baseapp.BaseApp),
-) *App {
+) cosmoscmd.App {
 	appCodec := encodingConfig.Marshaler
 	cdc := encodingConfig.Amino
 	interfaceRegistry := encodingConfig.InterfaceRegistry
 
 	bApp := baseapp.NewBaseApp(
-		Name, 
-		logger, 
-		db, 
-		encodingConfig.TxConfig.TxDecoder(), 
-		baseAppOptions...
+		Name,
+		logger,
+		db,
+		encodingConfig.TxConfig.TxDecoder(),
+		baseAppOptions...,
 	)
 	bApp.SetCommitMultiStoreTracer(traceStore)
 	bApp.SetVersion(version.Version)
 	bApp.SetInterfaceRegistry(interfaceRegistry)
 
 	keys := sdk.NewKVStoreKeys(
-		authtypes.StoreKey, 
-		authz.ModuleName, 
-		banktypes.StoreKey, 
+		authtypes.StoreKey,
+		authz.ModuleName,
+		banktypes.StoreKey,
 		stakingtypes.StoreKey,
-		minttypes.StoreKey, 
-		distrtypes.StoreKey, 
-		slashingtypes.StoreKey, 
+		minttypes.StoreKey,
+		distrtypes.StoreKey,
+		slashingtypes.StoreKey,
 		govtypes.StoreKey,
-		paramstypes.StoreKey, 
-		ibchost.StoreKey, 
-		upgradetypes.StoreKey, 
-		feegrant.StoreKey, 
+		paramstypes.StoreKey,
+		ibchost.StoreKey,
+		upgradetypes.StoreKey,
+		feegrant.StoreKey,
 		evidencetypes.StoreKey,
-		ibctransfertypes.StoreKey, 
-		icahosttypes.StoreKey, 
-		capabilitytypes.StoreKey, 
+		ibctransfertypes.StoreKey,
+		icahosttypes.StoreKey,
+		capabilitytypes.StoreKey,
 		group.StoreKey,
 		slashrefundmoduletypes.StoreKey,
 	)
@@ -324,7 +323,7 @@ func New(
 	// set the BaseApp's parameter store
 	bApp.SetParamStore(
 		app.ParamsKeeper.
-		Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable()),
+			Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable()),
 	)
 
 	// add capability keeper and ScopeToModule for ibc module
@@ -517,10 +516,10 @@ func New(
 		app.SlashingKeeper,
 	)
 	slashrefundModule := slashrefundmodule.NewAppModule(
-		appCodec, 
-		app.SlashrefundKeeper, 
-		app.AccountKeeper, 
-		app.BankKeeper, 
+		appCodec,
+		app.SlashrefundKeeper,
+		app.AccountKeeper,
+		app.BankKeeper,
 		app.StakingKeeper,
 	)
 
@@ -545,78 +544,78 @@ func New(
 			encodingConfig.TxConfig,
 		),
 		auth.NewAppModule(
-			appCodec, 
-			app.AccountKeeper, 
+			appCodec,
+			app.AccountKeeper,
 			nil,
 		),
 		authzmodule.NewAppModule(
-			appCodec, 
-			app.AuthzKeeper, 
-			app.AccountKeeper, 
-			app.BankKeeper, 
+			appCodec,
+			app.AuthzKeeper,
+			app.AccountKeeper,
+			app.BankKeeper,
 			app.interfaceRegistry,
 		),
 		vesting.NewAppModule(
-			app.AccountKeeper, 
+			app.AccountKeeper,
 			app.BankKeeper,
 		),
 		bank.NewAppModule(
-			appCodec, 
-			app.BankKeeper, 
+			appCodec,
+			app.BankKeeper,
 			app.AccountKeeper,
 		),
 		capability.NewAppModule(
-			appCodec, 
+			appCodec,
 			*app.CapabilityKeeper,
 		),
 		feegrantmodule.NewAppModule(
-			appCodec, 
-			app.AccountKeeper, 
-			app.BankKeeper, 
-			app.FeeGrantKeeper, 
+			appCodec,
+			app.AccountKeeper,
+			app.BankKeeper,
+			app.FeeGrantKeeper,
 			app.interfaceRegistry,
 		),
 		groupmodule.NewAppModule(
-			appCodec, 
-			app.GroupKeeper, 
-			app.AccountKeeper, 
-			app.BankKeeper, 
+			appCodec,
+			app.GroupKeeper,
+			app.AccountKeeper,
+			app.BankKeeper,
 			app.interfaceRegistry,
 		),
 		crisis.NewAppModule(
-			&app.CrisisKeeper, 
+			&app.CrisisKeeper,
 			skipGenesisInvariants,
 		),
 		gov.NewAppModule(
-			appCodec, 
-			app.GovKeeper, 
-			app.AccountKeeper, 
+			appCodec,
+			app.GovKeeper,
+			app.AccountKeeper,
 			app.BankKeeper,
 		),
 		mint.NewAppModule(
-			appCodec, 
+			appCodec,
 			app.MintKeeper,
-			app.AccountKeeper, 
+			app.AccountKeeper,
 			minttypes.DefaultInflationCalculationFn,
 		),
 		slashing.NewAppModule(
-			appCodec, 
-			app.SlashingKeeper, 
-			app.AccountKeeper, 
-			app.BankKeeper, 
+			appCodec,
+			app.SlashingKeeper,
+			app.AccountKeeper,
+			app.BankKeeper,
 			app.StakingKeeper,
 		),
 		distr.NewAppModule(
-			appCodec, 
-			app.DistrKeeper, 
-			app.AccountKeeper, 
-			app.BankKeeper, 
+			appCodec,
+			app.DistrKeeper,
+			app.AccountKeeper,
+			app.BankKeeper,
 			app.StakingKeeper,
 		),
 		staking.NewAppModule(
-			appCodec, 
-			app.StakingKeeper, 
-			app.AccountKeeper, 
+			appCodec,
+			app.StakingKeeper,
+			app.AccountKeeper,
 			app.BankKeeper,
 		),
 		upgrade.NewAppModule(app.UpgradeKeeper),
