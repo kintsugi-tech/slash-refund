@@ -11,6 +11,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// -------------------------------------------------------------------------------------------------
+// Test deposit
+// -------------------------------------------------------------------------------------------------
+
 func createNDeposit(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.Deposit {
 	items := make([]types.Deposit, n)
 	for i := range items {
@@ -26,7 +30,11 @@ func createNDeposit(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.Depos
 	return items
 }
 
-func createNDepositForValidator(keeper *keeper.Keeper, ctx sdk.Context, n int) ([]types.Deposit, sdk.ValAddress) {
+func createNDepositForValidator(
+	keeper *keeper.Keeper, 
+	ctx sdk.Context, 
+	n int,
+) ([]types.Deposit, sdk.ValAddress) {
 	items := make([]types.Deposit, n)
 	valPubk := secp256k1.GenPrivKey().PubKey()
 	valAddr := sdk.ValAddress(valPubk.Address())
@@ -76,4 +84,48 @@ func TestGetValidatorDeposits(t *testing.T) {
 	items1, valAddr1 := createNDepositForValidator(keeper, ctx, 10)
 	require.ElementsMatch(t, items0, keeper.GetValidatorDeposits(ctx, valAddr0))
 	require.ElementsMatch(t, items1, keeper.GetValidatorDeposits(ctx, valAddr1))
+}
+
+// -------------------------------------------------------------------------------------------------
+// Test deposit pool
+// -------------------------------------------------------------------------------------------------
+
+func createNDepositPool(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.DepositPool {
+	items := make([]types.DepositPool, n)
+	for i := range items {
+		valPubk := secp256k1.GenPrivKey().PubKey()
+		valAddr := sdk.ValAddress(valPubk.Address())
+		items[i].OperatorAddress = valAddr.String()
+		items[i].Shares = sdk.NewDec(int64(1000 * i))
+		items[i].Tokens = sdk.NewInt64Coin("stake", int64(1000*i))
+		keeper.SetDepositPool(ctx, items[i])
+	}
+	return items
+}
+
+func TestDepositPoolGet(t *testing.T) {
+	keeper, ctx := testslashrefund.NewTestKeeper(t)
+	items := createNDepositPool(keeper, ctx, 10)
+	for _, item := range items {
+		valAddr, _ := sdk.ValAddressFromBech32(item.OperatorAddress)
+		rst, found := keeper.GetDepositPool(ctx, valAddr)
+		require.True(t, found)
+		require.Equal(t, item, rst)
+	}
+}
+func TestDepositPoolRemove(t *testing.T) {
+	keeper, ctx := testslashrefund.NewTestKeeper(t)
+	items := createNDepositPool(keeper, ctx, 10)
+	for _, item := range items {
+		valAddr, _ := sdk.ValAddressFromBech32(item.OperatorAddress)
+		keeper.RemoveDepositPool(ctx, valAddr)
+		_, found := keeper.GetDepositPool(ctx, valAddr)
+		require.False(t, found)
+	}
+}
+
+func TestDepositPoolGetAll(t *testing.T) {
+	keeper, ctx := testslashrefund.NewTestKeeper(t)
+	items := createNDepositPool(keeper, ctx, 10)
+	require.ElementsMatch(t, items, keeper.GetAllDepositPool(ctx))
 }
