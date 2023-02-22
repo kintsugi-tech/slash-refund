@@ -6,7 +6,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/made-in-block/slash-refund/testutil/nullify"
 	"github.com/made-in-block/slash-refund/x/slashrefund"
 	"github.com/made-in-block/slash-refund/x/slashrefund/testslashrefund"
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
@@ -26,7 +25,6 @@ func generateRandomOperator() (operator, address string) {
 	return operator, address
 }
 
-// TODO: implement more cases
 func TestGenesis(t *testing.T) {
 
 	operator1, depositor1 := generateRandomOperator()
@@ -36,7 +34,6 @@ func TestGenesis(t *testing.T) {
 
 	genesisState := types.GenesisState{
 		Params: types.DefaultParams(),
-
 		DepositList: []types.Deposit{
 			{
 				DepositorAddress: depositor1,
@@ -59,7 +56,18 @@ func TestGenesis(t *testing.T) {
 				Shares:           sdk.NewDec(400),
 			},
 		},
-
+		DepositPoolList: []types.DepositPool{
+			{
+				OperatorAddress: operator1,
+				Tokens:          sdk.NewCoin(types.DefaultAllowedTokens[0], sdk.NewInt(100)),
+				Shares:          sdk.NewDec(100),
+			},
+			{
+				OperatorAddress: operator2,
+				Tokens:          sdk.NewCoin(types.DefaultAllowedTokens[0], sdk.NewInt(100)),
+				Shares:          sdk.NewDec(100),
+			},
+		},
 		UnbondingDepositList: []types.UnbondingDeposit{
 			{
 				DepositorAddress: depositor1,
@@ -67,13 +75,13 @@ func TestGenesis(t *testing.T) {
 				Entries: []types.UnbondingDepositEntry{
 					{
 						CreationHeight: 0,
-						CompletionTime: time.Now().Add(100),
+						CompletionTime: time.Now().UTC(),
 						InitialBalance: sdk.NewInt(100),
 						Balance:        sdk.NewInt(100),
 					},
 					{
 						CreationHeight: 0,
-						CompletionTime: time.Now().Add(100),
+						CompletionTime: time.Now().UTC().Add(100),
 						InitialBalance: sdk.NewInt(200),
 						Balance:        sdk.NewInt(200),
 					},
@@ -85,29 +93,17 @@ func TestGenesis(t *testing.T) {
 				Entries: []types.UnbondingDepositEntry{
 					{
 						CreationHeight: 0,
-						CompletionTime: time.Now().Add(100),
+						CompletionTime: time.Now().UTC(),
 						InitialBalance: sdk.NewInt(100),
 						Balance:        sdk.NewInt(100),
 					},
 					{
 						CreationHeight: 0,
-						CompletionTime: time.Now().Add(100),
+						CompletionTime: time.Now().UTC().Add(100),
 						InitialBalance: sdk.NewInt(200),
 						Balance:        sdk.NewInt(200),
 					},
 				},
-			},
-		},
-		DepositPoolList: []types.DepositPool{
-			{
-				OperatorAddress: operator1,
-				Tokens:          sdk.NewCoin(types.DefaultAllowedTokens[0], sdk.NewInt(100)),
-				Shares:          sdk.NewDec(100),
-			},
-			{
-				OperatorAddress: operator2,
-				Tokens:          sdk.NewCoin(types.DefaultAllowedTokens[0], sdk.NewInt(100)),
-				Shares:          sdk.NewDec(100),
 			},
 		},
 		RefundPoolList: []types.RefundPool{
@@ -134,7 +130,6 @@ func TestGenesis(t *testing.T) {
 				Shares:           sdk.NewDec(100),
 			},
 		},
-		// this line is used by starport scaffolding # genesis/test/state
 	}
 
 	k, ctx := testslashrefund.NewTestKeeper(t)
@@ -142,11 +137,8 @@ func TestGenesis(t *testing.T) {
 	got := slashrefund.ExportGenesis(ctx, *k)
 	require.NotNil(t, got)
 
-	nullify.Fill(&genesisState)
-	nullify.Fill(got)
-
+	require.Equal(t, genesisState.Params, got.Params)
 	require.ElementsMatch(t, genesisState.DepositList, got.DepositList)
-	require.ElementsMatch(t, genesisState.UnbondingDepositList, got.UnbondingDepositList)
 	require.ElementsMatch(t, genesisState.DepositPoolList, got.DepositPoolList)
 	require.ElementsMatch(t, genesisState.UnbondingDepositList, got.UnbondingDepositList)
 	require.ElementsMatch(t, genesisState.RefundPoolList, got.RefundPoolList)

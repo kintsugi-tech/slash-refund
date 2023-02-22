@@ -28,7 +28,6 @@ func NewKeeper(
 	storeKey storetypes.StoreKey,
 	memKey storetypes.StoreKey,
 	ps paramtypes.Subspace,
-
 	bankKeeper types.BankKeeper,
 	stakingKeeper types.StakingKeeper,
 	slashingKeeper types.SlashingKeeper,
@@ -39,7 +38,6 @@ func NewKeeper(
 	}
 
 	return &Keeper{
-
 		cdc:            cdc,
 		storeKey:       storeKey,
 		memKey:         memKey,

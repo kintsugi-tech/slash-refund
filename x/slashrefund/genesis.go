@@ -6,25 +6,25 @@ import (
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 )
 
-// InitGenesis initializes the module's state from a provided genesis state.
+// Initializes the module's state from a provided genesis state.
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) {
-	// Set all the deposit
+	// Set all deposits
 	for _, elem := range genState.DepositList {
 		k.SetDeposit(ctx, elem)
 	}
-	// Set all the depositPool
+	// Set all deposit pools
 	for _, elem := range genState.DepositPoolList {
 		k.SetDepositPool(ctx, elem)
 	}
-	// Set all the unbondingDeposit
+	// Set all unbonding deposits
 	for _, elem := range genState.UnbondingDepositList {
 		k.SetUnbondingDeposit(ctx, elem)
 	}
-	// Set all the refundPool
+	// Set all refund pools
 	for _, elem := range genState.RefundPoolList {
 		k.SetRefundPool(ctx, elem)
 	}
-	// Set all the refund
+	// Set all refunds
 	for _, elem := range genState.RefundList {
 		k.SetRefund(ctx, elem)
 	}
@@ -32,7 +32,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 	k.SetParams(ctx, genState.Params)
 }
 
-// ExportGenesis returns the module's exported genesis
+// Returns the module's exported genesis
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	genesis := types.DefaultGenesis()
 	genesis.Params = k.GetParams(ctx)

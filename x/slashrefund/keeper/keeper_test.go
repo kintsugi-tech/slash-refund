@@ -25,7 +25,7 @@ type KeeperTestSuite struct {
 	t              *testing.T
 }
 
-// Default initial state for all test. It creates two validators with a specified power.
+// Default initial state for all tests. It creates two validators with a specified power.
 func SetupTestSuite(t *testing.T, power int64) *KeeperTestSuite {
 
 	srApp, ctx := testsuite.CreateTestApp(false)
@@ -54,7 +54,7 @@ func SetupTestSuite(t *testing.T, power int64) *KeeperTestSuite {
 	}
 
 	s := KeeperTestSuite{}
-	s.srApp, s.ctx, s.units, s.testAddrs, s.valAddrs, s.selfDelegation, s.querier, s.t = srApp, ctx, units, testAddrs, valAddrs, selfDelegation, keeper.Querier{Keeper: srApp.SlashrefundKeeper}, t
+	s.srApp, s.ctx, s.units, s.testAddrs, s.valAddrs, s.selfDelegation, s.querier, s.t = srApp, ctx, units, testAddrs, valAddrs, selfDelegation, keeper.Querier{K: srApp.SlashrefundKeeper}, t
 
 	return &s
 }
