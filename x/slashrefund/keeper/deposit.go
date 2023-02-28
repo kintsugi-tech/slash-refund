@@ -7,6 +7,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 )
+
 // -------------------------------------------------------------------------------------------------
 // Deposit
 // -------------------------------------------------------------------------------------------------
@@ -22,39 +23,42 @@ func (k Keeper) Deposit(
 ) (newShares sdk.Dec, err error) {
 
 	// Check if a validator has zero token but shares. This situation can arise due to slashing
-	// of the considered validator. Deposit for these validators are allowed.
+	// of the considered validator. Deposit for these validators aren't allowed.
 	if validator.InvalidExRate() {
 		// Return zero shares and an error
 		return sdk.ZeroDec(), types.ErrDepositorShareExRateInvalid
 	}
 
-	// Operator address of the validator
-	valOperAddr := validator.GetOperator()
+	valAddr := validator.GetOperator()
 
-	// Check if the deposit pool exists or create it
+	// Check if the deposit pool exists or create it.
 	var deposit types.Deposit
-	depPool, found := k.GetDepositPool(ctx, valOperAddr)
+	depPool, found := k.GetDepositPool(ctx, valAddr)
 	if !found {
 		depPool = types.NewDepositPool(
-			valOperAddr,
+			valAddr,
 			sdk.NewCoin(depCoin.Denom, sdk.ZeroInt()),
 			sdk.ZeroDec(),
 		)
 
 		// If the pool does not exists no deposit can exists.
-		deposit = types.NewDeposit(depAddr, valOperAddr, sdk.ZeroDec())
+		deposit = types.NewDeposit(depAddr, valAddr, sdk.ZeroDec())
 	} else {
-		// Check if the deposit exists or create it
-		deposit, found = k.GetDeposit(ctx, depAddr, valOperAddr)
+		// Check if the deposit exists or create it.
+		deposit, found = k.GetDeposit(ctx, depAddr, valAddr)
 		if !found {
-			// If a previous deposit does not exist initialize one with zero shares
-			deposit = types.NewDeposit(depAddr, valOperAddr, sdk.ZeroDec())
+			// If a previous deposit does not exist initialize one with zero shares.
+			deposit = types.NewDeposit(depAddr, valAddr, sdk.ZeroDec())
 		}
 	}
 
-	// Send deposited tokens to the slashrefund module
-	coins := sdk.NewCoins(sdk.NewCoin(depCoin.Denom, depCoin.Amount))
-	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, depAddr, types.ModuleName, coins); err != nil {
+	// Send deposited tokens to the slashrefund module.
+	if err := k.bankKeeper.SendCoinsFromAccountToModule(
+		ctx, 
+		depAddr, 
+		types.ModuleName, 
+		sdk.NewCoins(depCoin),
+	); err != nil {
 		return sdk.Dec{}, err
 	}
 
@@ -67,8 +71,12 @@ func (k Keeper) Deposit(
 	return sdk.NewDec(depCoin.Amount.Int64()), nil
 }
 
-// GetDeposit returns a deposit from its index: depAddr & valAddr
-func (k Keeper) GetDeposit(ctx sdk.Context, depAddr sdk.AccAddress, valAddr sdk.ValAddress) (deposit types.Deposit, found bool) {
+// GetDeposit returns a deposit from its indeces: depAddr & valAddr
+func (k Keeper) GetDeposit(
+	ctx sdk.Context, 
+	depAddr sdk.AccAddress, 
+	valAddr sdk.ValAddress,
+) (deposit types.Deposit, found bool) {
 	moduleStore := ctx.KVStore(k.storeKey)
 	store := prefix.NewStore(moduleStore, types.KeyPrefix(types.DepositKeyPrefix))
 	key := types.DepositKey(depAddr, valAddr)
@@ -86,10 +94,7 @@ func (k Keeper) SetDeposit(ctx sdk.Context, deposit types.Deposit) {
 
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.DepositKeyPrefix))
 	b := k.cdc.MustMarshal(&deposit)
-	store.Set(types.DepositKey(
-		deposit.MustGetDepositorAddr(),
-		deposit.MustGetValidatorAddr(),
-	), b)
+	store.Set(types.DepositKey(deposit.MustGetDepositorAddr(), deposit.MustGetValidatorAddr()), b)
 }
 
 // RemoveDeposit removes a deposit from the store
@@ -159,28 +164,23 @@ func (k Keeper) GetValidatorDeposits(ctx sdk.Context, valAddr sdk.ValAddress) (d
 
 // SetDepositPool set a specific depositPool in the store from its index
 func (k Keeper) SetDepositPool(ctx sdk.Context, depositPool types.DepositPool) {
-	valOperAddr, err := sdk.ValAddressFromBech32(depositPool.OperatorAddress)
+	valAddr, err := sdk.ValAddressFromBech32(depositPool.OperatorAddress)
 	if err != nil {
 		panic(err)
 	}
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.DepositPoolKeyPrefix))
 	b := k.cdc.MustMarshal(&depositPool)
-	store.Set(types.DepositPoolKey(
-		valOperAddr,
-	), b)
+	store.Set(types.DepositPoolKey(valAddr), b)
 }
 
 // GetDepositPool returns a depositPool from its index
 func (k Keeper) GetDepositPool(
 	ctx sdk.Context,
-	operatorAddress sdk.ValAddress,
-
+	validatorAddress sdk.ValAddress,
 ) (val types.DepositPool, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.DepositPoolKeyPrefix))
 
-	b := store.Get(types.DepositPoolKey(
-		operatorAddress,
-	))
+	b := store.Get(types.DepositPoolKey(validatorAddress))
 	if b == nil {
 		return val, false
 	}
@@ -217,8 +217,8 @@ func (k Keeper) GetAllDepositPool(ctx sdk.Context) (list []types.DepositPool) {
 	return
 }
 
-// Given a pool and an amount of tokens, the method adds the tokens and associated shares to
-// the pool balance.
+// AddDepPoolTokensAndShares adds the tokens and associated shares to the pool balance given a pool 
+// and an amount of tokens.
 func (k Keeper) AddDepPoolTokensAndShares(
 	ctx sdk.Context,
 	depositPool types.DepositPool,
@@ -230,9 +230,7 @@ func (k Keeper) AddDepPoolTokensAndShares(
 		issuedShares = sdk.NewDecFromInt(tokensToAdd.Amount)
 	} else {
 		shares, err := depositPool.SharesFromTokens(tokensToAdd)
-		if err != nil {
-			panic(err)
-		}
+		if err != nil { panic(err) }
 		issuedShares = shares
 	}
 

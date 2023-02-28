@@ -44,7 +44,7 @@ func NewDepositPool(validatorAddr sdk.ValAddress, tokens sdk.Coin, shares sdk.De
 	}
 }
 
-// Returns the amount of shares given an amount of tokens through a proportion
+// SharesFromTokens returns the amount of shares given an amount of tokens through a proportion
 //
 //            pool_shares
 // shares = --------------- * tokens
