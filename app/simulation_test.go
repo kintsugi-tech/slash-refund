@@ -72,9 +72,9 @@ func BenchmarkSimulation(b *testing.B) {
 		require.NoError(b, err)
 	})
 
-	encoding := cosmoscmd.MakeEncodingConfig(app.ModuleBasics)
+	encoding := app.MakeEncodingConfig(app.ModuleBasics)
 
-	app := app.New(
+	simApp := app.New(
 		logger,
 		db,
 		nil,
@@ -85,9 +85,6 @@ func BenchmarkSimulation(b *testing.B) {
 		encoding,
 		simapp.EmptyAppOptions{},
 	)
-
-	simApp, ok := app.(SimApp)
-	require.True(b, ok, "can't use simapp")
 
 	// Run randomized simulations
 	_, simParams, simErr := simulation.SimulateFromSeed(
