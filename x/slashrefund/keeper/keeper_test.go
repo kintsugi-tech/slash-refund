@@ -1,13 +1,15 @@
 package keeper_test
 
+/*
+
 import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/staking/teststaking"
+	//"github.com/cosmos/cosmos-sdk/x/staking/teststaking"
 
 	"github.com/made-in-block/slash-refund/app"
-	"github.com/made-in-block/slash-refund/testutil/testsuite"
+	//"github.com/made-in-block/slash-refund/testutil/testsuite"
 	"github.com/made-in-block/slash-refund/x/slashrefund/keeper"
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 
@@ -25,12 +27,26 @@ type KeeperTestSuite struct {
 	t              *testing.T
 }
 
-// Default initial state for all tests. It creates two validators with a specified power.
-func SetupTestSuite(t *testing.T, power int64) *KeeperTestSuite {
+func NewKeeperTestSuite(
+	srApp *app.App, 
+	ctx sdk.Context, 
+	units int64, 
+	testAddrs []sdk.AccAddress, 
+	valAddrs []sdk.ValAddress, 
+	selfDelegations sdk.Int, 
+	querier keeper.Querier, 
+	t *testing.T,
+) KeeperTestSuite {
+	return KeeperTestSuite{srApp, ctx, units, testAddrs, valAddrs, selfDelegations, querier, t}
+}
+
+
+
+func SetupTestSuite(t *testing.T, power int64) KeeperTestSuite {
 
 	srApp, ctx := testsuite.CreateTestApp(false)
 
-	units := srApp.StakingKeeper.PowerReduction(ctx).Int64()
+	powerReduction := srApp.StakingKeeper.PowerReduction(ctx).Int64()
 
 	initAmt := sdk.NewInt(int64(1000 * units))
 	testAddrs, pubks := CreateNTestAccounts(srApp, ctx, 5, initAmt)
@@ -53,11 +69,18 @@ func SetupTestSuite(t *testing.T, power int64) *KeeperTestSuite {
 		valAddrs = append(valAddrs, valAddr)
 	}
 
-	s := KeeperTestSuite{}
-	s.srApp, s.ctx, s.units, s.testAddrs, s.valAddrs, s.selfDelegation, s.querier, s.t = srApp, ctx, units, testAddrs, valAddrs, selfDelegation, keeper.Querier{K: srApp.SlashrefundKeeper}, t
-
-	return &s
+	return NewKeeperTestSuite(
+		srApp, 
+		ctx, 
+		units, 
+		testAddrs,
+		valAddrs,
+		selfDelegation, 
+		keeper.Querier{K: srApp.SlashrefundKeeper}, 
+		t,
+	)
 }
+
 
 func (s KeeperTestSuite) RequireNoRefund(addr sdk.AccAddress, valAddr sdk.ValAddress) {
 	_, found := s.srApp.SlashrefundKeeper.GetRefund(s.ctx, addr, valAddr)
@@ -132,3 +155,5 @@ func (s KeeperTestSuite) RequireDepositPool(valAddr sdk.ValAddress, tokens sdk.I
 
 	return pool
 }
+
+*/

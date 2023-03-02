@@ -130,11 +130,6 @@ func (ms msgServer) Withdraw(
 			sdk.NewAttribute(sdk.AttributeKeyAmount, witTokens.Amount.String()),
 			sdk.NewAttribute(types.AttributeKeyCompletionTime, completionTime.Format(time.RFC3339)),
 		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.DepositorAddress),
-		),
 	})
 
 	return &types.MsgWithdrawResponse{CompletionTime: completionTime}, nil
@@ -173,10 +168,6 @@ func (ms msgServer) Claim(
 				sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress),
 				sdk.NewAttribute(types.AttributeKeyToken, coin.Denom),
 				sdk.NewAttribute(sdk.AttributeKeyAmount, coin.Amount.String()),
-			),
-			sdk.NewEvent(
-				sdk.EventTypeMessage,
-				sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 			),
 		})
 	}

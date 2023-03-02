@@ -16,7 +16,7 @@ var _ paramtypes.ParamSet = (*Params)(nil)
 var (
 	KeyAllowedTokens         = []byte("AllowedTokens")
 	KeyMaxEntries            = []byte("MaxEntries")
-	DefaultAllowedTokens     = []string{"stake"}
+	DefaultAllowedTokens     = []string{sdk.DefaultBondDenom}
 	DefaultMaxEntries uint32 = 7
 )
 
