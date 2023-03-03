@@ -1,20 +1,15 @@
 package keeper_test
 
 import (
-	//"context"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	//authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	//banktestutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
+
 	"github.com/made-in-block/slash-refund/app"
 	"github.com/made-in-block/slash-refund/testutil/testsuite"
 	"github.com/made-in-block/slash-refund/x/slashrefund/keeper"
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 
-	//"github.com/made-in-block/slash-refund/x/slashrefund/keeper"
-	//"github.com/made-in-block/slash-refund/x/slashrefund/testslashrefund"
-	//"github.com/made-in-block/slash-refund/x/slashrefund/types"
 
 	"github.com/stretchr/testify/require"
 )

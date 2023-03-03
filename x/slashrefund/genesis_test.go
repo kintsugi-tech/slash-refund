@@ -143,5 +143,4 @@ func TestGenesis(t *testing.T) {
 	require.ElementsMatch(t, genesisState.UnbondingDepositList, got.UnbondingDepositList)
 	require.ElementsMatch(t, genesisState.RefundPoolList, got.RefundPoolList)
 	require.ElementsMatch(t, genesisState.RefundList, got.RefundList)
-	// this line is used by starport scaffolding # genesis/test/assert
 }

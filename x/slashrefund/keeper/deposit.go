@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -77,6 +76,7 @@ func (k Keeper) GetDeposit(
 	depAddr sdk.AccAddress, 
 	valAddr sdk.ValAddress,
 ) (deposit types.Deposit, found bool) {
+
 	moduleStore := ctx.KVStore(k.storeKey)
 	store := prefix.NewStore(moduleStore, types.KeyPrefix(types.DepositKeyPrefix))
 	key := types.DepositKey(depAddr, valAddr)
@@ -94,24 +94,25 @@ func (k Keeper) SetDeposit(ctx sdk.Context, deposit types.Deposit) {
 
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.DepositKeyPrefix))
 	b := k.cdc.MustMarshal(&deposit)
-	store.Set(types.DepositKey(deposit.MustGetDepositorAddr(), deposit.MustGetValidatorAddr()), b)
+	store.Set(types.DepositKey(
+		sdk.MustAccAddressFromBech32(deposit.DepositorAddress), 
+		deposit.MustGetValidatorAddr(),
+	), b)
 }
 
 // RemoveDeposit removes a deposit from the store
-func (k Keeper) RemoveDeposit(
-	ctx sdk.Context,
-	deposit types.Deposit,
-) {
+func (k Keeper) RemoveDeposit(ctx sdk.Context, deposit types.Deposit) {
 
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.DepositKeyPrefix))
 	store.Delete(types.DepositKey(
-		deposit.MustGetDepositorAddr(),
+		sdk.MustAccAddressFromBech32(deposit.DepositorAddress),
 		deposit.MustGetValidatorAddr(),
 	))
 }
 
-// GetAllDeposit returns all deposit
+// GetAllDeposit returns all deposits
 func (k Keeper) GetAllDeposit(ctx sdk.Context) (list []types.Deposit) {
+
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.DepositKeyPrefix))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 
@@ -126,29 +127,11 @@ func (k Keeper) GetAllDeposit(ctx sdk.Context) (list []types.Deposit) {
 	return
 }
 
-// GetDeposits of specific validator
-func (k Keeper) GetDepositOfValidator(ctx sdk.Context, valAddr sdk.ValAddress) (list []types.Deposit, total sdk.Coin) {
-	// TODO: Handle secondary tokens ie. stATOM
-	deposits := k.GetAllDeposit(ctx)
-
-	var valDeposits []types.Deposit
-
-	totalDeposit := sdk.NewInt(0)
-
-	for _, deposit := range deposits {
-
-		if deposit.ValidatorAddress == valAddr.String() {
-			valDeposits = append(valDeposits, deposit)
-			// TODO: fix math.NewInt with proper logic
-			totalDeposit = totalDeposit.Add(math.NewInt(1))
-		}
-	}
-
-	return valDeposits, sdk.NewCoin("stake", totalDeposit)
-}
-
-// GetDeposits of specific validator
-func (k Keeper) GetValidatorDeposits(ctx sdk.Context, valAddr sdk.ValAddress) (deposits []types.Deposit) {
+// GetDeposits returns all deposits of a specific validator
+func (k Keeper) GetValidatorDeposits(
+	ctx sdk.Context, 
+	valAddr sdk.ValAddress,
+) (deposits []types.Deposit) {
 
 	for _, deposit := range k.GetAllDeposit(ctx) {
 		if deposit.ValidatorAddress == valAddr.String() {

@@ -1,87 +1,41 @@
 package keeper_test
 
 /*
-
 import (
 	"testing"
+
+	"github.com/made-in-block/slash-refund/app"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	//"github.com/cosmos/cosmos-sdk/x/staking/teststaking"
 
 	"github.com/made-in-block/slash-refund/app"
 	//"github.com/made-in-block/slash-refund/testutil/testsuite"
+	"github.com/made-in-block/slash-refund/x/slashrefund"
 	"github.com/made-in-block/slash-refund/x/slashrefund/keeper"
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 
 	"github.com/stretchr/testify/require"
 )
 
-type KeeperTestSuite struct {
-	srApp          *app.App
-	ctx            sdk.Context
-	units          int64
-	testAddrs      []sdk.AccAddress
-	valAddrs       []sdk.ValAddress
-	selfDelegation sdk.Int
-	querier        keeper.Querier
-	t              *testing.T
+func SetupKeeperTest() (
+	*app.App, 
+	sdk.Context, 
+	[]sdk.AccAddress, 
+	[]sdk.ValAddress,
+	[]sdk.AccAddress,
+) {
+	return SetupMsgServerTest()
 }
 
-func NewKeeperTestSuite(
-	srApp *app.App, 
-	ctx sdk.Context, 
-	units int64, 
-	testAddrs []sdk.AccAddress, 
-	valAddrs []sdk.ValAddress, 
-	selfDelegations sdk.Int, 
-	querier keeper.Querier, 
-	t *testing.T,
-) KeeperTestSuite {
-	return KeeperTestSuite{srApp, ctx, units, testAddrs, valAddrs, selfDelegations, querier, t}
+func TestKeeperDepositValid(t *testing.T) {
+	app, ctx, delegators, validators, depositors := SetupKeeperTest()
+
+	app.SlashrefundKeeper.Deposit(ctx, )
+
 }
 
-
-
-func SetupTestSuite(t *testing.T, power int64) KeeperTestSuite {
-
-	srApp, ctx := testsuite.CreateTestApp(false)
-
-	powerReduction := srApp.StakingKeeper.PowerReduction(ctx).Int64()
-
-	initAmt := sdk.NewInt(int64(1000 * units))
-	testAddrs, pubks := CreateNTestAccounts(srApp, ctx, 5, initAmt)
-
-	selfDelegation := sdk.NewInt(power * units)
-
-	// create 2 validators with consensous power equal to input power
-	sth := teststaking.NewHelper(t, ctx, srApp.StakingKeeper)
-
-	valAddrs := make([]sdk.ValAddress, 0, 2)
-
-	for i := 0; i < 2; i++ {
-		sth.CreateValidatorWithValPower(sdk.ValAddress(testAddrs[i]), pubks[i], selfDelegation.QuoRaw(units).Int64(), true)
-		validator, found := srApp.StakingKeeper.GetValidatorByConsAddr(ctx, sdk.ConsAddress(testAddrs[i]))
-		require.True(t, found)
-		valAddr := validator.GetOperator()
-		sd, found := srApp.StakingKeeper.GetDelegation(ctx, testAddrs[i], valAddr)
-		require.True(t, found)
-		require.Equal(t, selfDelegation, sd.Shares.TruncateInt())
-		valAddrs = append(valAddrs, valAddr)
-	}
-
-	return NewKeeperTestSuite(
-		srApp, 
-		ctx, 
-		units, 
-		testAddrs,
-		valAddrs,
-		selfDelegation, 
-		keeper.Querier{K: srApp.SlashrefundKeeper}, 
-		t,
-	)
-}
-
-
+/*
 func (s KeeperTestSuite) RequireNoRefund(addr sdk.AccAddress, valAddr sdk.ValAddress) {
 	_, found := s.srApp.SlashrefundKeeper.GetRefund(s.ctx, addr, valAddr)
 	require.False(s.t, found, "refund found")
@@ -155,5 +109,4 @@ func (s KeeperTestSuite) RequireDepositPool(valAddr sdk.ValAddress, tokens sdk.I
 
 	return pool
 }
-
 */
