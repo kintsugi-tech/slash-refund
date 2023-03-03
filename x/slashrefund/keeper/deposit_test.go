@@ -65,6 +65,7 @@ func TestPoolGetDeposit(t *testing.T) {
 		require.Equal(t, item, rst)
 	}
 }
+
 func TestRemoveDepositPool(t *testing.T) {
 	keeper, ctx := testslashrefund.NewTestKeeper(t)
 	items := testslashrefund.CreateNDepositPool(keeper, ctx, 10)
@@ -122,4 +123,3 @@ func TestRemoveDepPoolTokensAndShares(t *testing.T) {
 	require.Equal(t, foundDepPool.Tokens.Amount, updatedTokensAmount)
 	require.Equal(t, foundDepPool.Shares, updatedShares)
 }
-
