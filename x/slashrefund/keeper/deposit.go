@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	sdkmath "cosmossdk.io/math"
+
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -231,9 +233,9 @@ func (k Keeper) RemoveDepPoolTokensAndShares(
 	ctx sdk.Context,
 	depositPool types.DepositPool,
 	sharesToRemove sdk.Dec,
-) (types.DepositPool, sdk.Int) {
-	var removedTokensAmt sdk.Int
-	var remainingTokensAmt sdk.Int
+) (types.DepositPool, sdkmath.Int) {
+	var removedTokensAmt sdkmath.Int
+	var remainingTokensAmt sdkmath.Int
 
 	remainingShares := depositPool.Shares.Sub(sharesToRemove)
 
