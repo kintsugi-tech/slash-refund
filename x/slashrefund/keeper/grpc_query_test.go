@@ -1,47 +1,87 @@
 package keeper_test
 
-/*
 import (
 	"testing"
 	"time"
 
+	"github.com/made-in-block/slash-refund/testutil/testsuite"
+	"github.com/made-in-block/slash-refund/x/slashrefund/testslashrefund"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
+	"github.com/made-in-block/slash-refund/app"
+	"github.com/made-in-block/slash-refund/x/slashrefund/keeper"
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
+var (
+	queryDelAddrs = 2
+	queryValAddrs = 2
+	queryDepAddrs = 2
+	depToken = types.DefaultAllowedTokens[0]
+)
+
+func SetupQueryServerTest() (
+	*app.App, 
+	sdk.Context,
+	types.QueryServer,
+	[]sdk.AccAddress, 
+	[]sdk.ValAddress,
+	[]sdk.AccAddress,
+) {
+
+	// Setup delegators
+	delAddrs := testsuite.GenerateNAddresses(queryDelAddrs)
+	delAccs := testsuite.ConvertAddressesToAccAddr(delAddrs)
+	balances := testsuite.GenerateBalances(delAccs)
+
+	// Setup validators
+	valAddrs := testsuite.GenerateNAddresses(queryValAddrs)
+	valAccs := testsuite.ConvertAddressesToValAddr(valAddrs)
+
+	// Setup depositors
+	depAddrs := testsuite.GenerateNAddresses(queryDepAddrs)
+	depAccs := testsuite.ConvertAddressesToAccAddr(depAddrs)
+	depBalances := testsuite.GenerateBalances(depAccs)
+
+	balances = append(balances, depBalances...)
+
+	app, ctx := testsuite.CreateTestApp(delAccs, valAccs, balances, false)
+	qs := keeper.NewQueryServerImpl(app.SlashrefundKeeper)
+
+	return app, ctx, qs, delAccs, valAccs, depAccs
+}
+
 // -------------------------------------------------------------------------------------------------
-// Test Params
+// Params
 // -------------------------------------------------------------------------------------------------
-func TestParamsQuery(t *testing.T) {
-	s := SetupTestSuite(t, 100)
-	srApp, ctx, querier := s.srApp, s.ctx, s.querier
+func TestQueryParams(t *testing.T) {
+	app, ctx, qs,  _, _, _ := SetupQueryServerTest()
 	wctx := sdk.WrapSDKContext(ctx)
 
 	params := types.DefaultParams()
-	srApp.SlashrefundKeeper.SetParams(ctx, params)
+	app.SlashrefundKeeper.SetParams(ctx, params)
 
-	response, err := querier.Params(wctx, &types.QueryParamsRequest{})
+	resp, err := qs.Params(wctx, &types.QueryParamsRequest{})
 	require.NoError(t, err)
-	require.Equal(t, &types.QueryParamsResponse{Params: params}, response)
+	require.Equal(t, &types.QueryParamsResponse{Params: params}, resp)
 }
 
 // -------------------------------------------------------------------------------------------------
 // Test Deposit
 // -------------------------------------------------------------------------------------------------
 func TestDepositQuerySingle(t *testing.T) {
-	s := SetupTestSuite(t, 100)
-	srApp, ctx, testAddrs, valAddrs, querier := s.srApp, s.ctx, s.testAddrs, s.valAddrs, s.querier
+	app, ctx, qs,  _, validators, depositors := SetupQueryServerTest()
 	wctx := sdk.WrapSDKContext(ctx)
 
-	dep1 := types.NewDeposit(testAddrs[0], valAddrs[0], sdk.NewDec(100))
-	srApp.SlashrefundKeeper.SetDeposit(ctx, dep1)
+	dep1 := types.NewDeposit(depositors[0], validators[0], sdk.NewDec(100))
+	app.SlashrefundKeeper.SetDeposit(ctx, dep1)
 
-	dep2 := types.NewDeposit(testAddrs[1], valAddrs[0], sdk.NewDec(100))
-	srApp.SlashrefundKeeper.SetDeposit(ctx, dep2)
+	dep2 := types.NewDeposit(depositors[1], validators[0], sdk.NewDec(100))
+	app.SlashrefundKeeper.SetDeposit(ctx, dep2)
 
 	for _, tc := range []struct {
 		desc     string
@@ -50,28 +90,28 @@ func TestDepositQuerySingle(t *testing.T) {
 		err      error
 	}{
 		{
-			desc: "First",
+			desc: "FirstValid",
 			request: &types.QueryGetDepositRequest{
-				DepositorAddress: testAddrs[0].String(),
-				ValidatorAddress: valAddrs[0].String(),
+				DepositorAddress: depositors[0].String(),
+				ValidatorAddress: validators[0].String(),
 			},
 			response: &types.QueryGetDepositResponse{Deposit: dep1},
 		},
 		{
-			desc: "Second",
+			desc: "SecondValid",
 			request: &types.QueryGetDepositRequest{
-				DepositorAddress: testAddrs[1].String(),
-				ValidatorAddress: valAddrs[0].String(),
+				DepositorAddress: depositors[1].String(),
+				ValidatorAddress: validators[0].String(),
 			},
 			response: &types.QueryGetDepositResponse{Deposit: dep2},
 		},
 		{
 			desc: "KeyNotFound",
 			request: &types.QueryGetDepositRequest{
-				DepositorAddress: testAddrs[1].String(),
-				ValidatorAddress: valAddrs[1].String(),
+				DepositorAddress: depositors[1].String(),
+				ValidatorAddress: validators[1].String(),
 			},
-			err: status.Errorf(codes.NotFound, "deposit with depositor %s not found for validator %s", testAddrs[1].String(), valAddrs[1].String()),
+			err: status.Errorf(codes.NotFound, "deposit with depositor %s not found for validator %s", depositors[1].String(), validators[1].String()),
 		},
 		{
 			desc: "InvalidRequest",
@@ -80,7 +120,7 @@ func TestDepositQuerySingle(t *testing.T) {
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
 
-			response, err := querier.Deposit(wctx, tc.request)
+			response, err := qs.Deposit(wctx, tc.request)
 
 			if tc.err != nil {
 				require.ErrorIs(t, err, tc.err)
@@ -93,11 +133,10 @@ func TestDepositQuerySingle(t *testing.T) {
 }
 
 func TestDepositQueryPaginated(t *testing.T) {
-	s := SetupTestSuite(t, 100)
-	srApp, ctx, querier := s.srApp, s.ctx, s.querier
+	app, ctx, qs,  _, _, _ := SetupQueryServerTest()
 	wctx := sdk.WrapSDKContext(ctx)
 
-	deposits := createNDeposit(&srApp.SlashrefundKeeper, ctx, 5)
+	deposits := testslashrefund.CreateNDeposit(&app.SlashrefundKeeper, ctx, 5)
 
 	request := func(next []byte, offset, limit uint64, total bool) *types.QueryAllDepositRequest {
 		return &types.QueryAllDepositRequest{
@@ -113,7 +152,7 @@ func TestDepositQueryPaginated(t *testing.T) {
 	t.Run("ByOffset", func(t *testing.T) {
 		step := 2
 		for i := 0; i < len(deposits); i += step {
-			resp, err := querier.DepositAll(wctx, request(nil, uint64(i), uint64(step), false))
+			resp, err := qs.DepositAll(wctx, request(nil, uint64(i), uint64(step), false))
 			require.NoError(t, err)
 			require.LessOrEqual(t, len(resp.Deposit), step)
 			require.Subset(t, deposits, resp.Deposit)
@@ -123,7 +162,7 @@ func TestDepositQueryPaginated(t *testing.T) {
 		step := 2
 		var next []byte
 		for i := 0; i < len(deposits); i += step {
-			resp, err := querier.DepositAll(wctx, request(next, 0, uint64(step), false))
+			resp, err := qs.DepositAll(wctx, request(next, 0, uint64(step), false))
 			require.NoError(t, err)
 			require.LessOrEqual(t, len(resp.Deposit), step)
 			require.Subset(t, deposits, resp.Deposit)
@@ -131,13 +170,13 @@ func TestDepositQueryPaginated(t *testing.T) {
 		}
 	})
 	t.Run("Total", func(t *testing.T) {
-		resp, err := querier.DepositAll(wctx, request(nil, 0, 0, true))
+		resp, err := qs.DepositAll(wctx, request(nil, 0, 0, true))
 		require.NoError(t, err)
 		require.Equal(t, len(deposits), int(resp.Pagination.Total))
 		require.ElementsMatch(t, deposits, resp.Deposit)
 	})
 	t.Run("InvalidRequest", func(t *testing.T) {
-		_, err := querier.DepositAll(wctx, nil)
+		_, err := qs.DepositAll(wctx, nil)
 		require.ErrorIs(t, err, status.Error(codes.InvalidArgument, "invalid request"))
 	})
 }
@@ -146,17 +185,23 @@ func TestDepositQueryPaginated(t *testing.T) {
 // Test DepositPool
 // -------------------------------------------------------------------------------------------------
 func TestDepositPoolQuerySingle(t *testing.T) {
-	s := SetupTestSuite(t, 100)
-	srApp, ctx, testAddrs, valAddrs, querier := s.srApp, s.ctx, s.testAddrs, s.valAddrs, s.querier
+	app, ctx, qs,  _, validators, depositors := SetupQueryServerTest()
 	wctx := sdk.WrapSDKContext(ctx)
 
-	depPool1 := types.NewDepositPool(valAddrs[0], sdk.NewCoin("stake", sdk.NewInt(100)), sdk.NewDec(100))
-	srApp.SlashrefundKeeper.SetDepositPool(ctx, depPool1)
+	depPool1 := types.NewDepositPool(
+		validators[0], 
+		sdk.NewCoin(depToken, sdk.NewInt(100)), 
+		sdk.NewDec(100),
+	)
+	app.SlashrefundKeeper.SetDepositPool(ctx, depPool1)
 
-	depPool2 := types.NewDepositPool(valAddrs[1], sdk.NewCoin("stake", sdk.NewInt(200)), sdk.NewDec(200))
-	srApp.SlashrefundKeeper.SetDepositPool(ctx, depPool2)
+	depPool2 := types.NewDepositPool(validators[1], 
+		sdk.NewCoin(depToken, sdk.NewInt(200)), 
+		sdk.NewDec(200),
+	)
+	app.SlashrefundKeeper.SetDepositPool(ctx, depPool2)
 
-	val, err := sdk.ValAddressFromBech32(sdk.ValAddress(testAddrs[2]).String())
+	val, err := sdk.ValAddressFromBech32(sdk.ValAddress(depositors[0]).String())
 	require.NoError(t, err)
 
 	for _, tc := range []struct {
@@ -166,16 +211,16 @@ func TestDepositPoolQuerySingle(t *testing.T) {
 		err      error
 	}{
 		{
-			desc: "First",
+			desc: "FirstValid",
 			request: &types.QueryGetDepositPoolRequest{
-				OperatorAddress: valAddrs[0].String(),
+				OperatorAddress: validators[0].String(),
 			},
 			response: &types.QueryGetDepositPoolResponse{DepositPool: depPool1},
 		},
 		{
-			desc: "Second",
+			desc: "SecondValid",
 			request: &types.QueryGetDepositPoolRequest{
-				OperatorAddress: valAddrs[1].String(),
+				OperatorAddress: validators[1].String(),
 			},
 			response: &types.QueryGetDepositPoolResponse{DepositPool: depPool2},
 		},
@@ -192,7 +237,7 @@ func TestDepositPoolQuerySingle(t *testing.T) {
 		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
-			response, err := querier.DepositPool(wctx, tc.request)
+			response, err := qs.DepositPool(wctx, tc.request)
 			if tc.err != nil {
 				require.ErrorIs(t, err, tc.err)
 			} else {
@@ -204,11 +249,10 @@ func TestDepositPoolQuerySingle(t *testing.T) {
 }
 
 func TestDepositPoolQueryPaginated(t *testing.T) {
-	s := SetupTestSuite(t, 100)
-	srApp, ctx, querier := s.srApp, s.ctx, s.querier
+	app, ctx, qs,  _, _, _ := SetupQueryServerTest()
 	wctx := sdk.WrapSDKContext(ctx)
 
-	depPools := createNDepositPool(&srApp.SlashrefundKeeper, ctx, 5)
+	depPools := testslashrefund.CreateNDepositPool(&app.SlashrefundKeeper, ctx, 5)
 
 	request := func(next []byte, offset, limit uint64, total bool) *types.QueryAllDepositPoolRequest {
 		return &types.QueryAllDepositPoolRequest{
@@ -223,7 +267,7 @@ func TestDepositPoolQueryPaginated(t *testing.T) {
 	t.Run("ByOffset", func(t *testing.T) {
 		step := 2
 		for i := 0; i < len(depPools); i += step {
-			resp, err := querier.DepositPoolAll(wctx, request(nil, uint64(i), uint64(step), false))
+			resp, err := qs.DepositPoolAll(wctx, request(nil, uint64(i), uint64(step), false))
 			require.NoError(t, err)
 			require.LessOrEqual(t, len(resp.DepositPool), step)
 			require.Subset(t, depPools, resp.DepositPool)
@@ -233,7 +277,7 @@ func TestDepositPoolQueryPaginated(t *testing.T) {
 		step := 2
 		var next []byte
 		for i := 0; i < len(depPools); i += step {
-			resp, err := querier.DepositPoolAll(wctx, request(next, 0, uint64(step), false))
+			resp, err := qs.DepositPoolAll(wctx, request(next, 0, uint64(step), false))
 			require.NoError(t, err)
 			require.LessOrEqual(t, len(resp.DepositPool), step)
 			require.Subset(t, depPools, resp.DepositPool)
@@ -241,34 +285,44 @@ func TestDepositPoolQueryPaginated(t *testing.T) {
 		}
 	})
 	t.Run("Total", func(t *testing.T) {
-		resp, err := querier.DepositPoolAll(wctx, request(nil, 0, 0, true))
+		resp, err := qs.DepositPoolAll(wctx, request(nil, 0, 0, true))
 		require.NoError(t, err)
 		require.Equal(t, len(depPools), int(resp.Pagination.Total))
 		require.ElementsMatch(t, depPools, resp.DepositPool)
 	})
 	t.Run("Invalid Request", func(t *testing.T) {
-		_, err := querier.DepositPoolAll(wctx, nil)
+		_, err := qs.DepositPoolAll(wctx, nil)
 		require.ErrorIs(t, err, status.Error(codes.InvalidArgument, "invalid request"))
 	})
 }
-
 // -------------------------------------------------------------------------------------------------
 // Test UnbondingDeposit
 // -------------------------------------------------------------------------------------------------
 func TestUnbondingDepositQuerySingle(t *testing.T) {
-	s := SetupTestSuite(t, 100)
-	srApp, ctx, testAddrs, valAddrs, querier := s.srApp, s.ctx, s.testAddrs, s.valAddrs, s.querier
+	app, ctx, qs,  _, validators, depositors := SetupQueryServerTest()
 	wctx := sdk.WrapSDKContext(ctx)
 
-	ubdep1 := types.NewUnbondingDeposit(testAddrs[0], valAddrs[0], 10, time.Unix(10, 0).UTC(), sdk.NewInt(100))
+	ubdep1 := types.NewUnbondingDeposit(
+		depositors[0], 
+		validators[0], 
+		10, 
+		time.Unix(10, 0).UTC(), 
+		sdk.NewInt(100),
+	)
 	entry2 := types.NewUnbondingDepositEntry(20, time.Unix(20, 0).UTC(), sdk.NewInt(200))
 	ubdep1.Entries = append(ubdep1.Entries, entry2)
-	srApp.SlashrefundKeeper.SetUnbondingDeposit(ctx, ubdep1)
+	app.SlashrefundKeeper.SetUnbondingDeposit(ctx, ubdep1)
 
-	ubdep2 := types.NewUnbondingDeposit(testAddrs[1], valAddrs[0], 0, time.Unix(30, 0).UTC(), sdk.NewInt(300))
+	ubdep2 := types.NewUnbondingDeposit(
+		depositors[1], 
+		validators[0], 
+		0, 
+		time.Unix(30, 0).UTC(), 
+		sdk.NewInt(300),
+	)
 	entry2 = types.NewUnbondingDepositEntry(40, time.Unix(40, 0).UTC(), sdk.NewInt(400))
 	ubdep2.Entries = append(ubdep2.Entries, entry2)
-	srApp.SlashrefundKeeper.SetUnbondingDeposit(ctx, ubdep2)
+	app.SlashrefundKeeper.SetUnbondingDeposit(ctx, ubdep2)
 
 	for _, tc := range []struct {
 		desc     string
@@ -277,26 +331,26 @@ func TestUnbondingDepositQuerySingle(t *testing.T) {
 		err      error
 	}{
 		{
-			desc: "First",
+			desc: "FirstValid",
 			request: &types.QueryGetUnbondingDepositRequest{
-				DepositorAddress: testAddrs[0].String(),
-				ValidatorAddress: valAddrs[0].String(),
+				DepositorAddress: depositors[0].String(),
+				ValidatorAddress: validators[0].String(),
 			},
 			response: &types.QueryGetUnbondingDepositResponse{UnbondingDeposit: ubdep1},
 		},
 		{
-			desc: "Second",
+			desc: "SecondValid",
 			request: &types.QueryGetUnbondingDepositRequest{
-				DepositorAddress: testAddrs[1].String(),
-				ValidatorAddress: valAddrs[0].String(),
+				DepositorAddress: depositors[1].String(),
+				ValidatorAddress: validators[0].String(),
 			},
 			response: &types.QueryGetUnbondingDepositResponse{UnbondingDeposit: ubdep2},
 		},
 		{
 			desc: "KeyNotFound",
 			request: &types.QueryGetUnbondingDepositRequest{
-				DepositorAddress: testAddrs[1].String(),
-				ValidatorAddress: valAddrs[1].String(),
+				DepositorAddress: depositors[1].String(),
+				ValidatorAddress: validators[1].String(),
 			},
 			err: status.Error(codes.NotFound, "not found"),
 		},
@@ -306,7 +360,7 @@ func TestUnbondingDepositQuerySingle(t *testing.T) {
 		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
-			response, err := querier.UnbondingDeposit(wctx, tc.request)
+			response, err := qs.UnbondingDeposit(wctx, tc.request)
 			if tc.err != nil {
 				require.ErrorIs(t, err, tc.err)
 			} else {
@@ -317,12 +371,12 @@ func TestUnbondingDepositQuerySingle(t *testing.T) {
 	}
 }
 
+/*
 func TestUnbondingDepositQueryPaginated(t *testing.T) {
-	s := SetupTestSuite(t, 100)
-	srApp, ctx, querier := s.srApp, s.ctx, s.querier
+	app, ctx, qs,  _, validators, depositors := SetupQueryServerTest()
 	wctx := sdk.WrapSDKContext(ctx)
 
-	ubds := createNUnbondingDeposit(&srApp.SlashrefundKeeper, ctx, 5, 2)
+	ubds := createNUnbondingDeposit(&app.SlashrefundKeeper, ctx, 5, 2)
 
 	request := func(next []byte, offset, limit uint64, total bool) *types.QueryAllUnbondingDepositRequest {
 		return &types.QueryAllUnbondingDepositRequest{
@@ -337,7 +391,7 @@ func TestUnbondingDepositQueryPaginated(t *testing.T) {
 	t.Run("ByOffset", func(t *testing.T) {
 		step := 2
 		for i := 0; i < len(ubds); i += step {
-			resp, err := querier.UnbondingDepositAll(wctx, request(nil, uint64(i), uint64(step), false))
+			resp, err := qs.UnbondingDepositAll(wctx, request(nil, uint64(i), uint64(step), false))
 			require.NoError(t, err)
 			require.LessOrEqual(t, len(resp.UnbondingDeposit), step)
 			require.Subset(t, ubds, resp.UnbondingDeposit)
@@ -347,7 +401,7 @@ func TestUnbondingDepositQueryPaginated(t *testing.T) {
 		step := 2
 		var next []byte
 		for i := 0; i < len(ubds); i += step {
-			resp, err := querier.UnbondingDepositAll(wctx, request(next, 0, uint64(step), false))
+			resp, err := qs.UnbondingDepositAll(wctx, request(next, 0, uint64(step), false))
 			require.NoError(t, err)
 			require.LessOrEqual(t, len(resp.UnbondingDeposit), step)
 			require.Subset(t, ubds, resp.UnbondingDeposit)
@@ -355,13 +409,13 @@ func TestUnbondingDepositQueryPaginated(t *testing.T) {
 		}
 	})
 	t.Run("Total", func(t *testing.T) {
-		resp, err := querier.UnbondingDepositAll(wctx, request(nil, 0, 0, true))
+		resp, err := qs.UnbondingDepositAll(wctx, request(nil, 0, 0, true))
 		require.NoError(t, err)
 		require.Equal(t, len(ubds), int(resp.Pagination.Total))
 		require.ElementsMatch(t, ubds, resp.UnbondingDeposit)
 	})
 	t.Run("InvalidRequest", func(t *testing.T) {
-		_, err := querier.UnbondingDepositAll(wctx, nil)
+		_, err := qs.UnbondingDepositAll(wctx, nil)
 		require.ErrorIs(t, err, status.Error(codes.InvalidArgument, "invalid request"))
 	})
 }
@@ -585,5 +639,4 @@ func TestRefundPoolQueryPaginated(t *testing.T) {
 		require.ErrorIs(t, err, status.Error(codes.InvalidArgument, "invalid request"))
 	})
 }
-
 */

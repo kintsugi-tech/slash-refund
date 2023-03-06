@@ -38,7 +38,7 @@ func CreateTestApp(
 	return srApp, ctx
 }
 
-// SetupTestApp returns a new test app with a genesis state.
+// MakeTestApp returns a new test app with a genesis state.
 func MakeTestApp(
 	delAddrs []sdk.AccAddress,
 	valAddrs []sdk.ValAddress,
@@ -96,7 +96,7 @@ func NewDefaultGenesisState(cdc codec.JSONCodec) app.GenesisState {
 	return app.ModuleBasics.DefaultGenesis(cdc)
 }
 
-// NewCustomGenesisState generate a genesis state with an account and a single validator
+// CustomGenesisState generate a genesis state with an account and a single validator
 func CustomGenesisState(
 	srApp *app.App,
 	balances []banktypes.Balance,

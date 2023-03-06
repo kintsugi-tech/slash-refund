@@ -92,12 +92,14 @@ func GenerateRandomDelegations(
 
 	var delegations []stakingtypes.Delegation
 	for _, del := range(delegators) {
+		valIndex := rand.Intn(len(validators))
 		delegations = append(delegations, stakingtypes.Delegation{
 			DelegatorAddress: del.String(),
-			ValidatorAddress: validators[rand.Intn(len(validators))].OperatorAddress,
+			ValidatorAddress: validators[valIndex].OperatorAddress,
 			Shares: sdk.NewDecFromInt(bondAmt).Mul(delegationMultiplier),
 		})
-		validators[rand.Intn(len(validators))].DelegatorShares = validators[rand.Intn(len(validators))].DelegatorShares.Add(sdk.NewDecFromInt(bondAmt).Mul(delegationMultiplier))
+		validators[valIndex].DelegatorShares = validators[valIndex].
+			DelegatorShares.Add(sdk.NewDecFromInt(bondAmt).Mul(delegationMultiplier))
 	}
 
 	return delegations, validators

@@ -2,6 +2,8 @@ package testslashrefund
 
 import (
 	"testing"
+	"math/rand"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/made-in-block/slash-refund/x/slashrefund/keeper"
@@ -84,6 +86,35 @@ func CreateNDepositPool(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.D
 		items[i].Shares = sdk.NewDec(int64(1000 * i))
 		items[i].Tokens = sdk.NewInt64Coin("stake", int64(1000*i))
 		keeper.SetDepositPool(ctx, items[i])
+	}
+	return items
+}
+
+func CreateNEntries(n int) []types.UnbondingDepositEntry {
+
+	var entries []types.UnbondingDepositEntry
+	for i := 0; i < n; i++ {
+		rand.Seed(time.Now().UnixNano())
+		r := rand.Int63n(1000000)
+		creationHeight := r
+		completionTime := time.Now().Add(time.Duration(r)).UTC()
+		balance := sdk.NewInt(r)
+		initBalance := balance.AddRaw(rand.Int63n(1000000))
+		entry := types.NewUnbondingDepositEntry(int64(creationHeight), completionTime, initBalance)
+		entry.Balance = balance
+		entries = append(entries, entry)
+	}
+	return entries
+}
+
+// Creates n different unbonding deposit in the store, each with nEntries entries.
+func CreateNUnbondingDeposit(keeper *keeper.Keeper, ctx sdk.Context, n int, nEntries int) []types.UnbondingDeposit {
+	items := make([]types.UnbondingDeposit, n)
+	for i := range items {
+		items[i].DepositorAddress = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
+		items[i].ValidatorAddress = sdk.ValAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
+		items[i].Entries = CreateNEntries(nEntries)
+		keeper.SetUnbondingDeposit(ctx, items[i])
 	}
 	return items
 }
