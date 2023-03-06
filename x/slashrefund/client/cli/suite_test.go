@@ -12,6 +12,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 
+	sdktestutil "github.com/cosmos/cosmos-sdk/testutil"
 	clitestutil "github.com/cosmos/cosmos-sdk/testutil/cli"
 	sdknetwork "github.com/cosmos/cosmos-sdk/testutil/network"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -221,7 +222,6 @@ func (s *E2ETestSuite) SetupSuite() {
 	s.T().Log("importing account1 in client keyring.")
 	_, err = s.ctx.Keyring.NewAccount("account1", s.cfg.Mnemonics[1], keyring.DefaultBIP39Passphrase, sdk.GetConfig().GetFullBIP44Path(), hd.Secp256k1)
 	s.Require().NoError(err)
-	s.T().Log("finished setting up suite.")
 
 	// Import account2 (account of validator2) in the client keyring.
 	// For this account a deposit is available (set in Genesis).
@@ -257,6 +257,11 @@ func (s *E2ETestSuite) TestCmdDeposit() {
 	fees := sdk.NewCoins(sdk.NewCoin(denom, feeAmt)).String()
 	successCode := sdkerrors.SuccessABCICode
 	outflag := fmt.Sprintf("--%s=json", tmcli.OutputFlag)
+	commonFlags := []string{
+		fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
+		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
+		fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
+	}
 
 	testCases := []struct {
 		name       string
@@ -266,118 +271,88 @@ func (s *E2ETestSuite) TestCmdDeposit() {
 	}{
 		{
 			"Error (Without validator address nor amount)",
-			[]string{
-				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDepositorAddress),
-				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
-				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
-				fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
-			},
+			append([]string{
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDepositorAddress)},
+				commonFlags...),
 			true, 0,
 		},
 		{
 			"Error (Without amount)",
-			[]string{
+			append([]string{
 				idValidatorAddress1,
-				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDepositorAddress),
-				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
-				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
-				fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
-			},
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDepositorAddress)},
+				commonFlags...),
 			true, 0,
 		},
 		{
 			"Error (Without from-address)",
-			[]string{
+			append([]string{
 				idValidatorAddress1,
-				sdk.NewCoin(denom, sdk.NewInt(1)).String(),
-				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
-				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
-				fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
-			},
+				sdk.NewCoin(denom, sdk.NewInt(1)).String()},
+				commonFlags...),
 			true, 0,
 		},
 		{
 			"Error (Fail decoding validator address)",
-			[]string{
+			append([]string{
 				"not-a-validator-address",
 				sdk.NewCoin(denom, sdk.NewInt(1)).String(),
-				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDepositorAddress),
-				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
-				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
-				fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
-			},
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDepositorAddress)},
+				commonFlags...),
 			true, 0,
 		},
 		{
 			"Error (Non valoper validator address)",
-			[]string{
+			append([]string{
 				idDepositorAddress,
 				sdk.NewCoin(denom, sdk.NewInt(1)).String(),
-				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDepositorAddress),
-				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
-				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
-				fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
-			},
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDepositorAddress)},
+				commonFlags...),
 			true, 0,
 		},
 		{
 			"Error (Zero amount)",
-			[]string{
+			append([]string{
 				idValidatorAddress1,
 				sdk.NewCoin(denom, sdk.ZeroInt()).String(),
-				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDepositorAddress),
-				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
-				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
-				fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
-			},
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDepositorAddress)},
+				commonFlags...),
 			true, 0,
 		},
 		{
 			"Error (Negative amount)",
-			[]string{
+			append([]string{
 				idValidatorAddress1,
 				fmt.Sprintf("-1%s", denom),
-				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDepositorAddress),
-				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
-				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
-				fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
-			},
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDepositorAddress)},
+				commonFlags...),
 			true, 0,
 		},
 		{
 			"Invalid (Not found validator address)",
-			[]string{
+			append([]string{
 				"cosmosvaloper1uhdmcuszs29hnyqtsjn9cm7cyrmkcnq4undkv5",
 				sdk.NewCoin(denom, sdk.NewInt(1)).String(),
-				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDepositorAddress),
-				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
-				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
-				fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
-			},
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDepositorAddress)},
+				commonFlags...),
 			false, stakingtypes.ErrNoValidatorFound.ABCICode(),
 		},
 		{
 			"Invalid (Amount higher than actual balance)",
-			[]string{
+			append([]string{
 				idValidatorAddress1,
 				sdk.NewCoin(denom, sdk.DefaultPowerReduction.MulRaw(999999)).String(),
-				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDepositorAddress),
-				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
-				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
-				fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
-			},
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDepositorAddress)},
+				commonFlags...),
 			false, sdkerrors.ErrInsufficientFunds.ABCICode(),
 		},
 		{
 			"Valid transaction",
-			[]string{
+			append([]string{
 				idValidatorAddress1,
 				sdk.NewCoin(denom, sdk.NewInt(100)).String(),
-				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDepositorAddress),
-				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
-				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
-				fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
-			},
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDepositorAddress)},
+				commonFlags...),
 			false, successCode,
 		},
 	}
@@ -390,9 +365,7 @@ func (s *E2ETestSuite) TestCmdDeposit() {
 				s.Require().Error(err)
 			} else {
 				s.Require().NoError(err, out.String())
-				var resp sdk.TxResponse
-				s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp), out.String())
-				s.Require().Equal(tc.txRespCode, resp.Code, out.String())
+				s.RequireTxResponseWithCode(tc.txRespCode, out)
 			}
 		})
 	}
@@ -405,11 +378,11 @@ func (s *E2ETestSuite) TestCmdDeposit() {
 		args := []string{idValidatorAddress1, outflag}
 		out, err := clitestutil.ExecTestCLICmd(s.ctx, cli.CmdShowDepositPool(), args)
 		s.Require().NoError(err, out.String())
-		var resp9 types.QueryGetDepositPoolResponse
-		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp9), out.String())
-		s.Require().NotEmpty(resp9.DepositPool)
-		oldPoolShares := resp9.DepositPool.Shares
-		oldPoolTokens := resp9.DepositPool.Tokens
+		var resp0 types.QueryGetDepositPoolResponse
+		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp0), out.String())
+		s.Require().NotEmpty(resp0.DepositPool)
+		oldPoolShares := resp0.DepositPool.Shares
+		oldPoolTokens := resp0.DepositPool.Tokens
 
 		// Get account1 key from the keyring and get its address.
 		key, err := s.ctx.Keyring.Key("account1")
@@ -421,26 +394,21 @@ func (s *E2ETestSuite) TestCmdDeposit() {
 		// Get account initial balance.
 		out, err = bankcliutil.QueryBalancesExec(s.ctx, depAddr, outflag)
 		s.Require().NoError(err)
-		var resp banktypes.QueryAllBalancesResponse
-		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp))
-		amt0 := resp.Balances.AmountOf(denom)
+		var resp1 banktypes.QueryAllBalancesResponse
+		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp1))
+		amt0 := resp1.Balances.AmountOf(denom)
 
 		// Execute valid deposit transaction to validator1 and require it returns the success code.
 		depAmt := sdk.NewInt(100)
 		depAmtDec := sdk.NewDecFromInt(depAmt)
-		args = []string{
+		args = append([]string{
 			idValidatorAddress1,
 			sdk.NewCoin(denom, depAmt).String(),
-			fmt.Sprintf("--%s=%s", flags.FlagFrom, idDepositorAddress1),
-			fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
-			fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
-			fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
-		}
+			fmt.Sprintf("--%s=%s", flags.FlagFrom, idDepositorAddress1)},
+			commonFlags...)
 		out, err = clitestutil.ExecTestCLICmd(s.ctx, cli.CmdDeposit(), args)
 		s.Require().NoError(err, out.String())
-		var resp1 sdk.TxResponse
-		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp1), out.String())
-		s.Require().Equal(successCode, resp1.Code, out.String())
+		s.RequireTxResponseWithCode(successCode, out)
 
 		// Get account actual balance.
 		depAddr, err = sdk.AccAddressFromBech32(idDepositorAddress1)
@@ -475,6 +443,12 @@ func (s *E2ETestSuite) TestCmdDeposit() {
 	})
 }
 
+func (s *E2ETestSuite) RequireTxResponseWithCode(expectedCode uint32, out sdktestutil.BufferWriter) {
+	var resp sdk.TxResponse
+	s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp), out.String())
+	s.Require().Equal(expectedCode, resp.Code, out.String())
+}
+
 // This test checks for errors during the execution of the withdraw command and checks
 // also for the correct execution of a valid withdraw transaction.
 // In order to isolate withdraw transaction command from deposit transaction command,
@@ -498,6 +472,11 @@ func (s *E2ETestSuite) TestCmdWithdraw() {
 	fees := sdk.NewCoins(sdk.NewCoin(denom, feeAmt)).String()
 	successCode := sdkerrors.SuccessABCICode
 	outflag := fmt.Sprintf("--%s=json", tmcli.OutputFlag)
+	commonFlags := []string{
+		fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
+		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
+		fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
+	}
 
 	testCases := []struct {
 		name       string
@@ -507,130 +486,97 @@ func (s *E2ETestSuite) TestCmdWithdraw() {
 	}{
 		{
 			"Error (Without validator address nor amount)",
-			[]string{
-				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDepositorAddress),
-				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
-				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
-				fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
-			},
+			append([]string{
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDepositorAddress)},
+				commonFlags...),
 			true, 0,
 		},
 		{
 			"Error (Without amount)",
-			[]string{
+			append([]string{
 				idValidatorAddress2,
-				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDepositorAddress),
-				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
-				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
-				fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
-			},
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDepositorAddress)},
+				commonFlags...),
 			true, 0,
 		},
 		{
 			"Error (Without from-address)",
-			[]string{
+			append([]string{
 				idValidatorAddress2,
-				sdk.NewCoin(denom, sdk.NewInt(1)).String(),
-				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
-				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
-				fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
-			},
+				sdk.NewCoin(denom, sdk.NewInt(1)).String()},
+				commonFlags...),
 			true, 0,
 		},
 		{
 			"Error (Fail decoding validator address)",
-			[]string{
+			append([]string{
 				"not-a-validator-address",
 				sdk.NewCoin(denom, sdk.NewInt(1)).String(),
-				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDepositorAddress),
-				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
-				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
-				fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
-			},
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDepositorAddress)},
+				commonFlags...),
 			true, 0,
 		},
 		{
 			"Error (Non valoper validator address)",
-			[]string{
+			append([]string{
 				idDepositorAddress,
 				sdk.NewCoin(denom, sdk.NewInt(1)).String(),
-				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDepositorAddress),
-				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
-				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
-				fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
-			},
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDepositorAddress)},
+				commonFlags...),
 			true, 0,
 		},
 		{
 			"Error (Zero amount)",
-			[]string{
+			append([]string{
 				idValidatorAddress2,
 				sdk.NewCoin(denom, sdk.ZeroInt()).String(),
-				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDepositorAddress),
-				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
-				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
-				fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
-			},
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDepositorAddress)},
+				commonFlags...),
 			true, 0,
 		},
 		{
 			"Error (Negative amount)",
-			[]string{
+			append([]string{
 				idValidatorAddress2,
 				fmt.Sprintf("-1%s", denom),
-				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDepositorAddress),
-				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
-				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
-				fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
-			},
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDepositorAddress)},
+				commonFlags...),
 			true, 0,
 		},
 		{
 			"Invalid (Not found validator address)",
-			[]string{
+			append([]string{
 				"cosmosvaloper1uhdmcuszs29hnyqtsjn9cm7cyrmkcnq4undkv5",
 				sdk.NewCoin(denom, sdk.NewInt(1)).String(),
-				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDepositorAddress),
-				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
-				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
-				fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
-			},
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDepositorAddress)},
+				commonFlags...),
 			false, stakingtypes.ErrNoValidatorFound.ABCICode(),
 		},
 		{
 			"Invalid (Amount higher than deposited)",
-			[]string{
+			append([]string{
 				idValidatorAddress2,
 				sdk.NewCoin(denom, sdk.DefaultPowerReduction.MulRaw(999999)).String(),
-				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDepositorAddress),
-				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
-				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
-				fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
-			},
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDepositorAddress)},
+				commonFlags...),
 			false, sdkerrors.ErrInvalidRequest.ABCICode(),
 		},
 		{
 			"Invalid (No deposit for address)",
-			[]string{
+			append([]string{
 				idValidatorAddress3,
 				sdk.NewCoin(denom, sdk.NewInt(100)).String(),
-				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDepositorAddress),
-				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
-				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
-				fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
-			},
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDepositorAddress)},
+				commonFlags...),
 			false, types.ErrNoDepositForAddress.ABCICode(),
 		},
 		{
 			"Valid transaction",
-			[]string{
+			append([]string{
 				idValidatorAddress2,
 				sdk.NewCoin(denom, sdk.NewInt(100)).String(),
-				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDepositorAddress),
-				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
-				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
-				fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
-			},
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDepositorAddress)},
+				commonFlags...),
 			false, successCode,
 		},
 	}
@@ -643,9 +589,7 @@ func (s *E2ETestSuite) TestCmdWithdraw() {
 				s.Require().Error(err)
 			} else {
 				s.Require().NoError(err, out.String())
-				var resp sdk.TxResponse
-				s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp), out.String())
-				s.Require().Equal(tc.txRespCode, resp.Code, out.String())
+				s.RequireTxResponseWithCode(tc.txRespCode, out)
 			}
 		})
 	}
@@ -659,11 +603,11 @@ func (s *E2ETestSuite) TestCmdWithdraw() {
 		args := []string{idValidatorAddress2, outflag}
 		out, err := clitestutil.ExecTestCLICmd(s.ctx, cli.CmdShowDepositPool(), args)
 		s.Require().NoError(err, out.String())
-		var resp9 types.QueryGetDepositPoolResponse
-		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp9), out.String())
-		s.Require().NotEmpty(resp9.DepositPool)
-		oldPoolShares := resp9.DepositPool.Shares
-		oldPoolTokens := resp9.DepositPool.Tokens
+		var resp0 types.QueryGetDepositPoolResponse
+		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp0), out.String())
+		s.Require().NotEmpty(resp0.DepositPool)
+		oldPoolShares := resp0.DepositPool.Shares
+		oldPoolTokens := resp0.DepositPool.Tokens
 
 		// Get account1 key from the keyring and get its address.
 		key, err := s.ctx.Keyring.Key("account1")
@@ -676,51 +620,47 @@ func (s *E2ETestSuite) TestCmdWithdraw() {
 		args = []string{idDepositorAddress1, idValidatorAddress2, outflag}
 		out, err = clitestutil.ExecTestCLICmd(s.ctx, cli.CmdShowDeposit(), args)
 		s.Require().NoError(err, out.String())
-		var resp99 types.QueryGetDepositResponse
-		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp99), out.String())
-		s.Require().NotEmpty(resp99.Deposit)
-		oldDepShares := resp99.Deposit.Shares
+		var resp1 types.QueryGetDepositResponse
+		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp1), out.String())
+		s.Require().NotEmpty(resp1.Deposit)
+		oldDepShares := resp1.Deposit.Shares
 
 		// Get account initial balance.
 		out, err = bankcliutil.QueryBalancesExec(s.ctx, depAddr, outflag)
 		s.Require().NoError(err)
-		var resp banktypes.QueryAllBalancesResponse
-		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp))
-		amt0 := resp.Balances.AmountOf(denom)
+		var resp2 banktypes.QueryAllBalancesResponse
+		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp2))
+		amt0 := resp2.Balances.AmountOf(denom)
 
 		// Execute valid withdraw transaction to validator2 and require it returns the success code.
 		witAmt := sdk.NewInt(100)
 		witAmtDec := sdk.NewDecFromInt(witAmt)
-		args = []string{
+		args = append([]string{
 			idValidatorAddress2,
 			sdk.NewCoin(denom, witAmt).String(),
-			fmt.Sprintf("--%s=%s", flags.FlagFrom, depAddr.String()),
-			fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
-			fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
-			fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
-		}
+			fmt.Sprintf("--%s=%s", flags.FlagFrom, depAddr.String())},
+			commonFlags...,
+		)
 		out, err = clitestutil.ExecTestCLICmd(s.ctx, cli.CmdWithdraw(), args)
 		s.Require().NoError(err, out.String())
-		var resp1 sdk.TxResponse
-		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp1), out.String())
-		s.Require().Equal(successCode, resp1.Code, out.String())
+		s.RequireTxResponseWithCode(successCode, out)
 
 		// Require the unbonding deposit can be found through a query.
 		args = []string{depAddr.String(), idValidatorAddress2, outflag}
 		out, err = clitestutil.ExecTestCLICmd(s.ctx, cli.CmdShowUnbondingDeposit(), args)
 		s.Require().NoError(err, out.String())
-		var resp2 types.QueryGetUnbondingDepositResponse
-		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp2), out.String())
-		s.Require().NotEmpty(resp2.UnbondingDeposit)
-		s.Require().Equal(1, len(resp2.UnbondingDeposit.Entries))
-		s.Require().Equal(witAmt, resp2.UnbondingDeposit.Entries[0].Balance, out.String())
+		var resp3 types.QueryGetUnbondingDepositResponse
+		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp3), out.String())
+		s.Require().NotEmpty(resp3.UnbondingDeposit)
+		s.Require().Equal(1, len(resp3.UnbondingDeposit.Entries))
+		s.Require().Equal(witAmt, resp3.UnbondingDeposit.Entries[0].Balance, out.String())
 
 		// Get account actual balance.
 		out, err = bankcliutil.QueryBalancesExec(s.ctx, depAddr, outflag)
 		s.Require().NoError(err)
-		var resp3 banktypes.QueryAllBalancesResponse
-		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp3))
-		amt1 := resp3.Balances.AmountOf(denom)
+		var resp4 banktypes.QueryAllBalancesResponse
+		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp4))
+		amt1 := resp4.Balances.AmountOf(denom)
 
 		// Require balance has not changed (except for fees payed) since the withdrawn amount is still in its unbonding period.
 		s.Require().Equal(amt0.Sub(feeAmt), amt1)
@@ -729,20 +669,20 @@ func (s *E2ETestSuite) TestCmdWithdraw() {
 		args = []string{depAddr.String(), idValidatorAddress2, outflag}
 		out, err = clitestutil.ExecTestCLICmd(s.ctx, cli.CmdShowDeposit(), args)
 		s.Require().NoError(err, out.String())
-		var resp4 types.QueryGetDepositResponse
-		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp4), out.String())
-		s.Require().NotEmpty(resp4.Deposit)
-		s.Require().Equal(witAmtDec, oldDepShares.Sub(resp4.Deposit.Shares), out.String())
+		var resp5 types.QueryGetDepositResponse
+		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp5), out.String())
+		s.Require().NotEmpty(resp5.Deposit)
+		s.Require().Equal(witAmtDec, oldDepShares.Sub(resp5.Deposit.Shares), out.String())
 
 		// Require the deposit pool still exists and matches the withdraw made.
 		args = []string{idValidatorAddress2, outflag}
 		out, err = clitestutil.ExecTestCLICmd(s.ctx, cli.CmdShowDepositPool(), args)
 		s.Require().NoError(err, out.String())
-		var resp5 types.QueryGetDepositPoolResponse
-		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp5), out.String())
-		s.Require().NotEmpty(resp5.DepositPool)
-		s.Require().Equal(witAmt, oldPoolTokens.Amount.Sub(resp5.DepositPool.Tokens.Amount), out.String())
-		s.Require().Equal(witAmtDec, oldPoolShares.Sub(resp5.DepositPool.Shares), out.String())
+		var resp6 types.QueryGetDepositPoolResponse
+		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp6), out.String())
+		s.Require().NotEmpty(resp6.DepositPool)
+		s.Require().Equal(witAmt, oldPoolTokens.Amount.Sub(resp6.DepositPool.Tokens.Amount), out.String())
+		s.Require().Equal(witAmtDec, oldPoolShares.Sub(resp6.DepositPool.Shares), out.String())
 
 		// Wait for the unbonding period and an additional block to be sure the
 		// unbonding deposit is mature when balance is checked.
@@ -785,77 +725,65 @@ func (s *E2ETestSuite) TestCmdWithdraw() {
 		args := []string{depAddr.String(), idValidatorAddress2, outflag}
 		out, err := clitestutil.ExecTestCLICmd(s.ctx, cli.CmdShowDeposit(), args)
 		s.Require().NoError(err, out.String())
-		var resp types.QueryGetDepositResponse
-		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp), out.String())
-		s.Require().NotEmpty(resp.Deposit)
+		var resp0 types.QueryGetDepositResponse
+		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp0), out.String())
+		s.Require().NotEmpty(resp0.Deposit)
 
 		// Execute valid withdraw transaction to validator2 and require it returns the success code.
 		witAmt1 := sdk.NewInt(100)
-		args = []string{
+		args = append([]string{
 			idValidatorAddress2,
 			sdk.NewCoin(denom, witAmt1).String(),
-			fmt.Sprintf("--%s=%s", flags.FlagFrom, depAddr.String()),
-			fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
-			fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
-			fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
-		}
+			fmt.Sprintf("--%s=%s", flags.FlagFrom, depAddr.String())},
+			commonFlags...,
+		)
 		out, err = clitestutil.ExecTestCLICmd(s.ctx, cli.CmdWithdraw(), args)
 		s.Require().NoError(err, out.String())
-		var resp0 sdk.TxResponse
-		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp0), out.String())
-		s.Require().Equal(successCode, resp0.Code, out.String())
+		s.RequireTxResponseWithCode(successCode, out)
 
 		// Execute valid withdraw transaction to validator2 and require it returns the success code.
 		witAmt2 := sdk.NewInt(200)
-		args = []string{
+		args = append([]string{
 			idValidatorAddress2,
 			sdk.NewCoin(denom, witAmt2).String(),
-			fmt.Sprintf("--%s=%s", flags.FlagFrom, depAddr.String()),
-			fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
-			fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
-			fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
-		}
+			fmt.Sprintf("--%s=%s", flags.FlagFrom, depAddr.String())},
+			commonFlags...,
+		)
 		out, err = clitestutil.ExecTestCLICmd(s.ctx, cli.CmdWithdraw(), args)
 		s.Require().NoError(err, out.String())
-		var resp1 sdk.TxResponse
-		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp1), out.String())
-		s.Require().Equal(successCode, resp1.Code, out.String())
+		s.RequireTxResponseWithCode(successCode, out)
 
 		// Require the unbonding deposit can be found through a query and has two entries,
 		// both with the expected balance.
 		argsQ := []string{depAddr.String(), idValidatorAddress2, outflag}
 		out, err = clitestutil.ExecTestCLICmd(s.ctx, cli.CmdShowUnbondingDeposit(), argsQ)
 		s.Require().NoError(err, out.String())
-		var resp2 types.QueryGetUnbondingDepositResponse
-		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp2), out.String())
-		s.Require().NotEmpty(resp2.UnbondingDeposit)
-		s.Require().Equal(2, len(resp2.UnbondingDeposit.Entries))
-		s.Require().Equal(witAmt1, resp2.UnbondingDeposit.Entries[0].Balance, out.String())
-		s.Require().Equal(witAmt2, resp2.UnbondingDeposit.Entries[1].Balance, out.String())
+		var resp1 types.QueryGetUnbondingDepositResponse
+		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp1), out.String())
+		s.Require().NotEmpty(resp1.UnbondingDeposit)
+		s.Require().Equal(2, len(resp1.UnbondingDeposit.Entries))
+		s.Require().Equal(witAmt1, resp1.UnbondingDeposit.Entries[0].Balance, out.String())
+		s.Require().Equal(witAmt2, resp1.UnbondingDeposit.Entries[1].Balance, out.String())
 
 		// Execute valid withdraw transaction to validator2 and require it returns the MaxEntries error.
 		witAmt3 := sdk.NewInt(300)
-		args = []string{
+		args = append([]string{
 			idValidatorAddress2,
 			sdk.NewCoin(denom, witAmt3).String(),
-			fmt.Sprintf("--%s=%s", flags.FlagFrom, depAddr.String()),
-			fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
-			fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
-			fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
-		}
+			fmt.Sprintf("--%s=%s", flags.FlagFrom, depAddr.String())},
+			commonFlags...,
+		)
 		out, err = clitestutil.ExecTestCLICmd(s.ctx, cli.CmdWithdraw(), args)
 		s.Require().NoError(err, out.String())
-		var resp3 sdk.TxResponse
-		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp3), out.String())
-		s.Require().Equal(types.ErrMaxUnbondingDepositEntries.ABCICode(), resp3.Code, out.String())
+		s.RequireTxResponseWithCode(types.ErrMaxUnbondingDepositEntries.ABCICode(), out)
 
 		// Require the unbonding deposit can be found through a query and it is unchanged.
 		out, err = clitestutil.ExecTestCLICmd(s.ctx, cli.CmdShowUnbondingDeposit(), argsQ)
 		s.Require().NoError(err, out.String())
-		var resp4 types.QueryGetUnbondingDepositResponse
-		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp4), out.String())
-		s.Require().NotEmpty(resp4.UnbondingDeposit)
-		s.Require().Equal(resp2.UnbondingDeposit, resp4.UnbondingDeposit)
+		var resp2 types.QueryGetUnbondingDepositResponse
+		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp2), out.String())
+		s.Require().NotEmpty(resp2.UnbondingDeposit)
+		s.Require().Equal(resp2.UnbondingDeposit, resp2.UnbondingDeposit)
 	})
 }
 
@@ -881,6 +809,11 @@ func (s *E2ETestSuite) TestCmdClaim() {
 	fees := sdk.NewCoins(sdk.NewCoin(denom, feeAmt)).String()
 	successCode := sdkerrors.SuccessABCICode
 	outflag := fmt.Sprintf("--%s=json", tmcli.OutputFlag)
+	commonFlags := []string{
+		fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
+		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
+		fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
+	}
 
 	testCases := []struct {
 		name       string
@@ -890,89 +823,66 @@ func (s *E2ETestSuite) TestCmdClaim() {
 	}{
 		{
 			"Error (Without validator address)",
-			[]string{
-				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDelegatorAddress),
-				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
-				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
-				fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
-			},
+			append([]string{
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDelegatorAddress)},
+				commonFlags...),
 			true, 0,
 		},
 		{
 			"Error (With amount)",
-			[]string{
+			append([]string{
 				idValidatorAddress,
 				sdk.NewCoin(denom, sdk.NewInt(1)).String(),
-				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDelegatorAddress),
-				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
-				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
-				fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
-			},
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDelegatorAddress)},
+				commonFlags...),
 			true, 0,
 		},
 		{
 			"Error (Without from-address)",
-			[]string{
+			append([]string{
 				idValidatorAddress,
-				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
-				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
-				fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
-			},
+				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation)},
+				commonFlags...),
 			true, 0,
 		},
 		{
 			"Error (Fail decoding validator address)",
-			[]string{
+			append([]string{
 				"not-a-validator-address",
-				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDelegatorAddress),
-				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
-				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
-				fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
-			},
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDelegatorAddress)},
+				commonFlags...),
 			true, 0,
 		},
 		{
 			"Error (Non valoper validator address)",
-			[]string{
+			append([]string{
 				idDelegatorAddress,
-				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDelegatorAddress),
-				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
-				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
-				fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
-			},
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDelegatorAddress)},
+				commonFlags...),
 			true, 0,
 		},
 		{
 			"Invalid (Not found validator address)",
-			[]string{
+			append([]string{
 				"cosmosvaloper1uhdmcuszs29hnyqtsjn9cm7cyrmkcnq4undkv5",
-				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDelegatorAddress),
-				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
-				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
-				fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
-			},
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDelegatorAddress)},
+				commonFlags...),
 			false, stakingtypes.ErrNoValidatorFound.ABCICode(),
 		},
 		{
 			"Invalid (No refund for address)",
-			[]string{
+			append([]string{
 				s.network.Validators[1].ValAddress.String(),
-				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDelegatorAddress),
-				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
-				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
-				fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
-			},
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDelegatorAddress)},
+				commonFlags...),
 			false, types.ErrNoRefundForAddress.ABCICode(),
 		},
 		{
 			"Valid transaction",
-			[]string{
+			append([]string{
 				idValidatorAddress,
-				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDelegatorAddress),
-				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
-				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
-				fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
-			},
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, idDelegatorAddress)},
+				commonFlags...),
 			false, successCode,
 		},
 	}
@@ -985,9 +895,7 @@ func (s *E2ETestSuite) TestCmdClaim() {
 				s.Require().Error(err)
 			} else {
 				s.Require().NoError(err, out.String())
-				var resp sdk.TxResponse
-				s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp), out.String())
-				s.Require().Equal(tc.txRespCode, resp.Code, out.String())
+				s.RequireTxResponseWithCode(tc.txRespCode, out)
 			}
 		})
 	}
@@ -1008,9 +916,9 @@ func (s *E2ETestSuite) TestCmdClaim() {
 		args = []string{idValidatorAddress, outflag}
 		out, err = clitestutil.ExecTestCLICmd(s.ctx, cli.CmdShowRefundPool(), args)
 		s.Require().NoError(err)
-		var resp1 types.QueryGetRefundPoolResponse
-		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp1))
-		s.Require().NotEmpty(resp1.RefundPool)
+		var resp0 types.QueryGetRefundPoolResponse
+		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp0))
+		s.Require().NotEmpty(resp0.RefundPool)
 
 		// Get account1 key from the keyring and get its address.
 		key, err := s.ctx.Keyring.Key("account1")
@@ -1023,15 +931,15 @@ func (s *E2ETestSuite) TestCmdClaim() {
 		args = []string{idDelegatorAddress1, idValidatorAddress, outflag}
 		out, err = clitestutil.ExecTestCLICmd(s.ctx, cli.CmdShowRefund(), args)
 		s.Require().NoError(err)
-		var resp0 types.QueryGetRefundResponse
-		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp0))
-		s.Require().NotNil(resp0.Refund)
+		var resp1 types.QueryGetRefundResponse
+		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp1))
+		s.Require().NotNil(resp1.Refund)
 
 		// Require refund and refund pool are correctly linked, because now only the
 		// refund for (acc1,val0) exists in the network.
-		s.Require().Equal(resp0.Refund.Shares, resp1.RefundPool.Shares)
-		s.Require().Equal(resp0.Refund.Shares, sdk.NewDecFromInt(resp1.RefundPool.Tokens.Amount))
-		refAmt := resp1.RefundPool.Tokens.Amount
+		s.Require().Equal(resp1.Refund.Shares, resp0.RefundPool.Shares)
+		s.Require().Equal(resp1.Refund.Shares, sdk.NewDecFromInt(resp0.RefundPool.Tokens.Amount))
+		refAmt := resp0.RefundPool.Tokens.Amount
 
 		// Get account initial balance
 		out, err = bankcliutil.QueryBalancesExec(s.ctx, addr, outflag)
@@ -1040,27 +948,22 @@ func (s *E2ETestSuite) TestCmdClaim() {
 		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp2))
 		amt0 := resp2.Balances.AmountOf(denom)
 
-		args = []string{
-			idValidatorAddress,
-			fmt.Sprintf("--%s=%s", flags.FlagFrom, addr.String()),
-			fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
-			fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
-			fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
-		}
-
 		// Execute transaction and require it returns success code.
+		args = append([]string{
+			idValidatorAddress,
+			fmt.Sprintf("--%s=%s", flags.FlagFrom, addr.String())},
+			commonFlags...,
+		)
 		out, err = clitestutil.ExecTestCLICmd(s.ctx, cli.CmdClaim(), args)
 		s.Require().NoError(err, out.String())
-		var resp3 sdk.TxResponse
-		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp3), out.String())
-		s.Require().Equal(successCode, resp3.Code, out.String())
+		s.RequireTxResponseWithCode(successCode, out)
 
 		// Get account actual balance.
 		out, err = bankcliutil.QueryBalancesExec(s.ctx, addr, outflag)
 		s.Require().NoError(err)
-		var resp4 banktypes.QueryAllBalancesResponse
-		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp4))
-		amt1 := resp4.Balances.AmountOf(denom)
+		var resp3 banktypes.QueryAllBalancesResponse
+		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp3))
+		amt1 := resp3.Balances.AmountOf(denom)
 
 		// Require refund has been added to account balance.
 		s.Require().Equal(refAmt.Sub(feeAmt), amt1.Sub(amt0))
@@ -1081,37 +984,24 @@ func (s *E2ETestSuite) TestCmdClaim() {
 
 		// Require that a new claim transaction for the already claimed refund returns
 		// the "no refund for address" error code.
-		args = []string{
+		args = append([]string{
 			idValidatorAddress,
-			fmt.Sprintf("--%s=%s", flags.FlagFrom, addr.String()),
-			fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
-			fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
-			fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
-		}
+			fmt.Sprintf("--%s=%s", flags.FlagFrom, addr.String())},
+			commonFlags...,
+		)
 		out, err = clitestutil.ExecTestCLICmd(s.ctx, cli.CmdClaim(), args)
 		s.Require().NoError(err, out.String())
-		var resp5 sdk.TxResponse
-		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp5), out.String())
-		s.Require().Equal(types.ErrNoRefundForAddress.ABCICode(), resp5.Code, out.String())
+		s.RequireTxResponseWithCode(types.ErrNoRefundForAddress.ABCICode(), out)
 
 		// Get account actual balance
 		out, err = bankcliutil.QueryBalancesExec(s.ctx, addr, outflag)
 		s.Require().NoError(err)
-		var resp6 banktypes.QueryAllBalancesResponse
-		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp6))
-		amt2 := resp6.Balances.AmountOf(denom)
+		var resp4 banktypes.QueryAllBalancesResponse
+		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp4))
+		amt2 := resp4.Balances.AmountOf(denom)
 
 		// Require that balance has not changed (only decreased due to fees payed to
 		// execute the second claim transaction.
 		s.Require().Equal(amt1.Sub(feeAmt), amt2)
 	})
 }
-
-/*
-args := []string{
-	fmt.Sprintf("--%s=json", tmcli.OutputFlag),
-	fmt.Sprintf("--%s=0", flags.FlagOffset),
-	fmt.Sprintf("--%s=%d", flags.FlagLimit, uint64(len(objs))),
-	fmt.Sprintf("--%s", flags.FlagCountTotal),
-}
-*/
