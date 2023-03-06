@@ -16,7 +16,7 @@ func (k Keeper) Withdraw(
 	valAddr sdk.ValAddress,
 	tokens sdk.Coin,
 ) (sdk.Coin, time.Time, error) {
-	
+
 	deposit, found := k.GetDeposit(ctx, depAddr, valAddr)
 	if !found {
 		return sdk.NewCoin(tokens.Denom, sdk.NewInt(0)), time.Time{}, types.ErrNoDepositForAddress
@@ -84,7 +84,7 @@ func (k Keeper) ComputeAssociatedShares(
 	if shares.GT(depositorShares) {
 		shares = depositorShares
 	}
-	
+
 	// Ensure that the pool has enough shares to be removed.
 	if depPool.Shares.LT(shares) {
 		return sdk.NewDec(0), sdkerrors.Wrap(types.ErrNotEnoughDepositShares, deposit.Shares.String())
@@ -120,13 +120,13 @@ func (k Keeper) Unbond(
 	return issuedTokensAmt, nil
 }
 
-// Checks if a user has already requested the maximum number of allowed unbonding deposits for a 
-// specific validator in the considered timeframe
-func(k Keeper) HasMaxUnbondingDepositEntries(ctx sdk.Context, depAddr sdk.AccAddress, valAddr sdk.ValAddress) bool {
+// Checks if a user has already requested the maximum number of allowed unbonding deposits for a
+// specific validator in the considered timeframe.
+func (k Keeper) HasMaxUnbondingDepositEntries(ctx sdk.Context, depAddr sdk.AccAddress, valAddr sdk.ValAddress) bool {
 	ubd, found := k.GetUnbondingDeposit(ctx, depAddr, valAddr)
 	if !found {
-		return true
+		return false
 	}
 
 	return len(ubd.Entries) > int(k.MaxEntries(ctx))
-} 
+}
