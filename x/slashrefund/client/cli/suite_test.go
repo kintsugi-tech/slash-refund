@@ -30,7 +30,11 @@ import (
 
 // UnbondingTime is the value that will be set in the staking module params to override
 // the default value in order to allow full withdraw transaction lifecycle testing.
-const UnbondingTime = time.Second * 5
+const UnbondingTime = time.Second * 7
+
+// MaxUnbondingEntries is the value that will be set in the slashrefund module params to override
+// the default value of MaxEntries param.
+const MaxUnbondingEntries = uint32(2)
 
 type E2ETestSuite struct {
 	suite.Suite
@@ -45,18 +49,24 @@ func NewE2ETestSuite(cfg network.Config) *E2ETestSuite {
 	return &E2ETestSuite{cfg: cfg}
 }
 
-// This function adds specific deposits and refunds to network configuration.
-// This is done to make the transactions' tests independent one to another.
+// This function adds specific deposits and refunds to network configuration, and also
+// it sets the following params:
+//   - slashrefund module:    MaxEntries       is set to 2;
+//   - staking module:        UnbondingTime    is set to 7 seconds.
+//
+// Deposits and refunds are set to make the transactions' tests independent one to
+// another.
 //
 // TestCmdClaim needs a refund to be claimed to test a valid transaction.
 // Two refunds will be set:
-//  1. refund for (acc0,val0), claimed in TestCmdClaim/Valid_transaction
-//  2. refund for (acc1,val0), claimed in TestCmdClaim/Valid_transaction_validate
+//  1. refund for (acc0,val0), claimed in TestCmdClaim/Valid_transaction;
+//  2. refund for (acc1,val0), claimed in TestCmdClaim/Valid_transaction_validation.
 //
 // TestCmdWithdraw needs a deposit to be claimed to test a valid transacion.
-// Two deposits will be set:
-//  1. deposit for (acc0,val2), withdrew in TestCmdWithdraw/Valid_transaction
-//  2. deposit for (acc1,val2), withdrew in TestCmdWithdraw/Valid_transaction_validate
+// Three deposits will be set:
+//  1. deposit for (acc0,val2), withdrew in TestCmdWithdraw/Valid_transaction;
+//  2. deposit for (acc1,val2), withdrew in TestCmdWithdraw/Valid_transaction_validation.
+//  3. deposit for (acc2,val2), withdrew in TestCmdWithdraw/Invalid_(Max_entries_exceeded).
 func (s *E2ETestSuite) setObjectsToNetworkConfig(l sdknetwork.Logger, config network.Config) network.Config {
 
 	l.Log("setting objects in network config...")
@@ -95,6 +105,7 @@ func (s *E2ETestSuite) setObjectsToNetworkConfig(l sdknetwork.Logger, config net
 	bz, err = derive(mnemonic, keyring.DefaultBIP39Passphrase, sdk.GetConfig().GetFullBIP44Path())
 	s.Require().NoError(err, "error setting network objects: failed to derive privk from given mnemonic 2")
 	pubk = generate(bz).PubKey().Address()
+	address2 := sdk.AccAddress(pubk).String()
 	validator2 := sdk.ValAddress(pubk).String()
 
 	// Set refund and refund pool (address0,validator0).
@@ -127,12 +138,17 @@ func (s *E2ETestSuite) setObjectsToNetworkConfig(l sdknetwork.Logger, config net
 		ValidatorAddress: validator2,
 		Shares:           shares,
 	}
+	dep22 := types.Deposit{
+		DepositorAddress: address2,
+		ValidatorAddress: validator2,
+		Shares:           shares,
+	}
 	depPool2 := types.DepositPool{
 		OperatorAddress: validator2,
-		Tokens:          sdk.NewCoin(denom, shares.TruncateInt().MulRaw(2)),
-		Shares:          shares.MulInt64(2),
+		Tokens:          sdk.NewCoin(denom, shares.TruncateInt().MulRaw(3)),
+		Shares:          shares.MulInt64(3),
 	}
-	deposits = append(deposits, dep02, dep12)
+	deposits = append(deposits, dep02, dep12, dep22)
 	depositPools = append(depositPools, depPool2)
 
 	// Set slashrefund module genesis.
@@ -142,13 +158,15 @@ func (s *E2ETestSuite) setObjectsToNetworkConfig(l sdknetwork.Logger, config net
 	state.DepositList = append(state.DepositList, deposits...)
 	state.DepositPoolList = append(state.DepositPoolList, depositPools...)
 	state.Params = types.DefaultParams()
+	state.Params.MaxEntries = MaxUnbondingEntries
 	buf, err := config.Codec.MarshalJSON(&state)
 	s.Require().NoError(err)
 	config.GenesisState[types.ModuleName] = buf
-	l.Log("set refund and deposits in network config")
+	l.Logf("set max unbonding entries in network config (current value: %d)", MaxUnbondingEntries)
+	l.Log("set refunds and deposits in network config")
 
 	// Set staking module genesis: UnbondingTime used in deposit withdraw is the same
-	// UnbondingTime of the staking module. It will be set to 5 seconds in order to
+	// UnbondingTime of the staking module. It will be set to 7 seconds in order to
 	// allow complete testing of withdraw command.
 	stateSt := stakingtypes.GenesisState{}
 	stateSt.Params = stakingtypes.DefaultParams()
@@ -164,7 +182,7 @@ func (s *E2ETestSuite) setObjectsToNetworkConfig(l sdknetwork.Logger, config net
 	var balances []banktypes.Balance
 	balances = append(balances, banktypes.Balance{
 		Address: authtypes.NewModuleAddress(types.ModuleName).String(),
-		Coins:   sdk.Coins{sdk.NewCoin(denom, shares.TruncateInt().MulRaw(4))},
+		Coins:   sdk.Coins{sdk.NewCoin(denom, shares.TruncateInt().MulRaw(5))},
 	})
 	bankstate := banktypes.GenesisState{}
 	bankstate.Balances = append(bankstate.Balances, balances...)
@@ -202,6 +220,14 @@ func (s *E2ETestSuite) SetupSuite() {
 	// This account is already funded during network setup phase.
 	s.T().Log("importing account1 in client keyring.")
 	_, err = s.ctx.Keyring.NewAccount("account1", s.cfg.Mnemonics[1], keyring.DefaultBIP39Passphrase, sdk.GetConfig().GetFullBIP44Path(), hd.Secp256k1)
+	s.Require().NoError(err)
+	s.T().Log("finished setting up suite.")
+
+	// Import account2 (account of validator2) in the client keyring.
+	// For this account a deposit is available (set in Genesis).
+	// This account is already funded during network setup phase.
+	s.T().Log("importing account2 in client keyring.")
+	_, err = s.ctx.Keyring.NewAccount("account2", s.cfg.Mnemonics[2], keyring.DefaultBIP39Passphrase, sdk.GetConfig().GetFullBIP44Path(), hd.Secp256k1)
 	s.Require().NoError(err)
 	s.T().Log("finished setting up suite.")
 }
@@ -744,6 +770,92 @@ func (s *E2ETestSuite) TestCmdWithdraw() {
 		out, err = clitestutil.ExecTestCLICmd(s.ctx, cli.CmdShowUnbondingDeposit(), args)
 		s.Require().Error(err)
 		s.Require().ErrorContains(err, "key not found", "Unbonding deposit matured but still in queue.")
+	})
+
+	s.Run("Invalid (Max entries exceeded)", func() {
+		// Get account2 key from the keyring and get its address.
+		// For this account a deposit for validator2 is available (set into network
+		// genesis configuration).
+		key, err := s.ctx.Keyring.Key("account2")
+		pub, err := key.GetPubKey()
+		s.Require().NoError(err)
+		depAddr := sdk.AccAddress(pub.Address())
+
+		// Require the deposit for (acc2,val2) is correctly set in genesis when network is set up.
+		args := []string{depAddr.String(), idValidatorAddress2, outflag}
+		out, err := clitestutil.ExecTestCLICmd(s.ctx, cli.CmdShowDeposit(), args)
+		s.Require().NoError(err, out.String())
+		var resp types.QueryGetDepositResponse
+		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp), out.String())
+		s.Require().NotEmpty(resp.Deposit)
+
+		// Execute valid withdraw transaction to validator2 and require it returns the success code.
+		witAmt1 := sdk.NewInt(100)
+		args = []string{
+			idValidatorAddress2,
+			sdk.NewCoin(denom, witAmt1).String(),
+			fmt.Sprintf("--%s=%s", flags.FlagFrom, depAddr.String()),
+			fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
+			fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
+			fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
+		}
+		out, err = clitestutil.ExecTestCLICmd(s.ctx, cli.CmdWithdraw(), args)
+		s.Require().NoError(err, out.String())
+		var resp0 sdk.TxResponse
+		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp0), out.String())
+		s.Require().Equal(successCode, resp0.Code, out.String())
+
+		// Execute valid withdraw transaction to validator2 and require it returns the success code.
+		witAmt2 := sdk.NewInt(200)
+		args = []string{
+			idValidatorAddress2,
+			sdk.NewCoin(denom, witAmt2).String(),
+			fmt.Sprintf("--%s=%s", flags.FlagFrom, depAddr.String()),
+			fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
+			fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
+			fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
+		}
+		out, err = clitestutil.ExecTestCLICmd(s.ctx, cli.CmdWithdraw(), args)
+		s.Require().NoError(err, out.String())
+		var resp1 sdk.TxResponse
+		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp1), out.String())
+		s.Require().Equal(successCode, resp1.Code, out.String())
+
+		// Require the unbonding deposit can be found through a query and has two entries,
+		// both with the expected balance.
+		argsQ := []string{depAddr.String(), idValidatorAddress2, outflag}
+		out, err = clitestutil.ExecTestCLICmd(s.ctx, cli.CmdShowUnbondingDeposit(), argsQ)
+		s.Require().NoError(err, out.String())
+		var resp2 types.QueryGetUnbondingDepositResponse
+		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp2), out.String())
+		s.Require().NotEmpty(resp2.UnbondingDeposit)
+		s.Require().Equal(2, len(resp2.UnbondingDeposit.Entries))
+		s.Require().Equal(witAmt1, resp2.UnbondingDeposit.Entries[0].Balance, out.String())
+		s.Require().Equal(witAmt2, resp2.UnbondingDeposit.Entries[1].Balance, out.String())
+
+		// Execute valid withdraw transaction to validator2 and require it returns the MaxEntries error.
+		witAmt3 := sdk.NewInt(300)
+		args = []string{
+			idValidatorAddress2,
+			sdk.NewCoin(denom, witAmt3).String(),
+			fmt.Sprintf("--%s=%s", flags.FlagFrom, depAddr.String()),
+			fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
+			fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
+			fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
+		}
+		out, err = clitestutil.ExecTestCLICmd(s.ctx, cli.CmdWithdraw(), args)
+		s.Require().NoError(err, out.String())
+		var resp3 sdk.TxResponse
+		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp3), out.String())
+		s.Require().Equal(types.ErrMaxUnbondingDepositEntries.ABCICode(), resp3.Code, out.String())
+
+		// Require the unbonding deposit can be found through a query and it is unchanged.
+		out, err = clitestutil.ExecTestCLICmd(s.ctx, cli.CmdShowUnbondingDeposit(), argsQ)
+		s.Require().NoError(err, out.String())
+		var resp4 types.QueryGetUnbondingDepositResponse
+		s.Require().NoError(s.cdc.UnmarshalJSON(out.Bytes(), &resp4), out.String())
+		s.Require().NotEmpty(resp4.UnbondingDeposit)
+		s.Require().Equal(resp2.UnbondingDeposit, resp4.UnbondingDeposit)
 	})
 }
 
