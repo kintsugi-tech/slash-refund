@@ -128,5 +128,5 @@ func (k Keeper) HasMaxUnbondingDepositEntries(ctx sdk.Context, depAddr sdk.AccAd
 		return false
 	}
 
-	return len(ubd.Entries) > int(k.MaxEntries(ctx))
+	return len(ubd.Entries) >= int(k.MaxEntries(ctx))
 }
