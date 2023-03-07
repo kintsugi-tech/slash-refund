@@ -5,6 +5,7 @@ const (
 	EventTypeWithdraw       = "withdraw"
 	EventTypeClaim          = "claim"
 	EventTypeCompleteUnbond = "complete_unbond"
+	EventTypeRefund         = "refund"
 
 	AttributeKeyValidator      = "validator"
 	AttributeKeyDepositor      = "depositor"
