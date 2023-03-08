@@ -11,17 +11,20 @@ func (k Keeper) Claim(
 	valAddr sdk.ValAddress,
 ) (refundCoins sdk.Coins, err error) {
 
-	// 0. Get refund and refund pool
-	zeroCoins := sdk.NewCoins(sdk.NewCoin(k.AllowedTokens(ctx)[0], sdk.NewInt(0)))
-
 	refund, found := k.GetRefund(ctx, delAddr, valAddr)
 	if !found {
-		return zeroCoins, types.ErrNoRefundForAddress
+		return sdk.NewCoins(sdk.NewCoin(k.AllowedTokens(ctx)[0], sdk.NewInt(0))), types.ErrNoRefundForAddress
 	}
 
+	// Get the refund pool. If at this point it can't be found, then panic is called.
+	// This is done because a refund cannot exists without the linked refund pool.
+	// When refund il claimed it is removed from the store, and if it was the last
+	// refund linked to the refund pool, then also the refund pool is removed. A
+	// situation in which a refund is found but no linked refund pool can be found
+	// is the result of a serious malfunction thus panic is called.
 	refundPool, found := k.GetRefundPool(ctx, valAddr)
 	if !found {
-		panic("Found refund but not the refund pool")
+		panic("found refund but not the refund pool")
 	}
 
 	shares := refund.Shares
@@ -30,16 +33,13 @@ func (k Keeper) Claim(
 
 	}
 
-	// 2. Remove shares and tokens from redundPool
 	refundPool, drawnAmt := k.RemoveRefPoolTokensAndShares(ctx, refundPool, shares)
 
-	// 3. Send coins to delegator
 	refundCoins = sdk.NewCoins(sdk.NewCoin(k.AllowedTokens(ctx)[0], drawnAmt))
-	senderModule := types.ModuleName
-	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, senderModule, delAddr, refundCoins)
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, delAddr, refundCoins)
 	if err != nil {
 		k.AddRefPoolTokensAndShares(ctx, refundPool, sdk.NewCoin(k.AllowedTokens(ctx)[0], drawnAmt))
-		return zeroCoins, err
+		return sdk.NewCoins(sdk.NewCoin(k.AllowedTokens(ctx)[0], sdk.NewInt(0))), err
 	}
 
 	k.RemoveRefund(ctx, refund)
