@@ -1084,4 +1084,36 @@ func TestRefundPoolGetAll(t *testing.T) {
 	items := createNRefundPool(keeper, ctx, 10)
 	require.ElementsMatch(t, items, keeper.GetAllRefundPool(ctx))
 }
+
+func processEvents(t *testing.T, ctx sdk.Context) (valAddr sdk.ValAddress, amount sdk.Int) {
+
+	var slashEvents []sdk.Event
+
+	events := ctx.EventManager().Events()
+
+	for _, event := range events {
+		if event.Type == types.EventTypeRefund {
+			slashEvents = append(slashEvents, event)
+		}
+	}
+	require.Equal(t, 1, len(slashEvents), fmt.Sprintf("expected one refund event, got: %d", len(slashEvents)))
+
+	valAddr = sdk.ValAddress{}
+	amount = sdk.ZeroInt()
+
+	for _, attr := range slashEvents[0].Attributes {
+		switch string(attr.GetKey()) {
+		case "validator":
+			valAddrE, err := sdk.ValAddressFromBech32(string(attr.GetValue()))
+			require.NoError(t, err)
+			valAddr = valAddrE
+		case "amount":
+			amountE, ok := sdk.NewIntFromString(string(attr.GetValue()))
+			require.True(t, ok)
+			amount = amountE
+		}
+	}
+	return valAddr, amount
+}
+
 */
