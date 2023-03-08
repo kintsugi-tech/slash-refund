@@ -12,16 +12,18 @@ import (
 	"google.golang.org/grpc/codes"
 )
 
-type Querier struct {
+type queryServer struct {
 	K Keeper
 }
 
-var _ types.QueryServer = Querier{}
+func NewQueryServerImpl(k Keeper) types.QueryServer {
+	return &queryServer{k}
+}
 
 // -------------------------------------------------------------------------------------------------
 // Params
 // -------------------------------------------------------------------------------------------------
-func (q Querier) Params(
+func (q queryServer) Params(
 	c context.Context,
 	req *types.QueryParamsRequest,
 ) (*types.QueryParamsResponse, error) {
@@ -37,7 +39,7 @@ func (q Querier) Params(
 // Deposit
 // -------------------------------------------------------------------------------------------------
 // Query to get a single deposit associated to the tuple (depositor, validator).
-func (q Querier) Deposit(
+func (q queryServer) Deposit(
 	c context.Context,
 	req *types.QueryGetDepositRequest,
 ) (*types.QueryGetDepositResponse, error) {
@@ -75,7 +77,7 @@ func (q Querier) Deposit(
 }
 
 // Query to get all stored deposits.
-func (q Querier) DepositAll(
+func (q queryServer) DepositAll(
 	c context.Context,
 	req *types.QueryAllDepositRequest,
 ) (*types.QueryAllDepositResponse, error) {
@@ -113,7 +115,7 @@ func (q Querier) DepositAll(
 // DepositPool
 // -------------------------------------------------------------------------------------------------
 // Query to get, if exists, the deposit pool associated to a single validator.
-func (q Querier) DepositPool(
+func (q queryServer) DepositPool(
 	c context.Context,
 	req *types.QueryGetDepositPoolRequest,
 ) (*types.QueryGetDepositPoolResponse, error) {
@@ -138,7 +140,7 @@ func (q Querier) DepositPool(
 }
 
 // Query to get all stored deposit pools.
-func (q Querier) DepositPoolAll(
+func (q queryServer) DepositPoolAll(
 	c context.Context,
 	req *types.QueryAllDepositPoolRequest,
 ) (*types.QueryAllDepositPoolResponse, error) {
@@ -175,7 +177,7 @@ func (q Querier) DepositPoolAll(
 // UnbondingDeposit
 // -------------------------------------------------------------------------------------------------
 // Query to get a single unbonding deposit associated to the tuple (depositor, validator).
-func (q Querier) UnbondingDeposit(
+func (q queryServer) UnbondingDeposit(
 	c context.Context,
 	req *types.QueryGetUnbondingDepositRequest,
 ) (*types.QueryGetUnbondingDepositResponse, error) {
@@ -202,7 +204,7 @@ func (q Querier) UnbondingDeposit(
 }
 
 // Query to get all stored unbonding deposits.
-func (q Querier) UnbondingDepositAll(
+func (q queryServer) UnbondingDepositAll(
 	c context.Context,
 	req *types.QueryAllUnbondingDepositRequest,
 ) (*types.QueryAllUnbondingDepositResponse, error) {
@@ -246,7 +248,7 @@ func (q Querier) UnbondingDepositAll(
 // Refund
 // -------------------------------------------------------------------------------------------------
 // Query to get the refund associated to the touple (delegator, validator).
-func (q Querier) Refund(
+func (q queryServer) Refund(
 	c context.Context,
 	req *types.QueryGetRefundRequest,
 ) (*types.QueryGetRefundResponse, error) {
@@ -281,7 +283,7 @@ func (q Querier) Refund(
 }
 
 // Query to get all the stored refund.
-func (q Querier) RefundAll(
+func (q queryServer) RefundAll(
 	c context.Context,
 	req *types.QueryAllRefundRequest,
 ) (*types.QueryAllRefundResponse, error) {
@@ -320,7 +322,7 @@ func (q Querier) RefundAll(
 // RefundPool
 // -------------------------------------------------------------------------------------------------
 // Query to get the refund pool associated to a validator.
-func (q Querier) RefundPool(
+func (q queryServer) RefundPool(
 	c context.Context,
 	req *types.QueryGetRefundPoolRequest,
 ) (*types.QueryGetRefundPoolResponse, error) {
@@ -343,7 +345,7 @@ func (q Querier) RefundPool(
 }
 
 // Query to get all stored refund pools.
-func (q Querier) RefundPoolAll(
+func (q queryServer) RefundPoolAll(
 	c context.Context,
 	req *types.QueryAllRefundPoolRequest,
 ) (*types.QueryAllRefundPoolResponse, error) {

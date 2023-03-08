@@ -22,8 +22,12 @@ func NewMsgServerImpl(k Keeper) types.MsgServer {
 
 var _ types.MsgServer = msgServer{}
 
-// Manages the deposit of funds from a user to a particular validator into the module KVStore.
-func (ms msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types.MsgDepositResponse, error) {
+// Deposit manages the deposit of funds from a user to a particular validator into the module's 
+// KVStore.
+func (ms msgServer) Deposit(
+	goCtx context.Context, 
+	msg *types.MsgDeposit,
+) (*types.MsgDepositResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// === VALIDATION CHECKS ===
@@ -70,11 +74,6 @@ func (ms msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*type
 			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.String()),
 			sdk.NewAttribute(types.AttributeKeyNewShares, newShares.String()),
 		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.DepositorAddress),
-		),
 	})
 
 	return &types.MsgDepositResponse{}, nil
@@ -84,7 +83,10 @@ func (ms msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*type
 // received will be based on the amount of shares the user holds and the amount of tokens associated
 // to a validator. The tokens associated to a validator and the shares ratio can change due to
 // slashing events.
-func (ms msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*types.MsgWithdrawResponse, error) {
+func (ms msgServer) Withdraw(
+	goCtx context.Context, 
+	msg *types.MsgWithdraw,
+) (*types.MsgWithdrawResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// === VALIDATION CHECKS ===
@@ -128,17 +130,15 @@ func (ms msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*ty
 			sdk.NewAttribute(sdk.AttributeKeyAmount, witTokens.Amount.String()),
 			sdk.NewAttribute(types.AttributeKeyCompletionTime, completionTime.Format(time.RFC3339)),
 		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.DepositorAddress),
-		),
 	})
 
 	return &types.MsgWithdrawResponse{CompletionTime: completionTime}, nil
 }
 
-func (ms msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.MsgClaimResponse, error) {
+func (ms msgServer) Claim(
+	goCtx context.Context, 
+	msg *types.MsgClaim,
+) (*types.MsgClaimResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// === VALIDATION CHECKS ===
@@ -168,10 +168,6 @@ func (ms msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.Ms
 				sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress),
 				sdk.NewAttribute(types.AttributeKeyToken, coin.Denom),
 				sdk.NewAttribute(sdk.AttributeKeyAmount, coin.Amount.String()),
-			),
-			sdk.NewEvent(
-				sdk.EventTypeMessage,
-				sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 			),
 		})
 	}

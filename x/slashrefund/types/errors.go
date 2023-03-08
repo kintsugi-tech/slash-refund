@@ -1,7 +1,5 @@
 package types
 
-// DONTCOVER
-
 import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -16,7 +14,7 @@ var (
 	ErrInsufficientShares                         = sdkerrors.Register(ModuleName, 16, "insufficient shares")
 	ErrInsufficientTokens                         = sdkerrors.Register(ModuleName, 17, "insufficient tokens")
 	ErrZeroTokensQuotient                         = sdkerrors.Register(ModuleName, 18, "cannot divide shares by zero tokens")
-	ErrDepositorShareExRateInvalid                = sdkerrors.Register(ModuleName, 19, "cannot deposit for validators with invalid (zero) ex-rate")
+	ErrDepositorShareExRateInvalid                = sdkerrors.Register(ModuleName, 19, "cannot deposit for validators with invalid (zero) exchange-rate")
 	ErrNotEnoughDepositShares                     = sdkerrors.Register(ModuleName, 20, "not enough deposit shares")
 	ErrNoUnbondingDeposit                         = sdkerrors.Register(ModuleName, 21, "no unbonding deposit found")
 	ErrNoRefundForAddress                         = sdkerrors.Register(ModuleName, 22, "no refund for (address, validator) tuple")

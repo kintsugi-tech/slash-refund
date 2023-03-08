@@ -1,18 +1,239 @@
 package keeper_test
 
 import (
-	"context"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	banktestutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
+
+	"github.com/made-in-block/slash-refund/app"
+	"github.com/made-in-block/slash-refund/testutil/testsuite"
 	"github.com/made-in-block/slash-refund/x/slashrefund/keeper"
-	"github.com/made-in-block/slash-refund/x/slashrefund/testslashrefund"
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
+
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 
 	"github.com/stretchr/testify/require"
 )
+
+var (
+	numDelAddrs = 1
+	numValAddrs = 1
+	numDepAddrs = 1
+)
+
+func SetupMsgServerTest() (
+	*app.App, 
+	sdk.Context, 
+	[]sdk.AccAddress, 
+	[]sdk.ValAddress,
+	[]sdk.AccAddress,
+) {
+
+	// Setup delegators
+	delAddrs := testsuite.GenerateNAddresses(numDelAddrs)
+	delAccs := testsuite.ConvertAddressesToAccAddr(delAddrs)
+	balances := testsuite.GenerateBalances(delAccs)
+
+	// Setup validators
+	valAddrs := testsuite.GenerateNAddresses(numValAddrs)
+	valAccs := testsuite.ConvertAddressesToValAddr(valAddrs)
+
+	// Setup depositors
+	depAddrs := testsuite.GenerateNAddresses(numDepAddrs)
+	depAccs := testsuite.ConvertAddressesToAccAddr(depAddrs)
+	depBalances := testsuite.GenerateBalances(depAccs)
+
+	balances = append(balances, depBalances...)
+
+	app, ctx := testsuite.CreateTestApp(delAccs, valAccs, balances, false)
+
+	return app, ctx, delAccs, valAccs, depAccs
+}
+
+// -------------------------------------------------------------------------------------------------
+// Deposit
+// -------------------------------------------------------------------------------------------------
+func TestDepositValid(t *testing.T) {
+	app, ctx, _, validators, depositors := SetupMsgServerTest()
+
+	msgServer := keeper.NewMsgServerImpl(app.SlashrefundKeeper)
+
+	msg := &types.MsgDeposit{
+		DepositorAddress: depositors[0].String(),
+		ValidatorAddress: validators[0].String(),
+		Amount: sdk.NewCoin(types.DefaultAllowedTokens[0], sdk.NewInt(1)),
+	}
+	_, err := msgServer.Deposit(ctx, msg)
+	require.NoError(t, err)
+}
+
+func TestDepositNotValidatorBech32(t *testing.T) {
+	app, ctx, _, _, depositors := SetupMsgServerTest()
+
+	msgServer := keeper.NewMsgServerImpl(app.SlashrefundKeeper)
+
+	msg := &types.MsgDeposit{
+		DepositorAddress: depositors[0].String(),
+		ValidatorAddress: depositors[0].String(),
+		Amount: sdk.NewCoin(types.DefaultAllowedTokens[0], sdk.NewInt(1)),
+	}
+	_, err := msgServer.Deposit(ctx, msg)
+	require.Error(t, err)
+}
+
+func TestDepositNotValidator(t *testing.T) {
+	app, ctx, _, _, depositors := SetupMsgServerTest()
+
+	msgServer := keeper.NewMsgServerImpl(app.SlashrefundKeeper)
+
+	bech32PrefixValAddr := sdk.GetConfig().GetBech32ValidatorAddrPrefix()
+
+	val := sdk.MustBech32ifyAddressBytes(bech32PrefixValAddr, depositors[0])
+
+	msg := &types.MsgDeposit{
+		DepositorAddress: depositors[0].String(),
+		ValidatorAddress: val,
+		Amount: sdk.NewCoin(types.DefaultAllowedTokens[0], sdk.NewInt(1)),
+	}
+	_, err := msgServer.Deposit(ctx, msg)
+	require.ErrorIs(t, err, stakingtypes.ErrNoValidatorFound)
+}
+
+func TestDepositNotAccountBech32(t *testing.T) {
+	app, ctx, _, validators, _ := SetupMsgServerTest()
+
+	msgServer := keeper.NewMsgServerImpl(app.SlashrefundKeeper)
+
+	msg := &types.MsgDeposit{
+		DepositorAddress: validators[0].String(),
+		ValidatorAddress: validators[0].String(),
+		Amount: sdk.NewCoin(types.DefaultAllowedTokens[0], sdk.NewInt(1)),
+	}
+	_, err := msgServer.Deposit(ctx, msg)
+	require.Error(t, err)
+}
+
+func TestDepositNotAllowedTokens(t *testing.T) {
+	app, ctx, _, validators, depositors := SetupMsgServerTest()
+
+	msgServer := keeper.NewMsgServerImpl(app.SlashrefundKeeper)
+
+	msg := &types.MsgDeposit{
+		DepositorAddress: depositors[0].String(),
+		ValidatorAddress: validators[0].String(),
+		Amount: sdk.NewCoin("mib", sdk.NewInt(1)),
+	}
+	_, err := msgServer.Deposit(ctx, msg)
+	require.ErrorIs(t, err, sdkerrors.ErrInvalidRequest)
+}
+
+func TestDepositZeroAmount(t *testing.T) {
+	app, ctx, _, validators, depositors := SetupMsgServerTest()
+
+	msgServer := keeper.NewMsgServerImpl(app.SlashrefundKeeper)
+
+	msg := &types.MsgDeposit{
+		DepositorAddress: depositors[0].String(),
+		ValidatorAddress: validators[0].String(),
+		Amount: sdk.NewCoin(types.DefaultAllowedTokens[0], sdk.NewInt(0)),
+	}
+	_, err := msgServer.Deposit(ctx, msg)
+	require.ErrorIs(t, err, types.ErrZeroDeposit)
+}
+
+// -------------------------------------------------------------------------------------------------
+// Withdraw 
+// -------------------------------------------------------------------------------------------------
+func TestWithdrawNotValidatorBech32(t *testing.T) {
+	app, ctx, _, _, depositors := SetupMsgServerTest()
+
+	msgServer := keeper.NewMsgServerImpl(app.SlashrefundKeeper)
+
+	msg := &types.MsgWithdraw{
+		DepositorAddress: depositors[0].String(),
+		ValidatorAddress: depositors[0].String(),
+		Amount: sdk.NewCoin(types.DefaultAllowedTokens[0], sdk.NewInt(1)),
+	}
+	_, err := msgServer.Withdraw(ctx, msg)
+	require.Error(t, err)
+}
+
+func TestWithdrawNotAccountBech32(t *testing.T) {
+	app, ctx, _, validators, _ := SetupMsgServerTest()
+
+	msgServer := keeper.NewMsgServerImpl(app.SlashrefundKeeper)
+
+	msg := &types.MsgWithdraw{
+		DepositorAddress: validators[0].String(),
+		ValidatorAddress: validators[0].String(),
+		Amount: sdk.NewCoin(types.DefaultAllowedTokens[0], sdk.NewInt(1)),
+	}
+	_, err := msgServer.Withdraw(ctx, msg)
+	require.Error(t, err)
+}
+
+func TestWithdrawNotAllowedTokens(t *testing.T) {
+
+	app, ctx, _, validators, depositors := SetupMsgServerTest()
+
+	msgServer := keeper.NewMsgServerImpl(app.SlashrefundKeeper)
+
+	msg := &types.MsgWithdraw{
+		DepositorAddress: depositors[0].String(),
+		ValidatorAddress: validators[0].String(),
+		Amount: sdk.NewCoin("mib", sdk.NewInt(1)),
+	}
+	_, err := msgServer.Withdraw(ctx, msg)
+	require.ErrorIs(t, err, sdkerrors.ErrInvalidRequest)
+}
+
+func TestWithdrawZeroAmount(t *testing.T) {
+	app, ctx, _, validators, depositors := SetupMsgServerTest()
+
+	msgServer := keeper.NewMsgServerImpl(app.SlashrefundKeeper)
+
+	msg := &types.MsgWithdraw{
+		DepositorAddress: depositors[0].String(),
+		ValidatorAddress: validators[0].String(),
+		Amount: sdk.NewCoin(types.DefaultAllowedTokens[0], sdk.NewInt(0)),
+	}
+	_, err := msgServer.Withdraw(ctx, msg)
+	require.ErrorIs(t, err, types.ErrZeroDeposit)
+}
+
+// -------------------------------------------------------------------------------------------------
+// Claim 
+// -------------------------------------------------------------------------------------------------
+func TestClaimNotValidatorBech32(t *testing.T) {
+	app, ctx, _, _, depositors := SetupMsgServerTest()
+
+	msgServer := keeper.NewMsgServerImpl(app.SlashrefundKeeper)
+
+	msg := &types.MsgClaim{
+		DelegatorAddress: depositors[0].String(),
+		ValidatorAddress: depositors[0].String(),
+	}
+	_, err := msgServer.Claim(ctx, msg)
+	require.Error(t, err)
+}
+
+func TestClaimNotAccountBech32(t *testing.T) {
+	app, ctx, _, validators, _ := SetupMsgServerTest()
+
+	msgServer := keeper.NewMsgServerImpl(app.SlashrefundKeeper)
+
+	msg := &types.MsgClaim{
+		DelegatorAddress: validators[0].String(),
+		ValidatorAddress: validators[0].String(),
+	}
+	_, err := msgServer.Claim(ctx, msg)
+	require.Error(t, err)
+}
+
+/*
 
 func TestMsgServerClaim(t *testing.T) {
 
@@ -183,3 +404,4 @@ func setupMsgServer(t testing.TB) (types.MsgServer, context.Context) {
 	k, ctx := testslashrefund.NewTestKeeper(t)
 	return keeper.NewMsgServerImpl(*k), sdk.WrapSDKContext(ctx)
 }
+*/

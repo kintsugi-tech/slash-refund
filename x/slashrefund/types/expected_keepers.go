@@ -8,19 +8,22 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
-// AccountKeeper defines the expected account keeper used for simulations (noalias)
+// AccountKeeper defines the expected methods for the account keeper.
 type AccountKeeper interface {
 	GetAccount(ctx sdk.Context, addr sdk.AccAddress) types.AccountI
 	// Methods imported from account should be defined here
 }
 
-// BankKeeper defines the expected interface needed to retrieve account balances.
+// BankKeeper defines the expected methods for the bank module.
 type BankKeeper interface {
 	SpendableCoins(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
-	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
+	SendCoinsFromAccountToModule(
+		ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins,
+	) error
 	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
 }
 
+// StakingKeeper defines the expected methods for the staking module.
 type StakingKeeper interface {
 	GetValidatorDelegations(ctx sdk.Context, valAddr sdk.ValAddress) (delegations []stakingtypes.Delegation)
 	GetValidatorByConsAddr(ctx sdk.Context, consAddr sdk.ConsAddress) (validator stakingtypes.Validator, found bool)
@@ -37,6 +40,7 @@ type StakingKeeper interface {
 	SetUnbondingDelegation(ctx sdk.Context, ubd stakingtypes.UnbondingDelegation)
 }
 
+// SlashKeeper defines the expected methods for the slash module.
 type SlashingKeeper interface {
 	SlashFractionDoubleSign(ctx sdk.Context) (res sdk.Dec)
 	SlashFractionDowntime(ctx sdk.Context) (res sdk.Dec)

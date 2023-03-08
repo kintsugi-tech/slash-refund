@@ -30,7 +30,10 @@ import (
 	tmdb "github.com/tendermint/tm-db"
 )
 
+// NewTestKeeper is used to build all the requirements for testing the slash refund keeper. 
+// Differently from end-to-end tests, this function doesn't bootstrap the entire app.
 func NewTestKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
+	// Base keys
 	storeKey := sdk.NewKVStoreKey(types.StoreKey)
 	memStoreKey := storetypes.NewMemoryStoreKey(types.MemStoreKey)
 
@@ -44,6 +47,7 @@ func NewTestKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	storeKeyStaking := sdk.NewKVStoreKey(stakingtypes.StoreKey)
 	storeKeySlashing := sdk.NewKVStoreKey(slashingtypes.StoreKey)
 
+	// Stores
 	db := tmdb.NewMemDB()
 	stateStore := store.NewCommitMultiStore(db)
 	stateStore.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, db)
@@ -53,6 +57,7 @@ func NewTestKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	registry := codectypes.NewInterfaceRegistry()
 	cdc := codec.NewProtoCodec(registry)
 
+	// Modules subspaces
 	paramsSubspace := typesparams.NewSubspace(cdc,
 		types.Amino,
 		storeKey,
@@ -84,9 +89,15 @@ func NewTestKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		"StakingParams",
 	)
 
-	keys := sdk.NewKVStoreKeys(banktypes.StoreKey, stakingtypes.StoreKey, slashingtypes.StoreKey, authtypes.StoreKey)
+	// KVStore and keys for mocked modules
+	keys := sdk.NewKVStoreKeys(
+		banktypes.StoreKey, 
+		stakingtypes.StoreKey, 
+		slashingtypes.StoreKey, 
+		authtypes.StoreKey,
+	)
 
-	// module account permissions
+	// Module account permissions
 	maccPerms := map[string][]string{
 		authtypes.FeeCollectorName:     nil,
 		distrtypes.ModuleName:          nil,
@@ -97,9 +108,9 @@ func NewTestKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		govtypes.ModuleName:            {authtypes.Burner},
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
 		types.ModuleName:               nil,
-		// this line is used by starport scaffolding # stargate/app/maccPerms
 	}
 
+	// Modules keepers
 	authKeeper := authkeeper.NewAccountKeeper(
 		cdc,
 		keys[authtypes.StoreKey],
