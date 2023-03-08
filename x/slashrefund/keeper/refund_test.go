@@ -815,10 +815,13 @@ func TestHandleRefundsFromSlash_DoubleSign(t *testing.T) {
 	burnedRedel := slashFactor.MulInt(redelAmt).TruncateInt()
 	burnedTokens := valBurnedTokens.Add(burnedUbdel).Add(burnedRedel)
 
-	// call slash refund
+	// call slashrefund HandleRefundsFromSlash to trigger the refund process
 	ctx = ctx.WithBlockHeader(tmproto.Header{Height: infractionHeight + 2, Time: slashTime})
-	refAmt, err := srApp.SlashrefundKeeper.HandleRefundsFromSlash(ctx, slashEventDS)
-	require.NoError(t, err)
+	srApp.SlashrefundKeeper.HandleRefundsFromSlash(ctx, slashEventDS)
+
+	// process events to get the refund event
+	valAddrEvent, refAmt := processEvents(t, ctx)
+	require.Equal(t, valAddr, valAddrEvent)
 	require.Equal(t, burnedTokens, refAmt)
 
 	// check refunds
@@ -933,10 +936,13 @@ func TestHandleRefundsFromSlash_DownTime(t *testing.T) {
 	burnedRedel := slashFactor.MulInt(redelAmt).TruncateInt()
 	burnedTokens := valBurnedTokens.Add(burnedUbdel).Add(burnedRedel)
 
-	// call slash refund
+	// call slashrefund HandleRefundsFromSlash to trigger the refund process
 	ctx = ctx.WithBlockHeader(tmproto.Header{Height: infractionHeight + 2, Time: slashTime})
-	refAmt, err := srApp.SlashrefundKeeper.HandleRefundsFromSlash(ctx, slashEventDT)
-	require.NoError(t, err)
+	srApp.SlashrefundKeeper.HandleRefundsFromSlash(ctx, slashEventDT)
+
+	// process events to get the refund event
+	valAddrEvent, refAmt := processEvents(t, ctx)
+	require.Equal(t, valAddr, valAddrEvent)
 	require.Equal(t, burnedTokens, refAmt)
 
 	// check refunds

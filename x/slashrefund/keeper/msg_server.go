@@ -22,10 +22,10 @@ func NewMsgServerImpl(k Keeper) types.MsgServer {
 
 var _ types.MsgServer = msgServer{}
 
-// Deposit manages the deposit of funds from a user to a particular validator into the module's 
+// Deposit manages the deposit of funds from a user to a particular validator into the module's
 // KVStore.
 func (ms msgServer) Deposit(
-	goCtx context.Context, 
+	goCtx context.Context,
 	msg *types.MsgDeposit,
 ) (*types.MsgDepositResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
@@ -84,7 +84,7 @@ func (ms msgServer) Deposit(
 // to a validator. The tokens associated to a validator and the shares ratio can change due to
 // slashing events.
 func (ms msgServer) Withdraw(
-	goCtx context.Context, 
+	goCtx context.Context,
 	msg *types.MsgWithdraw,
 ) (*types.MsgWithdrawResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
@@ -144,7 +144,7 @@ func (ms msgServer) Withdraw(
 }
 
 func (ms msgServer) Claim(
-	goCtx context.Context, 
+	goCtx context.Context,
 	msg *types.MsgClaim,
 ) (*types.MsgClaimResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
@@ -163,13 +163,13 @@ func (ms msgServer) Claim(
 	}
 
 	// Check if delegator address is valid.
-	delegatorAddress, err := sdk.AccAddressFromBech32(msg.DelegatorAddress)
+	delAddr, err := sdk.AccAddressFromBech32(msg.DelegatorAddress)
 	if err != nil {
 		return nil, err
 	}
 
 	// === STATE TRANSITION ===
-	coins, err := ms.k.Claim(ctx, delegatorAddress, valAddr)
+	coins, err := ms.k.Claim(ctx, delAddr, valAddr)
 	if err != nil {
 		return nil, err
 	}
@@ -177,7 +177,7 @@ func (ms msgServer) Claim(
 	for _, coin := range coins {
 		ctx.EventManager().EmitEvents(sdk.Events{
 			sdk.NewEvent(
-				types.EventTypeWithdraw,
+				types.EventTypeClaim,
 				sdk.NewAttribute(types.AttributeKeyDelegator, msg.DelegatorAddress),
 				sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress),
 				sdk.NewAttribute(types.AttributeKeyToken, coin.Denom),

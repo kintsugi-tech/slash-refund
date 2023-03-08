@@ -11,18 +11,17 @@ import (
 
 func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k keeper.Keeper) {
 
-	// Handle slashing event
+	// Get events and iterate through them in order to get the slashing event.
 	events := ctx.EventManager().Events()
 
-	// Iterate all events in this block
 	for _, event := range events {
-		// Check if we have a slashing event and that the event is not coming from a jail action
+
+		// Check if we have a slashing event. Skip the jail event, that also is emitted
+		// by the slashing module as a slashing event, but with different attributes
+		// (first attribute of the jail event is "jailed").
+		// TODO: handle jail slash event better.
 		if event.Type == slashingtypes.EventTypeSlash && string(event.Attributes[0].GetKey()) != "jailed" {
-			// TODO: handle jail slash event better.
-			_, err := k.HandleRefundsFromSlash(ctx, event)
-			if err != nil {
-				// TODO: handle the error
-			}
+			k.HandleRefundsFromSlash(ctx, event)
 		}
 	}
 }
