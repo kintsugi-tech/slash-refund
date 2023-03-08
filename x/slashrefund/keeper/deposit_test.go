@@ -13,7 +13,7 @@ import (
 // Test deposit
 // -------------------------------------------------------------------------------------------------
 
-func TestDepositGet(t *testing.T) {
+func TestGetDeposit(t *testing.T) {
 	keeper, ctx := testslashrefund.NewTestKeeper(t)
 	deposits := testslashrefund.CreateNDeposit(keeper, ctx, 10)
 	for _, deposit := range deposits {
@@ -25,7 +25,7 @@ func TestDepositGet(t *testing.T) {
 	}
 }
 
-func TestDepositRemove(t *testing.T) {
+func TestRemoveDeposit(t *testing.T) {
 	keeper, ctx := testslashrefund.NewTestKeeper(t)
 	deposits := testslashrefund.CreateNDeposit(keeper, ctx, 10)
 	for _, deposit := range deposits {
@@ -37,7 +37,7 @@ func TestDepositRemove(t *testing.T) {
 	}
 }
 
-func TestDepositGetAll(t *testing.T) {
+func TestGetAllDeposit(t *testing.T) {
 	keeper, ctx := testslashrefund.NewTestKeeper(t)
 	items := testslashrefund.CreateNDeposit(keeper, ctx, 10)
 	require.ElementsMatch(t, items, keeper.GetAllDeposit(ctx))
@@ -55,7 +55,7 @@ func TestGetValidatorDeposits(t *testing.T) {
 // Test deposit pool
 // -------------------------------------------------------------------------------------------------
 
-func TestPoolGetDeposit(t *testing.T) {
+func TestGetDepositPool(t *testing.T) {
 	keeper, ctx := testslashrefund.NewTestKeeper(t)
 	items := testslashrefund.CreateNDepositPool(keeper, ctx, 10)
 	for _, item := range items {

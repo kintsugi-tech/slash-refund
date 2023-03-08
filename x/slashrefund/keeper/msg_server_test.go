@@ -10,6 +10,10 @@ import (
 	"github.com/made-in-block/slash-refund/x/slashrefund/keeper"
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 
 	"github.com/stretchr/testify/require"
 )
@@ -95,7 +99,7 @@ func TestDepositNotValidator(t *testing.T) {
 		Amount: sdk.NewCoin(types.DefaultAllowedTokens[0], sdk.NewInt(1)),
 	}
 	_, err := msgServer.Deposit(ctx, msg)
-	require.Error(t, err)
+	require.ErrorIs(t, err, stakingtypes.ErrNoValidatorFound)
 }
 
 func TestDepositNotAccountBech32(t *testing.T) {
@@ -123,7 +127,7 @@ func TestDepositNotAllowedTokens(t *testing.T) {
 		Amount: sdk.NewCoin("mib", sdk.NewInt(1)),
 	}
 	_, err := msgServer.Deposit(ctx, msg)
-	require.Error(t, err)
+	require.ErrorIs(t, err, sdkerrors.ErrInvalidRequest)
 }
 
 func TestDepositZeroAmount(t *testing.T) {
@@ -137,7 +141,7 @@ func TestDepositZeroAmount(t *testing.T) {
 		Amount: sdk.NewCoin(types.DefaultAllowedTokens[0], sdk.NewInt(0)),
 	}
 	_, err := msgServer.Deposit(ctx, msg)
-	require.Error(t, err)
+	require.ErrorIs(t, err, types.ErrZeroDeposit)
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -183,7 +187,7 @@ func TestWithdrawNotAllowedTokens(t *testing.T) {
 		Amount: sdk.NewCoin("mib", sdk.NewInt(1)),
 	}
 	_, err := msgServer.Withdraw(ctx, msg)
-	require.Error(t, err)
+	require.ErrorIs(t, err, sdkerrors.ErrInvalidRequest)
 }
 
 func TestWithdrawZeroAmount(t *testing.T) {
@@ -197,13 +201,13 @@ func TestWithdrawZeroAmount(t *testing.T) {
 		Amount: sdk.NewCoin(types.DefaultAllowedTokens[0], sdk.NewInt(0)),
 	}
 	_, err := msgServer.Withdraw(ctx, msg)
-	require.Error(t, err)
+	require.ErrorIs(t, err, types.ErrZeroDeposit)
 }
 
 // -------------------------------------------------------------------------------------------------
 // Claim 
 // -------------------------------------------------------------------------------------------------
-func TestClaimotValidatorBech32(t *testing.T) {
+func TestClaimNotValidatorBech32(t *testing.T) {
 	app, ctx, _, _, depositors := SetupMsgServerTest()
 
 	msgServer := keeper.NewMsgServerImpl(app.SlashrefundKeeper)

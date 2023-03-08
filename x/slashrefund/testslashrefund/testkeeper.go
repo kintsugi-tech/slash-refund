@@ -30,9 +30,8 @@ import (
 	tmdb "github.com/tendermint/tm-db"
 )
 
-// NewTestKeeper is used to build all the mocked requirements for testing the slash refund keeper. 
-// Differently from end-to-end tests, this function doesn't bootstrap a mocked app. It returns a 
-// mocked keeper and a mock context.
+// NewTestKeeper is used to build all the requirements for testing the slash refund keeper. 
+// Differently from end-to-end tests, this function doesn't bootstrap the entire app.
 func NewTestKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	// Base keys
 	storeKey := sdk.NewKVStoreKey(types.StoreKey)
