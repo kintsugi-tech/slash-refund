@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -36,17 +37,22 @@ func GetTxCmd() *cobra.Command {
 	cmd.AddCommand(CmdDeposit())
 	cmd.AddCommand(CmdWithdraw())
 	cmd.AddCommand(CmdClaim())
-	// this line is used by starport scaffolding # 1
 
 	return cmd
 }
 
+// CmdDeposit implements the command to create and broadcast a MsgDeposit transaction.
 func CmdDeposit() *cobra.Command {
 
 	cmd := &cobra.Command{
-		Use:   "deposit [validator-address] [amount]",
-		Short: "Broadcast message deposit",
-		Args:  cobra.ExactArgs(2),
+		Use:   "deposit [validator] [amount]",
+		Short: "Deposit tokens for a validator.",
+		Long: strings.TrimSpace(fmt.Sprintf(
+			"Deposit tokens for a validator that will be used to refund validator's delegators when the validator will be slashed.\n\n"+
+				"Example:\n$ %s tx %s deposit %s 1000stake --from mykey",
+			appName, types.ModuleName, validatorAddress),
+		),
+		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argValidatorAddress := args[0]
 			argAmount := args[1]
@@ -76,11 +82,17 @@ func CmdDeposit() *cobra.Command {
 	return cmd
 }
 
+// CmdWithdraw implements the command to create and broadcast a MsgWithdraw transaction.
 func CmdWithdraw() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "withdraw [validator-address] [amount]",
-		Short: "Broadcast message withdraw",
-		Args:  cobra.ExactArgs(2),
+		Use:   "withdraw [validator] [amount]",
+		Short: "Withdraw tokens from a deposit.",
+		Long: strings.TrimSpace(fmt.Sprintf(
+			"Withdraw tokens from a deposit.\n\n"+
+				"Example:\n$ %s tx %s withdraw %s 1000stake --from mykey",
+			appName, types.ModuleName, validatorAddress),
+		),
+		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argValidatorAddress := args[0]
 			argAmount := args[1]
@@ -110,11 +122,17 @@ func CmdWithdraw() *cobra.Command {
 	return cmd
 }
 
+// CmdClaim implements the command to create and broadcast a MsgClaim transaction.
 func CmdClaim() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "claim [validator-address]",
-		Short: "Claim refund from the slashed validator",
-		Args:  cobra.ExactArgs(1),
+		Use:   "claim [validator]",
+		Short: "Claim a refund.",
+		Long: strings.TrimSpace(fmt.Sprintf(
+			"Claim the refund generated for a validator's delegator.\n\n"+
+				"Example:\n$ %s tx %s claim %s --from mykey",
+			appName, types.ModuleName, validatorAddress),
+		),
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argValidatorAddress := args[0]
 

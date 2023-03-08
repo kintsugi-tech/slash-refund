@@ -3,6 +3,7 @@ package cli
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -10,9 +11,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	accountAddress   string = "cosmos1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p"
+	validatorAddress string = "cosmosvaloper1gghjut3ccd8ay0zduzj64hwre2fxs9ldmqhffj"
+	appName          string = "<appd>"
+)
+
 // GetQueryCmd returns the cli query commands for this module.
 func GetQueryCmd(queryRoute string) *cobra.Command {
-	// Group slashrefund queries under a subcommand.
+
 	cmd := &cobra.Command{
 		Use:                        types.ModuleName,
 		Short:                      fmt.Sprintf("Querying commands for the %s module", types.ModuleName),
@@ -36,11 +43,17 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 	return cmd
 }
 
+// CmdQueryParams implements the command to query the module parameters.
 func CmdQueryParams() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "params",
-		Short: "shows the parameters of the module",
-		Args:  cobra.NoArgs,
+		Short: "Shows parameters",
+		Long: strings.TrimSpace(fmt.Sprintf(
+			"Show the parameters of the %s module.\n\n"+
+				"Example:\n$ %s query %s params\n",
+			types.ModuleName, appName, types.ModuleName),
+		),
+		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
@@ -60,10 +73,16 @@ func CmdQueryParams() *cobra.Command {
 	return cmd
 }
 
+// CmdListDeposit implements the command to query all deposits.
 func CmdListDeposit() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list-deposit",
-		Short: "list all deposit",
+		Short: "List all deposits",
+		Long: strings.TrimSpace(fmt.Sprintf(
+			"Show all deposits.\n\n"+
+				"Example:\n$ %s query %s list-deposit",
+			appName, types.ModuleName),
+		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
@@ -93,11 +112,18 @@ func CmdListDeposit() *cobra.Command {
 	return cmd
 }
 
+// CmdShowDeposit implements the command to query a single deposit made from an address
+// to a validator.
 func CmdShowDeposit() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "show-deposit [address] [validator-address]",
-		Short: "shows a deposit",
-		Args:  cobra.ExactArgs(2),
+		Use:   "show-deposit [address] [validator]",
+		Short: "Show a single deposit",
+		Long: strings.TrimSpace(fmt.Sprintf(
+			"Show a single deposit based on address and validator address.\n\n"+
+				"Example:\n$ %s query %s show-deposit %s %s",
+			appName, types.ModuleName, accountAddress, validatorAddress),
+		),
+		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
@@ -125,10 +151,16 @@ func CmdShowDeposit() *cobra.Command {
 	return cmd
 }
 
+// CmdListDepositPool implements the command to query all deposit pools.
 func CmdListDepositPool() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list-deposit-pool",
-		Short: "list all deposit_pool",
+		Short: "List all deposit pools",
+		Long: strings.TrimSpace(fmt.Sprintf(
+			"List all deposit pools.\n\n"+
+				"Example:\n$ %s query %s list-deposit-pool",
+			appName, types.ModuleName),
+		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
@@ -158,11 +190,18 @@ func CmdListDepositPool() *cobra.Command {
 	return cmd
 }
 
+// CmdShowDepositPool implements the command to query a single deposit pool of a
+// specific validator.
 func CmdShowDepositPool() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "show-deposit-pool [operator-address]",
-		Short: "shows a deposit_pool",
-		Args:  cobra.ExactArgs(1),
+		Use:   "show-deposit-pool [validator]",
+		Short: "Show a single deposit pool",
+		Long: strings.TrimSpace(fmt.Sprintf(
+			"Show a single deposit pool based validator address.\n\n"+
+				"Example:\n$ %s query %s show-deposit-pool %s",
+			appName, types.ModuleName, validatorAddress),
+		),
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
@@ -188,10 +227,16 @@ func CmdShowDepositPool() *cobra.Command {
 	return cmd
 }
 
+// CmdListUnbondingDeposit implements the command to query all unbonding deposits.
 func CmdListUnbondingDeposit() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list-unbonding-deposit",
-		Short: "list all unbonding_deposit",
+		Short: "List all unbonding deposits",
+		Long: strings.TrimSpace(fmt.Sprintf(
+			"List all unbonding deposits.\n\n"+
+				"Example:\n$ %s query %s list-unbonding-deposit",
+			appName, types.ModuleName),
+		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
@@ -221,11 +266,18 @@ func CmdListUnbondingDeposit() *cobra.Command {
 	return cmd
 }
 
+// CmdShowUnbondingDeposit implements the command to query a single unbonding deposit
+// made from an address to a validator.
 func CmdShowUnbondingDeposit() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "show-unbonding-deposit [depositor-address] [validator-address]",
-		Short: "shows a unbonding_deposit",
-		Args:  cobra.ExactArgs(2),
+		Use:   "show-unbonding-deposit [address] [validator]",
+		Short: "Show an unbonding deposit",
+		Long: strings.TrimSpace(fmt.Sprintf(
+			"Show a single unbonding deposit based on address and validator address.\n\n"+
+				"Example:\n$ %s query %s show-unbonding-deposit %s %s",
+			appName, types.ModuleName, accountAddress, validatorAddress),
+		),
+		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
@@ -253,10 +305,16 @@ func CmdShowUnbondingDeposit() *cobra.Command {
 	return cmd
 }
 
+// CmdListRefund implements the command to query all refunds.
 func CmdListRefund() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list-refund",
-		Short: "list all refund",
+		Short: "List all refunds",
+		Long: strings.TrimSpace(fmt.Sprintf(
+			"List all refunds.\n\n"+
+				"Example:\n$ %s query %s list-refund",
+			appName, types.ModuleName),
+		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
@@ -286,11 +344,18 @@ func CmdListRefund() *cobra.Command {
 	return cmd
 }
 
+// CmdShowRefund implements the command to query a refund generated for a delegator
+// of a validator.
 func CmdShowRefund() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "show-refund [delegator] [validator]",
-		Short: "shows a refund",
-		Args:  cobra.ExactArgs(2),
+		Use:   "show-refund [address] [validator]",
+		Short: "Show a single refund",
+		Long: strings.TrimSpace(fmt.Sprintf(
+			"Show a single refund based on address and validator address.\n\n"+
+				"Example:\n$ %s query %s show-refund %s %s",
+			appName, types.ModuleName, accountAddress, validatorAddress),
+		),
+		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
@@ -318,10 +383,16 @@ func CmdShowRefund() *cobra.Command {
 	return cmd
 }
 
+// CmdListRefundPool implements the command to query all refund pools.
 func CmdListRefundPool() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list-refund-pool",
-		Short: "list all refund_pool",
+		Short: "List all refund pools",
+		Long: strings.TrimSpace(fmt.Sprintf(
+			"List all refund pools.\n\n"+
+				"Example:\n$ %s query %s list-refund-pool",
+			appName, types.ModuleName),
+		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
@@ -351,11 +422,18 @@ func CmdListRefundPool() *cobra.Command {
 	return cmd
 }
 
+// CmdShowRefundPool implements the command to query a single refund pool of a specific
+// validator.
 func CmdShowRefundPool() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "show-refund-pool [operator-address]",
-		Short: "shows a refund_pool",
-		Args:  cobra.ExactArgs(1),
+		Use:   "show-refund-pool [validator]",
+		Short: "Show a single refund pool",
+		Long: strings.TrimSpace(fmt.Sprintf(
+			"Show a single refund pool based validator address.\n\n"+
+				"Example:\n$ %s query %s show-refund-pool %s",
+			appName, types.ModuleName, validatorAddress),
+		),
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
