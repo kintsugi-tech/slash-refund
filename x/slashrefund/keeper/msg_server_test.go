@@ -200,7 +200,7 @@ func TestWithdrawZeroAmount(t *testing.T) {
 		Amount:           sdk.NewCoin(types.DefaultAllowedTokens[0], sdk.NewInt(0)),
 	}
 	_, err := msgServer.Withdraw(ctx, msg)
-	require.ErrorIs(t, err, types.ErrNonPositiveDeposit)
+	require.ErrorIs(t, err, types.ErrNonPositiveWithdraw)
 }
 
 // -------------------------------------------------------------------------------------------------

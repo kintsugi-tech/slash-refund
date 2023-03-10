@@ -12,9 +12,9 @@ import (
 )
 
 var (
-	accountAddress   string = "cosmos1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p"
-	validatorAddress string = "cosmosvaloper1gghjut3ccd8ay0zduzj64hwre2fxs9ldmqhffj"
-	appName          string = "<appd>"
+	accountAddress   = "cosmos1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p"
+	validatorAddress = "cosmosvaloper1gghjut3ccd8ay0zduzj64hwre2fxs9ldmqhffj"
+	appName          = "<appd>"
 )
 
 // GetQueryCmd returns the cli query commands for this module.

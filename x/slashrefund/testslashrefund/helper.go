@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"time"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/made-in-block/slash-refund/x/slashrefund/keeper"
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
@@ -25,7 +26,7 @@ func NewHelper(t *testing.T, ctx sdk.Context, k keeper.Keeper) *Helper {
 	return &Helper{t, k, keeper.NewMsgServerImpl(k), ctx}
 }
 
-func (srh *Helper) Deposit(depAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.Int) {
+func (srh *Helper) Deposit(depAddr sdk.AccAddress, valAddr sdk.ValAddress, amount math.Int) {
 	coin := sdk.NewCoin(srh.k.AllowedTokens(srh.ctx)[0], amount)
 	msg := types.NewMsgDeposit(depAddr.String(), valAddr.String(), coin)
 	res, err := srh.msgSrvr.Deposit(sdk.WrapSDKContext(srh.ctx), msg)
@@ -33,7 +34,7 @@ func (srh *Helper) Deposit(depAddr sdk.AccAddress, valAddr sdk.ValAddress, amoun
 	require.NotNil(srh.t, res)
 }
 
-func (srh *Helper) Withdraw(depAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.Int) {
+func (srh *Helper) Withdraw(depAddr sdk.AccAddress, valAddr sdk.ValAddress, amount math.Int) {
 	coin := sdk.NewCoin(srh.k.AllowedTokens(srh.ctx)[0], amount)
 	msg := types.NewMsgWithdraw(depAddr.String(), valAddr.String(), coin)
 	res, err := srh.msgSrvr.Withdraw(sdk.WrapSDKContext(srh.ctx), msg)
@@ -95,12 +96,12 @@ func CreateNEntries(n int) []types.UnbondingDepositEntry {
 	var entries []types.UnbondingDepositEntry
 	for i := 0; i < n; i++ {
 		rand.Seed(time.Now().UnixNano())
-		r := rand.Int63n(1000000)
+		r := rand. Int63n(1000000)
 		creationHeight := r
 		completionTime := time.Now().Add(time.Duration(r)).UTC()
 		balance := sdk.NewInt(r)
 		initBalance := balance.AddRaw(rand.Int63n(1000000))
-		entry := types.NewUnbondingDepositEntry(int64(creationHeight), completionTime, initBalance)
+		entry := types.NewUnbondingDepositEntry(creationHeight, completionTime, initBalance)
 		entry.Balance = balance
 		entries = append(entries, entry)
 	}

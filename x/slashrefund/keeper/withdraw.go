@@ -112,7 +112,7 @@ func (k Keeper) Unbond(
 	depPool types.DepositPool,
 	valAddr sdk.ValAddress,
 	shares sdk.Dec,
-) (issuedTokensAmt sdk.Int, err error) {
+) (issuedTokensAmt math.Int, err error) {
 
 	// Subtract shares from deposit.
 	deposit.Shares = deposit.Shares.Sub(shares)

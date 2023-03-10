@@ -33,13 +33,12 @@ func (k Keeper) HandleRefundsFromSlash(ctx sdk.Context, slashEvent sdk.Event) {
 			),
 		})
 	}
-	return
 }
 
 func (k Keeper) ProcessSlashEvent(ctx sdk.Context, event sdk.Event) (
 	valAddr sdk.ValAddress,
-	valBurnedAmt sdk.Int,
-	infractionHeight sdk.Int,
+	valBurnedAmt math.Int,
+	infractionHeight math.Int,
 	slashFactor sdk.Dec,
 	err error,
 ) {
@@ -97,10 +96,10 @@ func (k Keeper) ProcessSlashEvent(ctx sdk.Context, event sdk.Event) (
 func (k Keeper) RefundFromSlash(
 	ctx sdk.Context,
 	valAddr sdk.ValAddress,
-	valBurnedTokens sdk.Int,
+	valBurnedTokens math.Int,
 	infractionHeight int64,
 	slashFactor sdk.Dec,
-) (refundAmount sdk.Int, err error) {
+) (refundAmount math.Int, err error) {
 
 	// If the deposit pool is not found it is not an error because there could be eligible unbonding deposits.
 	depPool, isFoundDepositPool := k.GetDepositPool(ctx, valAddr)
@@ -256,7 +255,7 @@ func (k Keeper) GetValidatorByConsAddrBytes(ctx sdk.Context, consAddrByte []byte
 }
 
 func (k Keeper) ComputeEligibleRefundFromUnbondingDeposits(ctx sdk.Context, unbondingDeposits []types.UnbondingDeposit, infractionHeight int64,
-) (totalUBDSAmount sdk.Int) {
+) (totalUBDSAmount math.Int) {
 
 	now := ctx.BlockHeader().Time
 	totalUBDSAmount = sdk.NewInt(0)
@@ -282,8 +281,8 @@ func (k Keeper) ComputeEligibleRefundFromUnbondingDeposits(ctx sdk.Context, unbo
 }
 
 // set the deposit pool and returns the amount that will be refunded from the pool.
-func (k Keeper) UpdateValidatorDepositPool(ctx sdk.Context, amt sdk.Int, depPool types.DepositPool,
-) (refundTokens sdk.Int) {
+func (k Keeper) UpdateValidatorDepositPool(ctx sdk.Context, amt math.Int, depPool types.DepositPool,
+) (refundTokens math.Int) {
 
 	if amt.GTE(depPool.Tokens.Amount) {
 		refundTokens = depPool.Tokens.Amount
@@ -305,7 +304,7 @@ func (k Keeper) UpdateValidatorDepositPool(ctx sdk.Context, amt sdk.Int, depPool
 }
 
 func (k Keeper) UpdateValidatorUnbondingDeposits(ctx sdk.Context, unbondingDeposits []types.UnbondingDeposit, infractionHeight int64, drawFactor sdk.Dec,
-) (totalRefundAmount sdk.Int) {
+) (totalRefundAmount math.Int) {
 
 	totalRefundAmount = sdk.NewInt(0)
 	for _, unbondingDeposit := range unbondingDeposits {
@@ -316,7 +315,7 @@ func (k Keeper) UpdateValidatorUnbondingDeposits(ctx sdk.Context, unbondingDepos
 }
 
 func (k Keeper) UpdateUnbondingDepositEntries(ctx sdk.Context, unbondingDeposit types.UnbondingDeposit, infractionHeight int64, drawFactor sdk.Dec,
-) (refundAmount sdk.Int) {
+) (refundAmount math.Int) {
 
 	now := ctx.BlockHeader().Time
 	refundAmount = sdk.ZeroInt()
@@ -361,7 +360,7 @@ func (k Keeper) ComputeSlashedUnbondingDelegations(
 	valAddr sdk.ValAddress,
 	infractionHeight int64,
 	slashFactor sdk.Dec,
-) (totalSlashedAmt sdk.Int) {
+) (totalSlashedAmt math.Int) {
 
 	unbondingDelegations := k.stakingKeeper.GetUnbondingDelegationsFromValidator(ctx, valAddr)
 	now := ctx.BlockHeader().Time
@@ -397,7 +396,7 @@ func (k Keeper) ComputeSlashedRedelegations(
 	valAddr sdk.ValAddress,
 	infractionHeight int64,
 	slashFactor sdk.Dec,
-) (totalSlashedAmt sdk.Int) {
+) (totalSlashedAmt math.Int) {
 
 	redelegations := k.stakingKeeper.GetRedelegationsFromSrcValidator(ctx, valAddr)
 	now := ctx.BlockHeader().Time
@@ -435,7 +434,7 @@ func (k Keeper) RefundSlashedUnbondingDelegations(
 	slashFactor sdk.Dec,
 	refFactor sdk.Dec,
 	poolShTkRatio sdk.Dec,
-) (totalRefundedAmt sdk.Int, totalRefundShares sdk.Dec) {
+) (totalRefundedAmt math.Int, totalRefundShares sdk.Dec) {
 
 	unbondingDelegations := k.stakingKeeper.GetUnbondingDelegationsFromValidator(ctx, valAddr)
 
@@ -496,7 +495,7 @@ func (k Keeper) RefundSlashedRedelegations(
 	slashFactor sdk.Dec,
 	refFactor sdk.Dec,
 	poolShTkRatio sdk.Dec,
-) (totalRefundedAmt sdk.Int, totalRefundShares sdk.Dec) {
+) (totalRefundedAmt math.Int, totalRefundShares sdk.Dec) {
 
 	redelegations := k.stakingKeeper.GetRedelegationsFromSrcValidator(ctx, valAddr)
 
@@ -555,9 +554,9 @@ func (k Keeper) RefundSlashedDelegations(
 	ctx sdk.Context,
 	valAddr sdk.ValAddress,
 	infractionHeight int64,
-	refund sdk.Int,
+	refund math.Int,
 	poolShTkRatio sdk.Dec,
-) (totalRefundedAmt sdk.Int, totalRefundShares sdk.Dec) {
+) (totalRefundedAmt math.Int, totalRefundShares sdk.Dec) {
 
 	validator, found := k.stakingKeeper.GetValidator(ctx, valAddr)
 	if !found {
@@ -741,9 +740,9 @@ func (k Keeper) RemoveRefPoolTokensAndShares(
 	ctx sdk.Context,
 	refundPool types.RefundPool,
 	sharesToRemove sdk.Dec,
-) (types.RefundPool, sdk.Int) {
+) (types.RefundPool, math.Int) {
 
-	var issuedTokensAmt sdk.Int
+	var issuedTokensAmt math.Int
 
 	remainingShares := refundPool.Shares.Sub(sharesToRemove)
 
