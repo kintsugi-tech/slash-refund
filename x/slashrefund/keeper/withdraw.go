@@ -25,9 +25,15 @@ func (k Keeper) Withdraw(
 		return sdk.NewCoin(tokens.Denom, sdk.NewInt(0)), time.Time{}, types.ErrNoDepositForAddress
 	}
 
+	// Get the deposit pool. If at this point it can't be found, then panic is called.
+	// This is done because a deposit pool is removed from the store alongside with
+	// its deposits when the deposit pool is completely used during refund generation.
+	// When a withdraw is done, the deposit pool and the deposit are updated and
+	// removed if empty. A situation in which a deposit is found but no linked deposit
+	// pool can be found is the result of a serious malfunction thus panic is called.
 	depPool, found := k.GetDepositPool(ctx, valAddr)
 	if !found {
-		return sdk.NewCoin(tokens.Denom, sdk.NewInt(0)), time.Time{}, types.ErrNoDepositPoolForValidator
+		panic("found deposit but not the deposit pool")
 	}
 
 	// Check if requested amount is valid and returns associated shares.
@@ -45,7 +51,7 @@ func (k Keeper) Withdraw(
 		return sdk.NewCoin(tokens.Denom, sdk.NewInt(0)), time.Time{}, err
 	}
 
-	// Time at which the withdrawn tokens become available.
+	// Compute time at which withdrawn tokens will complete the unbonding.
 	completionTime := ctx.BlockHeader().Time.Add(k.stakingKeeper.UnbondingTime(ctx))
 
 	ubd := k.SetUnbondingDepositEntry(ctx, depAddr, valAddr, ctx.BlockHeight(), completionTime, witAmt)

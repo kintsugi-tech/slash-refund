@@ -12,17 +12,28 @@ import (
 	"github.com/made-in-block/slash-refund/x/slashrefund/types"
 )
 
-// TODO: remove the error from the output
-func (k Keeper) HandleRefundsFromSlash(ctx sdk.Context, slashEvent sdk.Event) (refundAmount sdk.Int, err error) {
+// TODO: update undelying logic in order to handle different tokens to be refunded.
+func (k Keeper) HandleRefundsFromSlash(ctx sdk.Context, slashEvent sdk.Event) {
 
 	// Iterate attributes to find which validator has been slashed
 	valAddr, valBurnedTokens, infractionHeight, slashFactor, err := k.ProcessSlashEvent(ctx, slashEvent)
 	if err != nil {
-		return sdk.NewInt(0), err
+		return
 	}
 
-	refundAmount, err = k.RefundFromSlash(ctx, valAddr, valBurnedTokens, infractionHeight.Int64(), slashFactor)
-	return refundAmount, err
+	refundAmount, err := k.RefundFromSlash(ctx, valAddr, valBurnedTokens, infractionHeight.Int64(), slashFactor)
+
+	if err == nil {
+		ctx.EventManager().EmitEvents(sdk.Events{
+			sdk.NewEvent(
+				types.EventTypeRefund,
+				sdk.NewAttribute(types.AttributeKeyValidator, valAddr.String()),
+				sdk.NewAttribute(types.AttributeKeyToken, k.AllowedTokens(ctx)[0]),
+				sdk.NewAttribute(sdk.AttributeKeyAmount, refundAmount.String()),
+			),
+		})
+	}
+	return
 }
 
 func (k Keeper) ProcessSlashEvent(ctx sdk.Context, event sdk.Event) (
@@ -547,7 +558,7 @@ func (k Keeper) RefundSlashedDelegations(
 	refund sdk.Int,
 	poolShTkRatio sdk.Dec,
 ) (totalRefundedAmt sdk.Int, totalRefundShares sdk.Dec) {
-	
+
 	validator, found := k.stakingKeeper.GetValidator(ctx, valAddr)
 	if !found {
 		panic(fmt.Sprintf("validator record not found for address: %X\n", valAddr))
