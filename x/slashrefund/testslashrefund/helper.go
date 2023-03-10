@@ -96,7 +96,7 @@ func CreateNEntries(n int) []types.UnbondingDepositEntry {
 	var entries []types.UnbondingDepositEntry
 	for i := 0; i < n; i++ {
 		rand.Seed(time.Now().UnixNano())
-		r := rand. Int63n(1000000)
+		r := rand.Int63n(1000000)
 		creationHeight := r
 		completionTime := time.Now().Add(time.Duration(r)).UTC()
 		balance := sdk.NewInt(r)
