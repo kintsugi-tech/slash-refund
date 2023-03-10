@@ -10,7 +10,34 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 )
+
+func genesisCommand(encodingConfig app.EncodingConfig) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:                        "",
+		Short:                      "Utilities for preparing the genesis state",
+		DisableFlagParsing:         true,
+		SuggestionsMinimumDistance: 2,
+		RunE:                       client.ValidateCmd,
+	}
+
+	cmd.AddCommand(
+		genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
+		genutilcli.MigrateGenesisCmd(),
+		genutilcli.GenTxCmd(
+			app.ModuleBasics,
+			encodingConfig.TxConfig,
+			banktypes.GenesisBalancesIterator{},
+			app.DefaultNodeHome,
+		),
+		genutilcli.ValidateGenesisCmd(app.ModuleBasics),
+		AddGenesisAccountCmd(app.DefaultNodeHome),
+	)
+
+	return cmd
+}
 
 // queryCommand returns the sub-command to send queries to the app
 func queryCommand() *cobra.Command {
