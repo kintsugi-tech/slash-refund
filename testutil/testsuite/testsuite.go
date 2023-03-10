@@ -46,7 +46,7 @@ func MakeTestApp(
 ) *app.App {
 	encodingConfig := app.MakeEncodingConfig()
 
-	var invCheckPeriod uint = 0
+	var invCheckPeriod uint
 	testApp := app.New(
 		log.NewNopLogger(),
 		dbm.NewMemDB(),
@@ -61,12 +61,12 @@ func MakeTestApp(
 
 	// Create validators from validator addresses and consensus keys.
 	pks := GenerateNConsensusPubKeys(len(valAddrs))
-	var validators []stakingtypes.Validator
-	var valDelegations []stakingtypes.Delegation
+	validators := make([]stakingtypes.Validator, len(valAddrs))
+	valDelegations := make([]stakingtypes.Delegation, len(valAddrs))
 	for i, valAddr := range(valAddrs) {
 		val, valDel := GenerateValidator(valAddr, pks[i])
-		valDelegations = append(valDelegations, valDel)
-		validators = append(validators, val)
+		valDelegations[i] = valDel
+		validators[i] = val
 	}
 
 	// Create delegations from delegators

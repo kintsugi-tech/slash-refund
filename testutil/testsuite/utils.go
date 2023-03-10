@@ -40,7 +40,7 @@ func GenerateBalances(addresses []sdk.AccAddress) []banktypes.Balance {
 func GenerateNConsensusPubKeys(number int) []*codectypes.Any {
 	pks:= simapp.CreateTestPubKeys(number)
 	pksAny := make([]*codectypes.Any, number)
-	for i := 0; i < int(number); i++ {
+	for i := 0; i < number; i++ {
 		pkAny, err := codectypes.NewAnyWithValue(pks[i])
 		if err != nil {
 			panic(err)
@@ -90,14 +90,14 @@ func GenerateRandomDelegations(
 	validators []stakingtypes.Validator,
 ) ([]stakingtypes.Delegation, []stakingtypes.Validator) {
 
-	var delegations []stakingtypes.Delegation
-	for _, del := range(delegators) {
+	delegations := make([]stakingtypes.Delegation, len(delegators))
+	for i, del := range(delegators) {
 		valIndex := rand.Intn(len(validators))
-		delegations = append(delegations, stakingtypes.Delegation{
+		delegations[i] = stakingtypes.Delegation{
 			DelegatorAddress: del.String(),
 			ValidatorAddress: validators[valIndex].OperatorAddress,
 			Shares: sdk.NewDecFromInt(bondAmt).Mul(delegationMultiplier),
-		})
+		}
 		validators[valIndex].DelegatorShares = validators[valIndex].
 			DelegatorShares.Add(sdk.NewDecFromInt(bondAmt).Mul(delegationMultiplier))
 	}
@@ -114,7 +114,7 @@ func GenerateValidator(
 	zero := sdk.ZeroDec()
 	shares := sdk.NewDecFromInt(bondAmt)
 
-	// Each validator has tokens corrisponding to 1 point of consensus power. Since the validator
+	// Each validator has tokens corresponding to 1 point of consensus power. Since the validator
 	// operator will be the first delegator the shares are equal to the bondAmt.
 	val := stakingtypes.Validator{
 		OperatorAddress:   valAddr.String(),

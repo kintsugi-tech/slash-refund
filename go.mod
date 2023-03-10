@@ -1,6 +1,6 @@
 module github.com/made-in-block/slash-refund
 
-go 1.18
+go 1.19
 
 require (
 	cosmossdk.io/math v1.0.0-beta.4
@@ -156,6 +156,10 @@ require (
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
 
-replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
+replace (
+	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 
-replace github.com/cosmos/cosmos-sdk v0.46.1 => github.com/made-in-block/cosmos-sdk v0.46.8-infraction-height
+	// The made-in-block fork of the SDK introdcuces the infraction height as a slash event info in
+	// the emitted event.
+	github.com/cosmos/cosmos-sdk v0.46.1 => github.com/made-in-block/cosmos-sdk v0.46.8-infraction-height
+)

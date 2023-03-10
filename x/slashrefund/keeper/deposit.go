@@ -72,7 +72,7 @@ func (k Keeper) Deposit(
 	return sdk.NewDec(depCoin.Amount.Int64()), nil
 }
 
-// GetDeposit returns a deposit from its indeces: depAddr & valAddr
+// GetDeposit returns a deposit from its indices: depAddr & valAddr
 func (k Keeper) GetDeposit(
 	ctx sdk.Context, 
 	depAddr sdk.AccAddress, 
