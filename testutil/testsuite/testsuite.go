@@ -44,7 +44,7 @@ func MakeTestApp(
 	valAddrs []sdk.ValAddress,
 	balances []banktypes.Balance,
 ) *app.App {
-	encodingConfig := app.MakeEncodingConfig(app.ModuleBasics)
+	encodingConfig := app.MakeEncodingConfig()
 
 	var invCheckPeriod uint = 0
 	testApp := app.New(
