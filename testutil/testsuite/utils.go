@@ -97,14 +97,15 @@ func GenerateRandomDelegations(
 
 	delAmt := bondAmt.Mul(delegationMultiplier)
 
+	//var delegations []stakingtypes.Delegation
 	delegations := make([]stakingtypes.Delegation, len(delegators))
-	for _, del := range delegators {
+	for i, del := range delegators {
 		valIndex := rand.Intn(len(validators))
-		delegations = append(delegations, stakingtypes.Delegation{
+		delegations[i] = stakingtypes.Delegation{
 			DelegatorAddress: del.String(),
 			ValidatorAddress: validators[valIndex].OperatorAddress,
 			Shares:           sdk.NewDecFromInt(delAmt),
-		})
+		}
 		validators[valIndex].DelegatorShares = validators[valIndex].DelegatorShares.Add(sdk.NewDecFromInt(delAmt))
 		validators[valIndex].Tokens = validators[valIndex].Tokens.Add(delAmt)
 	}
@@ -160,25 +161,23 @@ func GenerateRandomUnbondingDelegations(
 		nentries = int(stakingtypes.DefaultMaxEntries)
 	}
 
-	var ubdelegations []stakingtypes.UnbondingDelegation
-	for _, ubdel := range ubdelegators {
+	ubdelegations := make([]stakingtypes.UnbondingDelegation, len(ubdelegators))
+	for i, ubdel := range ubdelegators {
 		// Generate entries.
-		var entries []stakingtypes.UnbondingDelegationEntry
+		entries := make([]stakingtypes.UnbondingDelegationEntry, nentries)
 		for i := 0; i < nentries; i++ {
-			entries = append(entries,
-				stakingtypes.NewUnbondingDelegationEntry(
-					heightAndTimes[i].CreationHeight,
-					heightAndTimes[i].CompletionTime,
-					delAmt,
-				),
+			entries[i] = stakingtypes.NewUnbondingDelegationEntry(
+				heightAndTimes[i].CreationHeight,
+				heightAndTimes[i].CompletionTime,
+				delAmt,
 			)
 		}
 		valIndex := rand.Intn(len(validators))
-		ubdelegations = append(ubdelegations, stakingtypes.UnbondingDelegation{
+		ubdelegations[i] = stakingtypes.UnbondingDelegation{
 			DelegatorAddress: ubdel.String(),
 			ValidatorAddress: validators[valIndex].OperatorAddress,
 			Entries:          entries,
-		})
+		}
 	}
 
 	return ubdelegations, validators
@@ -208,38 +207,35 @@ func GenerateRandomRedelegationsFromValidator(
 	}
 
 	// Generate redelegations.
-	var redelegations []stakingtypes.Redelegation
-	var delegations []stakingtypes.Delegation
+	redelegations := make([]stakingtypes.Redelegation, len(redelegators))
+	delegations := make([]stakingtypes.Delegation, len(redelegators))
 	dstVals := dstValidators
-	for _, del := range redelegators {
+	for i, del := range redelegators {
 		// Generate entries.
-		var entries []stakingtypes.RedelegationEntry
+		entries := make([]stakingtypes.RedelegationEntry, nentries)
 		tokensToAdd := sdk.ZeroInt()
 		for i := 0; i < nentries; i++ {
-			entries = append(entries,
-				stakingtypes.NewRedelegationEntry(
-					heightAndTimes[i].CreationHeight,
-					heightAndTimes[i].CompletionTime,
-					redelAmt,
-					sdk.NewDecFromInt(redelAmt),
-				),
+			entries[i] = stakingtypes.NewRedelegationEntry(
+				heightAndTimes[i].CreationHeight,
+				heightAndTimes[i].CompletionTime,
+				redelAmt,
+				sdk.NewDecFromInt(redelAmt),
 			)
 			tokensToAdd = tokensToAdd.Add(redelAmt)
 		}
 		// Generate redelegation.
 		valIndex := rand.Intn(len(dstVals))
-		redelegations = append(redelegations, stakingtypes.Redelegation{
+		redelegations[i] = stakingtypes.Redelegation{
 			DelegatorAddress:    del.String(),
 			ValidatorSrcAddress: srcValidator.OperatorAddress,
 			ValidatorDstAddress: dstVals[valIndex].OperatorAddress,
 			Entries:             entries,
-		},
-		)
-		delegations = append(delegations, stakingtypes.Delegation{
+		}
+		delegations[i] = stakingtypes.Delegation{
 			DelegatorAddress: del.String(),
 			ValidatorAddress: dstVals[valIndex].OperatorAddress,
 			Shares:           sdk.NewDecFromInt(tokensToAdd),
-		})
+		}
 
 		// Update destination validator.
 		dstVals[valIndex].DelegatorShares = dstVals[valIndex].DelegatorShares.Add(sdk.NewDecFromInt(tokensToAdd))

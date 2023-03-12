@@ -75,12 +75,12 @@ func MakeTestApp(
 
 	// Create validators from validator addresses and consensus keys.
 	pks := GenerateNConsensusPubKeys(len(valAddrs))
-	validators := make([]stakingtypes.Validator, len(valAddrs))
-	valDelegations := make([]stakingtypes.Delegation, len(valAddrs))
+	var validators []stakingtypes.Validator
+	var valDelegations []stakingtypes.Delegation
 	for i, valAddr := range valAddrs {
 		val, valDel := GenerateValidator(valAddr, pks[i])
-		valDelegations[i] = valDel
-		validators[i] = val
+		valDelegations = append(valDelegations, valDel)
+		validators = append(validators, val)
 	}
 
 	extractValidators := func(validators []stakingtypes.Validator, indexes []int64) []stakingtypes.Validator {
