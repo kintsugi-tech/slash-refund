@@ -47,7 +47,13 @@ func SetupMsgServerTest() (
 
 	balances = append(balances, depBalances...)
 
-	app, ctx := testsuite.CreateTestApp(delAccs, valAccs, balances, false)
+	testInputs := testsuite.TestInputs{
+		DelAddrs: delAccs,
+		ValAddrs: valAccs,
+		Balances: balances,
+	}
+
+	app, ctx := testsuite.CreateTestApp(testInputs, false)
 
 	return app, ctx, delAccs, valAccs, depAccs
 }

@@ -21,14 +21,14 @@ var (
 	queryDelAddrs = 2
 	queryValAddrs = 2
 	queryDepAddrs = 2
-	depToken = types.DefaultAllowedTokens[0]
+	depToken      = types.DefaultAllowedTokens[0]
 )
 
 func SetupQueryServerTest() (
-	*app.App, 
+	*app.App,
 	sdk.Context,
 	types.QueryServer,
-	[]sdk.AccAddress, 
+	[]sdk.AccAddress,
 	[]sdk.ValAddress,
 	[]sdk.AccAddress,
 ) {
@@ -49,7 +49,13 @@ func SetupQueryServerTest() (
 
 	balances = append(balances, depBalances...)
 
-	app, ctx := testsuite.CreateTestApp(delAccs, valAccs, balances, false)
+	testInputs := testsuite.TestInputs{
+		DelAddrs: delAccs,
+		ValAddrs: valAccs,
+		Balances: balances,
+	}
+
+	app, ctx := testsuite.CreateTestApp(testInputs, false)
 	qs := keeper.NewQueryServerImpl(app.SlashrefundKeeper)
 
 	return app, ctx, qs, delAccs, valAccs, depAccs
@@ -59,7 +65,7 @@ func SetupQueryServerTest() (
 // Params
 // -------------------------------------------------------------------------------------------------
 func TestQueryParams(t *testing.T) {
-	app, ctx, qs,  _, _, _ := SetupQueryServerTest()
+	app, ctx, qs, _, _, _ := SetupQueryServerTest()
 	wctx := sdk.WrapSDKContext(ctx)
 
 	params := types.DefaultParams()
@@ -74,7 +80,7 @@ func TestQueryParams(t *testing.T) {
 // Test Deposit
 // -------------------------------------------------------------------------------------------------
 func TestDepositQuerySingle(t *testing.T) {
-	app, ctx, qs,  _, validators, depositors := SetupQueryServerTest()
+	app, ctx, qs, _, validators, depositors := SetupQueryServerTest()
 	wctx := sdk.WrapSDKContext(ctx)
 
 	dep1 := types.NewDeposit(depositors[0], validators[0], sdk.NewDec(100))
@@ -133,7 +139,7 @@ func TestDepositQuerySingle(t *testing.T) {
 }
 
 func TestDepositQueryPaginated(t *testing.T) {
-	app, ctx, qs,  _, _, _ := SetupQueryServerTest()
+	app, ctx, qs, _, _, _ := SetupQueryServerTest()
 	wctx := sdk.WrapSDKContext(ctx)
 
 	deposits := testslashrefund.CreateNDeposit(&app.SlashrefundKeeper, ctx, 5)
@@ -185,18 +191,18 @@ func TestDepositQueryPaginated(t *testing.T) {
 // Test DepositPool
 // -------------------------------------------------------------------------------------------------
 func TestDepositPoolQuerySingle(t *testing.T) {
-	app, ctx, qs,  _, validators, depositors := SetupQueryServerTest()
+	app, ctx, qs, _, validators, depositors := SetupQueryServerTest()
 	wctx := sdk.WrapSDKContext(ctx)
 
 	depPool1 := types.NewDepositPool(
-		validators[0], 
-		sdk.NewCoin(depToken, sdk.NewInt(100)), 
+		validators[0],
+		sdk.NewCoin(depToken, sdk.NewInt(100)),
 		sdk.NewDec(100),
 	)
 	app.SlashrefundKeeper.SetDepositPool(ctx, depPool1)
 
-	depPool2 := types.NewDepositPool(validators[1], 
-		sdk.NewCoin(depToken, sdk.NewInt(200)), 
+	depPool2 := types.NewDepositPool(validators[1],
+		sdk.NewCoin(depToken, sdk.NewInt(200)),
 		sdk.NewDec(200),
 	)
 	app.SlashrefundKeeper.SetDepositPool(ctx, depPool2)
@@ -249,7 +255,7 @@ func TestDepositPoolQuerySingle(t *testing.T) {
 }
 
 func TestDepositPoolQueryPaginated(t *testing.T) {
-	app, ctx, qs,  _, _, _ := SetupQueryServerTest()
+	app, ctx, qs, _, _, _ := SetupQueryServerTest()
 	wctx := sdk.WrapSDKContext(ctx)
 
 	depPools := testslashrefund.CreateNDepositPool(&app.SlashrefundKeeper, ctx, 5)
@@ -295,18 +301,19 @@ func TestDepositPoolQueryPaginated(t *testing.T) {
 		require.ErrorIs(t, err, status.Error(codes.InvalidArgument, "invalid request"))
 	})
 }
+
 // -------------------------------------------------------------------------------------------------
 // Test UnbondingDeposit
 // -------------------------------------------------------------------------------------------------
 func TestUnbondingDepositQuerySingle(t *testing.T) {
-	app, ctx, qs,  _, validators, depositors := SetupQueryServerTest()
+	app, ctx, qs, _, validators, depositors := SetupQueryServerTest()
 	wctx := sdk.WrapSDKContext(ctx)
 
 	ubdep1 := types.NewUnbondingDeposit(
-		depositors[0], 
-		validators[0], 
-		10, 
-		time.Unix(10, 0).UTC(), 
+		depositors[0],
+		validators[0],
+		10,
+		time.Unix(10, 0).UTC(),
 		sdk.NewInt(100),
 	)
 	entry2 := types.NewUnbondingDepositEntry(20, time.Unix(20, 0).UTC(), sdk.NewInt(200))
@@ -314,10 +321,10 @@ func TestUnbondingDepositQuerySingle(t *testing.T) {
 	app.SlashrefundKeeper.SetUnbondingDeposit(ctx, ubdep1)
 
 	ubdep2 := types.NewUnbondingDeposit(
-		depositors[1], 
-		validators[0], 
-		0, 
-		time.Unix(30, 0).UTC(), 
+		depositors[1],
+		validators[0],
+		0,
+		time.Unix(30, 0).UTC(),
 		sdk.NewInt(300),
 	)
 	entry2 = types.NewUnbondingDepositEntry(40, time.Unix(40, 0).UTC(), sdk.NewInt(400))
