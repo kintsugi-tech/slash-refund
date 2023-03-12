@@ -19,7 +19,7 @@ import (
 )
 
 func BenchmarkHandleRefundFromSlash(b *testing.B) {
-	benchmarkHandleRefundFromSlash(b, 200, 100, 100)
+	benchmarkHandleRefundFromSlash(b, 1, 1, 1)
 }
 
 type BenchmarkTestSetup struct {

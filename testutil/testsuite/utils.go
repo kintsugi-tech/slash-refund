@@ -95,16 +95,18 @@ func GenerateRandomDelegations(
 	validators []stakingtypes.Validator,
 ) ([]stakingtypes.Delegation, []stakingtypes.Validator) {
 
+	delAmt := bondAmt.Mul(delegationMultiplier)
+
 	delegations := make([]stakingtypes.Delegation, len(delegators))
-	for i, del := range delegators {
+	for _, del := range delegators {
 		valIndex := rand.Intn(len(validators))
-		delegations[i] = stakingtypes.Delegation{
+		delegations = append(delegations, stakingtypes.Delegation{
 			DelegatorAddress: del.String(),
 			ValidatorAddress: validators[valIndex].OperatorAddress,
-			Shares:           sdk.NewDecFromInt(bondAmt).Mul(delegationMultiplier),
-		}
-		validators[valIndex].DelegatorShares = validators[valIndex].
-			DelegatorShares.Add(sdk.NewDecFromInt(bondAmt).Mul(delegationMultiplier))
+			Shares:           sdk.NewDecFromInt(delAmt),
+		})
+		validators[valIndex].DelegatorShares = validators[valIndex].DelegatorShares.Add(sdk.NewDecFromInt(delAmt))
+		validators[valIndex].Tokens = validators[valIndex].Tokens.Add(delAmt)
 	}
 
 	return delegations, validators
@@ -144,30 +146,6 @@ func GenerateValidator(
 	return val, del
 }
 
-// GenerateRandomDelegations generates random delegations given a set of delegators and validators.
-// All delegations are equal to 3 times the tokens required for a unit of voting power.
-func GenerateRandomDelegations(
-	delegators []sdk.AccAddress,
-	validators []stakingtypes.Validator,
-) ([]stakingtypes.Delegation, []stakingtypes.Validator) {
-
-	delAmt := bondAmt.Mul(delegationMultiplier)
-
-	var delegations []stakingtypes.Delegation
-	for _, del := range delegators {
-		valIndex := rand.Intn(len(validators))
-		delegations = append(delegations, stakingtypes.Delegation{
-			DelegatorAddress: del.String(),
-			ValidatorAddress: validators[valIndex].OperatorAddress,
-			Shares:           sdk.NewDecFromInt(delAmt),
-		})
-		validators[valIndex].DelegatorShares = validators[valIndex].DelegatorShares.Add(sdk.NewDecFromInt(delAmt))
-		validators[valIndex].Tokens = validators[valIndex].Tokens.Add(delAmt)
-	}
-
-	return delegations, validators
-}
-
 // Generates random delegations given a set of delegators and validators.
 // All delegations are equal to 3 times the tokens required for a unit of voting power.
 func GenerateRandomUnbondingDelegations(
@@ -195,7 +173,6 @@ func GenerateRandomUnbondingDelegations(
 				),
 			)
 		}
-
 		valIndex := rand.Intn(len(validators))
 		ubdelegations = append(ubdelegations, stakingtypes.UnbondingDelegation{
 			DelegatorAddress: ubdel.String(),
@@ -309,28 +286,3 @@ func GenerateRandomRedelegations(
 
 	return redelegations, delegations, updated
 }
-
-/*
-	// Check if srcValidator is contained in dstValidators and if it is then remove it.
-	var index int
-	var found bool
-	var dstVals []stakingtypes.Validator
-	for i, dstVal := range dstValidators {
-		if dstVal == srcValidator {
-			index = i
-			found = true
-		}
-	}
-	if found {
-		dstVals = append(dstValidators[:index], dstValidators[index+1:]...)
-
-	} else {
-		dstVals = dstValidators
-	}
-
-	// Re-insert srcVal if it was found among dstVals
-	if found {
-		dstVals = append(dstVals[:index], srcValidator)
-		dstVals = append(dstVals, dstVals[index+1:]...)
-	}
-*/

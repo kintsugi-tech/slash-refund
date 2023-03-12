@@ -200,7 +200,6 @@ func CustomGenesisState(
 	// Add genesis accounts tokens to total supply.
 	for _, b := range balances {
 		balancesSupply = balancesSupply.Add(b.Coins...)
-		//totalSupply = totalSupply.Add(b.Coins...)
 	}
 
 	// Add delegated tokens to total supply and bonded supply.
@@ -209,14 +208,12 @@ func CustomGenesisState(
 		// At this stage TruncateInt is safe since shares are always integer.
 		// Since no slash occurred, shares and tokens are in 1:1 ratio.
 		bondedSupply = bondedSupply.AddAmount(del.Shares.TruncateInt())
-		//totalSupply = totalSupply.Add(sdk.NewCoin(sdk.DefaultBondDenom, valDel.Shares.TruncateInt()))
 	}
 
 	// Add unbonding tokens to total supply and not-bonded supply.
 	for _, ubdel := range ubdelegations {
 		for _, e := range ubdel.Entries {
 			notbondedSupply = notbondedSupply.AddAmount(e.InitialBalance)
-			//totalSupply = totalSupply.Add(sdk.NewCoin(sdk.DefaultBondDenom, e.InitialBalance))
 		}
 	}
 
