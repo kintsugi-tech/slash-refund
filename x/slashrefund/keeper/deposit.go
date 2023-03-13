@@ -55,9 +55,9 @@ func (k Keeper) Deposit(
 
 	// Send deposited tokens to the slashrefund module.
 	if err := k.bankKeeper.SendCoinsFromAccountToModule(
-		ctx, 
-		depAddr, 
-		types.ModuleName, 
+		ctx,
+		depAddr,
+		types.ModuleName,
 		sdk.NewCoins(depCoin),
 	); err != nil {
 		return sdk.Dec{}, err
@@ -74,8 +74,8 @@ func (k Keeper) Deposit(
 
 // GetDeposit returns a deposit from its indices: depAddr & valAddr
 func (k Keeper) GetDeposit(
-	ctx sdk.Context, 
-	depAddr sdk.AccAddress, 
+	ctx sdk.Context,
+	depAddr sdk.AccAddress,
 	valAddr sdk.ValAddress,
 ) (deposit types.Deposit, found bool) {
 
@@ -97,7 +97,7 @@ func (k Keeper) SetDeposit(ctx sdk.Context, deposit types.Deposit) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.DepositKeyPrefix))
 	b := k.cdc.MustMarshal(&deposit)
 	store.Set(types.DepositKey(
-		sdk.MustAccAddressFromBech32(deposit.DepositorAddress), 
+		sdk.MustAccAddressFromBech32(deposit.DepositorAddress),
 		deposit.MustGetValidatorAddr(),
 	), b)
 }
@@ -131,15 +131,23 @@ func (k Keeper) GetAllDeposit(ctx sdk.Context) (list []types.Deposit) {
 
 // GetDeposits returns all deposits of a specific validator
 func (k Keeper) GetValidatorDeposits(
-	ctx sdk.Context, 
+	ctx sdk.Context,
 	valAddr sdk.ValAddress,
 ) (deposits []types.Deposit) {
 
-	for _, deposit := range k.GetAllDeposit(ctx) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.DepositKeyPrefix))
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		var deposit types.Deposit
+		k.cdc.MustUnmarshal(iterator.Value(), &deposit)
 		if deposit.ValidatorAddress == valAddr.String() {
 			deposits = append(deposits, deposit)
 		}
 	}
+
 	return deposits
 }
 
@@ -202,7 +210,7 @@ func (k Keeper) GetAllDepositPool(ctx sdk.Context) (list []types.DepositPool) {
 	return
 }
 
-// AddDepPoolTokensAndShares adds the tokens and associated shares to the pool balance given a pool 
+// AddDepPoolTokensAndShares adds the tokens and associated shares to the pool balance given a pool
 // and an amount of tokens.
 func (k Keeper) AddDepPoolTokensAndShares(
 	ctx sdk.Context,
@@ -215,7 +223,9 @@ func (k Keeper) AddDepPoolTokensAndShares(
 		issuedShares = sdk.NewDecFromInt(tokensToAdd.Amount)
 	} else {
 		shares, err := depositPool.SharesFromTokens(tokensToAdd)
-		if err != nil { panic(err) }
+		if err != nil {
+			panic(err)
+		}
 		issuedShares = shares
 	}
 

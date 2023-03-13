@@ -26,6 +26,13 @@ type HeigthAndTime struct {
 	CompletionTime time.Time
 }
 
+func NewHeightAndTime(creationHeight int64, completionTime time.Time) HeigthAndTime {
+	return HeigthAndTime{
+		CreationHeight: creationHeight,
+		CompletionTime: completionTime,
+	}
+}
+
 // GenerateBalances returns a bank type balance structure list with a fixed amount of tokens
 // assigned to addresses.
 func GenerateBalances(addresses []sdk.AccAddress) []banktypes.Balance {

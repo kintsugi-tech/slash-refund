@@ -651,6 +651,22 @@ func (k Keeper) GetAllRefund(ctx sdk.Context) (list []types.Refund) {
 	return
 }
 
+func (k Keeper) GetValidatorRefunds(ctx sdk.Context, valAddr sdk.ValAddress) (refunds []types.Refund) { //nolint:interfacer
+
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RefundKeyPrefix))
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		var refund types.Refund
+		k.cdc.MustUnmarshal(iterator.Value(), &refund)
+		if refund.ValidatorAddress == valAddr.String() {
+			refunds = append(refunds, refund)
+		}
+	}
+	return refunds
+}
+
 // -------------------------------------------------------------------------------------------------
 // Refund pool
 // -------------------------------------------------------------------------------------------------

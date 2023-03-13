@@ -5,8 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -18,22 +16,45 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func BenchmarkHandleRefundFromSlash(b *testing.B) {
-	benchmarkHandleRefundFromSlash(b, 1, 1, 1)
+func BenchmarkHandleRefundFromSlash100(b *testing.B) {
+	benchmarkHandleRefundFromSlash(b, 100, 100, 100)
 }
 
-type BenchmarkTestSetup struct {
-	app      *app.App
-	ctx      sdk.Context
-	delAddrs []sdk.AccAddress
-	valAddrs []sdk.ValAddress
-	depAddrs []sdk.AccAddress
+func BenchmarkHandleRefundFromSlash200(b *testing.B) {
+	benchmarkHandleRefundFromSlash(b, 200, 200, 200)
+}
+
+func BenchmarkHandleRefundFromSlash500(b *testing.B) {
+	benchmarkHandleRefundFromSlash(b, 500, 500, 500)
+}
+
+func BenchmarkHandleRefundFromSlash1000(b *testing.B) {
+	benchmarkHandleRefundFromSlash(b, 1000, 1000, 1000)
+}
+
+func BenchmarkHandleRefundFromSlash2000(b *testing.B) {
+	benchmarkHandleRefundFromSlash(b, 2000, 2000, 2000)
+}
+
+func BenchmarkHandleRefundFromSlash4000(b *testing.B) {
+	benchmarkHandleRefundFromSlash(b, 4000, 4000, 4000)
+}
+
+type BenchmarkTestInputs struct {
+	app        *app.App
+	ctx        sdk.Context
+	delAddrs   []sdk.AccAddress
+	valAddrs   []sdk.ValAddress
+	redelAddrs []sdk.AccAddress
+	ubdelAddrs []sdk.AccAddress
+	depAddrs   []sdk.AccAddress
 
 	deposits          []types.Deposit
 	unbondingDeposits []types.UnbondingDeposit
+	depositPool       types.DepositPool
 
 	delegations          []stakingtypes.Delegation
-	UnbondingDelegations []stakingtypes.UnbondingDelegation
+	unbondingDelegations []stakingtypes.UnbondingDelegation
 	redelegations        []stakingtypes.Redelegation
 
 	infractionHeight int64
@@ -43,82 +64,56 @@ type BenchmarkTestSetup struct {
 }
 
 func benchmarkHandleRefundFromSlash(b *testing.B, numDelAddrs, numRedelAddrs, numUbdelAddrs int) {
-	//b.ReportAllocs()
+	// Generate test inputs.
+	// Account for all redelegations' and unbonding delegations' entries:
+	//
+	//   creationHeight > infractionHeight && slashTime < completionTime
+	//
+	// creationHeight is set to 15 in redelegations' and unbonding delegations'
+	// entries.
+	// completionTime is set to time.Now() plus 1 to 7 hours.
+	infractionHeight := 10
+	creationHeight := infractionHeight + 2
+	slashingTime := time.Now()
+	slashingHeight := creationHeight + 2
+	s, err := SetupBenchmarkTest(numDelAddrs, numRedelAddrs, numUbdelAddrs, int64(creationHeight), slashingTime)
+	require.NoError(b, err)
+	k := s.app.SlashrefundKeeper
+	ctx := s.ctx.WithBlockHeight(int64(slashingHeight)).WithBlockTime(slashingTime)
+
 	for i := 0; i < b.N; i++ {
-		// Generate test inputs.
-		// Account for all redelegations' and unbonding delegations' entries:
-		//
-		//   creationHeight > infractionHeight && slashTime < completionTime
-		//
-		// creationHeight is set to 15 in redelegations' and unbonding delegations'
-		// entries.
-		// completionTime is set to time.Now() plus 1 to 7 hours.
-		infractionHeight := 10
-		creationHeight := infractionHeight + 2
-		slashingTime := time.Now()
-		slashingHeight := creationHeight + 2
-		s, err := SetupBenchmarkTest(numDelAddrs, numRedelAddrs, numUbdelAddrs, int64(creationHeight), slashingTime)
-		require.NoError(b, err)
 
-		valAddrs := s.valAddrs
-		depAddrs := s.depAddrs
-		app := s.app
-		ctx := s.ctx
-		valAddr := valAddrs[0]
-		validator, found := app.StakingKeeper.GetValidator(ctx, valAddr)
-		require.True(b, found)
-		consAddr, err := validator.GetConsAddr()
-		require.NoError(b, err)
-		consPower := validator.ConsensusPower(sdk.DefaultPowerReduction)
-		slashFactor := app.SlashingKeeper.SlashFractionDowntime(ctx)
-		valBurnedTokens := slashFactor.MulInt(app.StakingKeeper.TokensFromConsensusPower(ctx, consPower)).TruncateInt()
-		slashEventDT := sdk.NewEvent(
-			slashingtypes.EventTypeSlash,
-			sdk.NewAttribute(slashingtypes.AttributeKeyAddress, consAddr.String()),
-			sdk.NewAttribute(slashingtypes.AttributeKeyPower, fmt.Sprintf("%d", consPower)),
-			sdk.NewAttribute(slashingtypes.AttributeKeyReason, slashingtypes.AttributeValueMissingSignature),
-			sdk.NewAttribute(slashingtypes.AttributeKeyJailed, consAddr.String()),
-			sdk.NewAttribute(slashingtypes.AttributeKeyBurnedCoins, valBurnedTokens.String()),
-			sdk.NewAttribute(slashingtypes.AttributeKeyInfractionHeight, fmt.Sprintf("%d", infractionHeight)),
-		)
+		k.SetDeposit(ctx, s.deposits[0])
+		k.SetDepositPool(ctx, s.depositPool)
 
-		// Generate deposit.
-		depCoin := sdk.NewCoin(app.SlashrefundKeeper.AllowedTokens(ctx)[0], valBurnedTokens)
-		res, err := app.SlashrefundKeeper.Deposit(ctx, depAddrs[0], depCoin, validator)
-		require.NoError(b, err)
-		require.NotNil(b, res)
-
-		// Set block height.
-		ctx = ctx.WithBlockHeight(int64(slashingHeight))
-		ctx = ctx.WithBlockTime(slashingTime)
+		// Run HandleRefundsFromSlash.
 		if i == 0 {
 			b.ResetTimer()
 		}
-
-		// Run HandleRefundsFromSlash.
 		b.StartTimer()
-		app.SlashrefundKeeper.HandleRefundsFromSlash(ctx, slashEventDT)
+		s.app.SlashrefundKeeper.HandleRefundsFromSlash(ctx, s.slashEvent)
 		b.StopTimer()
 
-		// Check HandleRefundsFromSlash execution.
-		valAddrE, refAmount := processEvents(b, ctx)
-		require.Equal(b, valAddr, valAddrE)
-		require.Equal(b, valBurnedTokens, refAmount)
-	}
+		// Remove refunds and refunds pool
+		refunds := s.app.SlashrefundKeeper.GetValidatorRefunds(ctx, s.valAddrs[0])
+		require.Greater(b, len(refunds), 0)
+		for _, ref := range refunds {
+			k.RemoveRefund(ctx, ref)
+		}
+		k.RemoveRefundPool(ctx, s.valAddrs[0])
 
-}
-
-func makeRandomAddressesAndPublicKeys(n int) (accL []sdk.ValAddress, pkL []*ed25519.PubKey) {
-	for i := 0; i < n; i++ {
-		pk := ed25519.GenPrivKey().PubKey().(*ed25519.PubKey)
-		pkL = append(pkL, pk)
-		accL = append(accL, sdk.ValAddress(pk.Address()))
+		// Remove deposits and deposit pool
+		//numDepAddrs := 1
+		deposits := k.GetValidatorDeposits(ctx, s.valAddrs[0])
+		for _, dep := range deposits {
+			k.RemoveDeposit(ctx, dep)
+		}
+		k.RemoveDepositPool(ctx, s.valAddrs[0])
 	}
-	return accL, pkL
 }
 
 func SetupBenchmarkTest(numDelAddrs, numRedelAddrs, numUbdelAddrs int, creationHeight int64, slashingTime time.Time) (
-	s BenchmarkTestSetup,
+	s BenchmarkTestInputs,
 	err error,
 ) {
 
@@ -151,22 +146,15 @@ func SetupBenchmarkTest(numDelAddrs, numRedelAddrs, numUbdelAddrs int, creationH
 
 	balances = append(append(append(balances, depBalances...), redBalances...), ubdBalances...)
 
-	newHeightAndTime := func(creationHeight int64, completionTime time.Time) testsuite.HeigthAndTime {
-		return testsuite.HeigthAndTime{
-			CreationHeight: creationHeight,
-			CompletionTime: completionTime,
-		}
-	}
-
 	// Same height, different completion time in order to make entries unique.
 	heightAndTimes := []testsuite.HeigthAndTime{
-		newHeightAndTime(creationHeight, slashingTime.Add(time.Hour*time.Duration(1))),
-		newHeightAndTime(creationHeight, slashingTime.Add(time.Hour*time.Duration(2))),
-		newHeightAndTime(creationHeight, slashingTime.Add(time.Hour*time.Duration(3))),
-		newHeightAndTime(creationHeight, slashingTime.Add(time.Hour*time.Duration(4))),
-		newHeightAndTime(creationHeight, slashingTime.Add(time.Hour*time.Duration(5))),
-		newHeightAndTime(creationHeight, slashingTime.Add(time.Hour*time.Duration(6))),
-		newHeightAndTime(creationHeight, slashingTime.Add(time.Hour*time.Duration(7))),
+		testsuite.NewHeightAndTime(creationHeight, slashingTime.Add(time.Hour*time.Duration(1))),
+		testsuite.NewHeightAndTime(creationHeight, slashingTime.Add(time.Hour*time.Duration(2))),
+		testsuite.NewHeightAndTime(creationHeight, slashingTime.Add(time.Hour*time.Duration(3))),
+		testsuite.NewHeightAndTime(creationHeight, slashingTime.Add(time.Hour*time.Duration(4))),
+		testsuite.NewHeightAndTime(creationHeight, slashingTime.Add(time.Hour*time.Duration(5))),
+		testsuite.NewHeightAndTime(creationHeight, slashingTime.Add(time.Hour*time.Duration(6))),
+		testsuite.NewHeightAndTime(creationHeight, slashingTime.Add(time.Hour*time.Duration(7))),
 	}
 
 	testInputs := testsuite.TestInputs{}
@@ -183,8 +171,7 @@ func SetupBenchmarkTest(numDelAddrs, numRedelAddrs, numUbdelAddrs int, creationH
 	app, ctx := testsuite.CreateTestApp(testInputs, false)
 
 	// Get validator and validator consensus address.
-	valAddr := valAddrs[0]
-	validator, found := app.StakingKeeper.GetValidator(ctx, valAddr)
+	validator, found := app.StakingKeeper.GetValidator(ctx, valAddrs[0])
 	if !found {
 		return s, stakingtypes.ErrNoValidatorFound
 	}
@@ -208,43 +195,21 @@ func SetupBenchmarkTest(numDelAddrs, numRedelAddrs, numUbdelAddrs int, creationH
 		sdk.NewAttribute(slashingtypes.AttributeKeyInfractionHeight, fmt.Sprintf("%d", infractionHeight)),
 	)
 
+	depAmt := valBurnedTokens.MulRaw(1)
+	depCoin := sdk.NewCoin(app.SlashrefundKeeper.AllowedTokens(ctx)[0], depAmt)
+
 	s.app = app
 	s.ctx = ctx
 	s.delAddrs = delAddrs
 	s.valAddrs = valAddrs
+	s.redelAddrs = redAddrs
+	s.ubdelAddrs = ubdAddrs
 	s.depAddrs = depAddrs
 	s.slashEvent = slashEventDT
+	s.deposits = []types.Deposit{
+		types.NewDeposit(depAddrs[0], valAddrs[0], sdk.NewDecFromInt(depAmt)),
+	}
+	s.depositPool = types.NewDepositPool(valAddrs[0], depCoin, sdk.NewDecFromInt(depAmt))
 
 	return s, nil
-}
-
-func processEvents(tb testing.TB, ctx sdk.Context) (valAddr sdk.ValAddress, amount sdk.Int) {
-
-	var slashEvents []sdk.Event
-
-	events := ctx.EventManager().Events()
-
-	for _, event := range events {
-		if event.Type == types.EventTypeRefund {
-			slashEvents = append(slashEvents, event)
-		}
-	}
-	require.Equal(tb, 1, len(slashEvents), fmt.Sprintf("expected one refund event, got: %d", len(slashEvents)))
-
-	valAddr = sdk.ValAddress{}
-	amount = sdk.ZeroInt()
-
-	for _, attr := range slashEvents[0].Attributes {
-		switch string(attr.GetKey()) {
-		case "validator":
-			valAddrE, err := sdk.ValAddressFromBech32(string(attr.GetValue()))
-			require.NoError(tb, err)
-			valAddr = valAddrE
-		case "amount":
-			amountE, ok := sdk.NewIntFromString(string(attr.GetValue()))
-			require.True(tb, ok)
-			amount = amountE
-		}
-	}
-	return valAddr, amount
 }
