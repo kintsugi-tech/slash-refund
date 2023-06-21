@@ -109,9 +109,6 @@ import (
 	ibchost "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 	ibckeeper "github.com/cosmos/ibc-go/v5/modules/core/keeper"
 
-	// Ignite
-	"github.com/ignite/cli/ignite/pkg/openapiconsole"
-
 	// Slash refund module
 	"github.com/made-in-block/slash-refund/docs"
 	slashrefundmodule "github.com/made-in-block/slash-refund/x/slashrefund"
@@ -880,7 +877,6 @@ func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig
 
 	// register app's OpenAPI routes.
 	apiSvr.Router.Handle("/static/openapi.yml", http.FileServer(http.FS(docs.Docs)))
-	apiSvr.Router.HandleFunc("/", openapiconsole.Handler(Name, "/static/openapi.yml"))
 }
 
 // RegisterTxService implements the Application.RegisterTxService method.

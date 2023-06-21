@@ -10,7 +10,6 @@ require (
 	github.com/gogo/protobuf v1.3.3
 	github.com/golang/protobuf v1.5.3
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
-	github.com/ignite/cli v0.24.0
 	github.com/spf13/cast v1.5.0
 	github.com/spf13/cobra v1.6.0
 	github.com/stretchr/testify v1.8.1
@@ -157,9 +156,9 @@ require (
 )
 
 replace (
-	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 
 	// The made-in-block fork of the SDK introdcuces the infraction height as a slash event info in
 	// the emitted event.
 	github.com/cosmos/cosmos-sdk v0.46.1 => github.com/made-in-block/cosmos-sdk v0.46.8-infraction-height
+	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 )
